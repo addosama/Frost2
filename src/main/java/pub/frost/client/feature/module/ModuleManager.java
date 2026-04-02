@@ -4,6 +4,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.movement.Sprint;
+import pub.frost.client.feature.module.impl.visual.HUD;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -15,7 +16,8 @@ public class ModuleManager {
 
     public void registerModules() {
         register(
-                new Sprint()
+                new Sprint(),
+                new HUD()
         );
         getRegisteredModules().forEach(
                 module -> module.setEnabled(module.getClass().getAnnotation(Module.class).defaultState())
