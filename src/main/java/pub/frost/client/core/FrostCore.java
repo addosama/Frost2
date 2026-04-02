@@ -5,6 +5,7 @@ import pub.frost.base.event.api.EventBus;
 import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.i18n.Localizer;
+import pub.frost.wrappers.WrapperManager;
 
 @Getter
 public final class FrostCore {
@@ -24,6 +25,8 @@ public final class FrostCore {
         return getInstance().getI18nHelper().getCurrentLocalizer();
     }
 
+    private WrapperManager wrapperManager;
+
     private I18n i18nHelper;
     private EventBus eventBus;
     private ModuleManager moduleManager;
@@ -33,6 +36,8 @@ public final class FrostCore {
     }
 
     public void initClient() {
+        wrapperManager = new WrapperManager();
+
         i18nHelper = new I18n();
         i18nHelper.loadLanguages();
 

@@ -3,6 +3,7 @@ package pub.frost.base.wrapping;
 import lombok.Getter;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import static java.lang.invoke.MethodHandles.Lookup.*;
@@ -19,7 +20,9 @@ public abstract class AbstractWrapper {
 
     private static MethodHandles.Lookup createLookup(Class<?> targetClass) {
         try {
-            return MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class).newInstance(
+            Constructor<MethodHandles.Lookup> constructor = MethodHandles.Lookup.class.getDeclaredConstructor(Class.class, int.class);
+            constructor.setAccessible(true);
+            return constructor.newInstance(
                     targetClass, PUBLIC | PACKAGE | PROTECTED | PRIVATE
             );
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

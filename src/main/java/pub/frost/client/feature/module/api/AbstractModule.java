@@ -6,6 +6,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.BooleanProperty;
+import pub.frost.wrappers.shared.client.WMinecraft;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,8 @@ public class AbstractModule {
 
     public final BooleanProperty enabled = new BooleanProperty(false);
 
+    protected final WMinecraft.Instance mc;
+
     public AbstractModule() {
         Module annotation = this.getClass().getAnnotation(Module.class);
         if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
@@ -29,6 +32,8 @@ public class AbstractModule {
         this.nameSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".name");
         this.descriptionSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".description");
         this.category = annotation.category();
+
+        this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
 
         enabled.setValueChangeListener((old, current) -> {
             if (current) {
