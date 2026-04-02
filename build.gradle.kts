@@ -82,6 +82,10 @@ dependencies {
     // If you don't want to log in with your real minecraft account, remove this line
     runtimeOnly("me.djtheredstoner:DevAuth-forge-legacy:1.2.1")
 
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+
+    shadowImpl("org.apache.commons:commons-lang3:3.20.0")
 }
 
 // Tasks:
@@ -138,7 +142,9 @@ tasks.shadowJar {
     }
 
     // If you want to include other dependencies and shadow them, you can relocate them in here
-    fun relocate(name: String) = relocate(name, "$baseGroup.deps.$name")
+    fun relocate(name: String) = relocate(name, "pub.frost.deps.$name")
+
+    relocate("org.apache")
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)

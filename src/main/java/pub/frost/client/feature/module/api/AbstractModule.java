@@ -1,0 +1,66 @@
+package pub.frost.client.feature.module.api;
+
+import lombok.Getter;
+import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.module.annotations.Module;
+import pub.frost.client.property.AbstractProperty;
+import pub.frost.client.property.descriptor.PropertyDescriptor;
+import pub.frost.client.property.impl.BooleanProperty;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+@Getter
+public class AbstractModule {
+    private final String key;
+    private final Supplier<String> nameSupplier, descriptionSupplier;
+    private final ModuleCategory category;
+
+    private final List<PropertyDescriptor> propertyList = new ArrayList<>();
+
+    public final BooleanProperty enabled = new BooleanProperty(false);
+
+    public AbstractModule() {
+        Module annotation = this.getClass().getAnnotation(Module.class);
+        if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
+
+        this.key = "modules." + annotation.key();
+        this.nameSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".name");
+        this.descriptionSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".description");
+        this.category = annotation.category();
+
+        enabled.setValueChangeListener((old, current) -> {
+            if (current) {
+                onEnabled();
+                FrostCore.getInstance().getEventBus().register(AbstractModule.this);
+            } else {
+                FrostCore.getInstance().getEventBus().unregister(AbstractModule.this);
+                onDisabled();
+            }
+        });
+    }
+
+    protected void onEnabled() {}
+    protected void onDisabled() {}
+
+    public final void registerProperties() {
+        if (FrostCore.DEBUG) assert propertyList.isEmpty();
+        final String propKeyPrefix = "modules." + this.getKey() + ".props.";
+
+        enabled.enableOverriding();
+        enabled.setOverrideDisplayString(this::getName);
+        propertyList.add(new PropertyDescriptor(propKeyPrefix + "enabled", enabled));
+
+        this.propertyList.addAll(AbstractProperty.getPropertyDescriptorsForObject(
+                this, propKeyPrefix, String::toLowerCase
+        ));
+    }
+
+    public final String getName() {
+        return nameSupplier.get();
+    }
+    public final String getDescription() {
+        return descriptionSupplier.get();
+    }
+}
