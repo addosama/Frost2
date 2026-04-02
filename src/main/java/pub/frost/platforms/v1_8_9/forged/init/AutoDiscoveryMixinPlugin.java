@@ -1,4 +1,4 @@
-package com.github.addosama.frost2.init;
+package pub.frost.platforms.v1_8_9.forged.init;
 
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
