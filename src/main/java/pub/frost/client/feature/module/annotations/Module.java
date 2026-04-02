@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 public @interface Module {
     String key();
     ModuleCategory category();
+    boolean defaultState() default false;
 }

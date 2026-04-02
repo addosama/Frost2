@@ -1,7 +1,9 @@
 package pub.frost.client.feature.module;
 
+import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.module.impl.movement.Sprint;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -12,7 +14,12 @@ public class ModuleManager {
     private final Map<Class<? extends AbstractModule>, AbstractModule> moduleMap = new HashMap<>();
 
     public void registerModules() {
-
+        register(
+                new Sprint()
+        );
+        getRegisteredModules().forEach(
+                module -> module.setEnabled(module.getClass().getAnnotation(Module.class).defaultState())
+        );
     }
 
     private void register(AbstractModule... modules) {

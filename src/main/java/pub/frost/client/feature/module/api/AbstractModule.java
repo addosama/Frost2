@@ -46,6 +46,16 @@ public class AbstractModule {
         });
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled.set(enabled);
+    }
+    public boolean isEnabled() {
+        return this.enabled.get();
+    }
+    public void toggle() {
+        setEnabled(!isEnabled());
+    }
+
     protected void onEnabled() {}
     protected void onDisabled() {}
 
