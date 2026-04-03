@@ -19,4 +19,8 @@ public class MathUtils {
     public static BigDecimal roundToStep(BigDecimal value, BigDecimal increasingStep) {
         return BigDecimal.valueOf(value.divide(increasingStep, increasingStep.scale(), RoundingMode.DOWN).intValue()).multiply(increasingStep);
     }
+
+    public static double lerp(double a, double b, float delta) {
+        return a + (b - a) * delta;
+    }
 }

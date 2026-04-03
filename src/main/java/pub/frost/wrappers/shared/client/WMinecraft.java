@@ -5,6 +5,7 @@ import pub.frost.base.wrapping.impl.InstanceWrapper;
 import pub.frost.base.wrapping.impl.StaticWrapper;
 import pub.frost.wrappers.FakeInstanceWrapper;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
+import pub.frost.wrappers.shared.world.WWorld;
 
 public class WMinecraft extends StaticWrapper {
     public WMinecraft() {
@@ -22,6 +23,8 @@ public class WMinecraft extends StaticWrapper {
 
     public class Instance extends InstanceWrapper implements FakeInstanceWrapper<Minecraft> {
         private WEntityLivingBase cachedPlayer;
+        private WWorld cachedWorld;
+
         public Instance(Object wrappedObject) {
             super(wrappedObject);
         }
@@ -31,6 +34,13 @@ public class WMinecraft extends StaticWrapper {
                 cachedPlayer = new WEntityLivingBase(cast().thePlayer);
             }
             return cachedPlayer;
+        }
+
+        public WWorld getWorld() {
+            if (cachedWorld == null || cachedWorld.getWrappedObject().hashCode() != cast().theWorld.hashCode()) {
+                cachedWorld = new WWorld(cast().theWorld);
+            }
+            return cachedWorld;
         }
     }
 }

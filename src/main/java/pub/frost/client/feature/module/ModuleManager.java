@@ -4,6 +4,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.movement.Sprint;
+import pub.frost.client.feature.module.impl.visual.ESP;
 import pub.frost.client.feature.module.impl.visual.HUD;
 
 import java.util.*;
@@ -17,7 +18,8 @@ public class ModuleManager {
     public void registerModules() {
         register(
                 new Sprint(),
-                new HUD()
+                new HUD(),
+                new ESP()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
