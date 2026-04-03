@@ -2,6 +2,7 @@ package pub.frost.client.core;
 
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
+import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.i18n.Localizer;
@@ -29,6 +30,7 @@ public final class FrostCore {
 
     private I18n i18nHelper;
     private EventBus eventBus;
+    private BindableManager bindableManager;
     private ModuleManager moduleManager;
 
     public FrostCore() {
@@ -42,6 +44,8 @@ public final class FrostCore {
         i18nHelper.loadLanguages();
 
         eventBus = new EventBus();
+        bindableManager = new BindableManager();
+        eventBus.register(bindableManager);
         moduleManager = new ModuleManager();
 
         moduleManager.registerModules();
