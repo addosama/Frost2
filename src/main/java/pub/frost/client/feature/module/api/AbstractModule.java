@@ -3,6 +3,8 @@ package pub.frost.client.feature.module.api;
 import lombok.Getter;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
+import pub.frost.client.i18n.interfaces.Described;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.BooleanProperty;
@@ -13,9 +15,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @Getter
-public class AbstractModule {
+public class AbstractModule implements Named, Described {
     private final String key;
-    private final Supplier<String> nameSupplier, descriptionSupplier;
     private final ModuleCategory category;
 
     private final List<PropertyDescriptor> propertyList = new ArrayList<>();
@@ -29,8 +30,6 @@ public class AbstractModule {
         if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
 
         this.key = "modules." + annotation.key();
-        this.nameSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".name");
-        this.descriptionSupplier = () -> FrostCore.getLocalizer().get(this.getKey() + ".description");
         this.category = annotation.category();
 
         this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
@@ -72,10 +71,8 @@ public class AbstractModule {
         ));
     }
 
-    public final String getName() {
-        return nameSupplier.get();
-    }
-    public final String getDescription() {
-        return descriptionSupplier.get();
+    @Override
+    public String toString() {
+        return this.getKey();
     }
 }
