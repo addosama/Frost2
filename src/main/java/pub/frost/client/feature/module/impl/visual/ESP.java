@@ -10,10 +10,13 @@ import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.suppliers.OverrideOnKey;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RenderUtils;
+import pub.frost.wrappers.ClassEnum;
+import pub.frost.wrappers.shared.entity.EntityClasses;
 import pub.frost.wrappers.shared.entity.WEntity;
 
 import javax.vecmath.Matrix4f;
@@ -54,6 +57,7 @@ public class ESP extends AbstractModule {
         int width = (int) ImGui.getIO().getDisplaySizeX();
         int height = (int) ImGui.getIO().getDisplaySizeY();
         for (WEntity entity : cachedEntities) {
+            if (!ClassEnum.isInstanceOf(entity, EntityClasses.EntityPlayer)) continue;
             double lerpedX = MathUtils.lerp(entity.getPrevX(), entity.getX(), tickDelta);
             double lerpedY = MathUtils.lerp(entity.getPrevY(), entity.getY(), tickDelta);
             double lerpedZ = MathUtils.lerp(entity.getPrevZ(), entity.getZ(), tickDelta);
