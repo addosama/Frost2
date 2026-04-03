@@ -19,7 +19,10 @@ public class ModuleManager {
                 new Sprint(),
                 new HUD()
         );
-        getRegisteredModules().forEach(
+        moduleMap.values().forEach(
+                AbstractModule::initialize
+        );
+        moduleMap.values().forEach(
                 module -> module.setEnabled(module.getClass().getAnnotation(Module.class).defaultState())
         );
     }
@@ -27,7 +30,6 @@ public class ModuleManager {
     private void register(AbstractModule... modules) {
         for (AbstractModule module : modules) {
             moduleMap.put(module.getClass(), module);
-            module.registerProperties();
         }
     }
 

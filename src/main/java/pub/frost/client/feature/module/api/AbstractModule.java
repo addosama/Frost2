@@ -12,7 +12,6 @@ import pub.frost.wrappers.shared.client.WMinecraft;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 @Getter
 public class AbstractModule implements Named, Described {
@@ -21,7 +20,7 @@ public class AbstractModule implements Named, Described {
 
     private final List<PropertyDescriptor> propertyList = new ArrayList<>();
 
-    public final BooleanProperty enabled = new BooleanProperty(false);
+    public final BooleanProperty enabledProperty = new BooleanProperty(false);
 
     protected final WMinecraft.Instance mc;
 
@@ -34,7 +33,7 @@ public class AbstractModule implements Named, Described {
 
         this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
 
-        enabled.setValueChangeListener((old, current) -> {
+        enabledProperty.setValueChangeListener((old, current) -> {
             if (current) {
                 onEnabled();
                 FrostCore.getInstance().getEventBus().register(AbstractModule.this);
@@ -46,10 +45,10 @@ public class AbstractModule implements Named, Described {
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled.set(enabled);
+        this.enabledProperty.set(enabled);
     }
     public boolean isEnabled() {
-        return this.enabled.get();
+        return this.enabledProperty.get();
     }
     public void toggle() {
         setEnabled(!isEnabled());
@@ -58,18 +57,25 @@ public class AbstractModule implements Named, Described {
     protected void onEnabled() {}
     protected void onDisabled() {}
 
-    public final void registerProperties() {
+    public final void initialize() {
+        registerProperties();
+        onInitialized();
+    }
+
+    private void registerProperties() {
         if (FrostCore.DEBUG) assert propertyList.isEmpty();
         final String propKeyPrefix = "modules." + this.getKey() + ".props.";
 
-        enabled.enableOverriding();
-        enabled.setOverrideDisplayString(this::getName);
-        propertyList.add(new PropertyDescriptor(propKeyPrefix + "enabled", enabled));
+        enabledProperty.enableOverriding();
+        enabledProperty.setOverrideDisplayString(this::getName);
+        propertyList.add(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty));
 
         this.propertyList.addAll(AbstractProperty.getPropertyDescriptorsForObject(
                 this, propKeyPrefix, String::toLowerCase
         ));
     }
+
+    protected void onInitialized() {}
 
     @Override
     public String toString() {
