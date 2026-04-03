@@ -31,4 +31,13 @@ public class Overriding<T> {
         }
         return value;
     }
+
+    public void register(OverrideData<T> data) {
+        dataList.add(data);
+        data.onRegistered();
+    }
+    public void unregister(OverrideData<T> data) {
+        dataList.remove(data);
+        data.onUnregistered();
+    }
 }

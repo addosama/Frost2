@@ -1,29 +1,28 @@
 package pub.frost.client.property.overriding;
 
+import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.apache.commons.lang3.mutable.MutableObject;
-
-import java.util.function.Supplier;
+import pub.frost.client.property.overriding.suppliers.OverrideSupplier;
 
 public class OverrideData<T> {
-    @Setter
-    private Supplier<Boolean> applySupplier;
-    private final Mutable<T> value;
+    @Getter
+    private final OverrideSupplier applySupplier;
+    @Setter @Getter
+    private T value;
 
-    public OverrideData(Supplier<Boolean> applySupplier, T defaultValue) {
+    public OverrideData(OverrideSupplier applySupplier, T defaultValue) {
         this.applySupplier = applySupplier;
-        this.value = new MutableObject<>(defaultValue);
+        this.value = defaultValue;
     }
 
     public boolean shouldApply() {
         return applySupplier.get();
     }
 
-    public T getValue() {
-        return value.get();
+    public void onRegistered() {
+        applySupplier.onRegistered();
     }
-    public void setValue(T value) {
-        this.value.setValue(value);
+    public void onUnregistered() {
+        applySupplier.onUnregistered();
     }
 }

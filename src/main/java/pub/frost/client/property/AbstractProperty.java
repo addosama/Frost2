@@ -6,11 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGrouping;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
+import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.Overriding;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -29,6 +31,25 @@ public abstract class AbstractProperty<T> {
     }
     public void setOverrideDisplayString(Supplier<String> displayString) {
         overriding.setDisplayStringSupplier(displayString);
+    }
+
+    private final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
+        data.getApplySupplier().setStateChangeConsumer(state -> {
+            T value = getValue();
+            T overrideValue = data.getValue();
+            if (overrideValue.equals(value)) return;
+            if (state) {
+                valueChangeListener.accept(value, overrideValue);
+            } else valueChangeListener.accept(overrideValue, value);
+        });
+    };
+
+    public void addOverrideData(OverrideData<T> data) {
+        overrideDataProcessor.accept(data);
+        overriding.register(data);
+    }
+    public void removeOverrideData(OverrideData<T> data) {
+        overriding.unregister(data);
     }
 
     public final T get() {
