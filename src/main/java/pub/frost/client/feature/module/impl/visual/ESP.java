@@ -15,9 +15,11 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.suppliers.OverrideOnKey;
+import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.data.EnumTextFormatting;
 import pub.frost.wrappers.ClassEnum;
 import pub.frost.wrappers.shared.entity.EntityClasses;
 import pub.frost.wrappers.shared.entity.WEntity;
@@ -26,6 +28,7 @@ import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3d;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Module(
@@ -68,6 +71,9 @@ public class ESP extends AbstractModule {
             double lerpedZ = MathUtils.lerp(entity.getPrevZ(), entity.getZ(), tickDelta);
             playerPos = new Vector3d(lerpedX, lerpedY, lerpedZ);
         }
+        cachedData.sort(Comparator.comparingDouble(data -> -data.getEntity().distanceTo(
+                playerPos.getX(), playerPos.getY(), playerPos.getZ()
+        )));
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
         for (EntityData data : cachedData) {
             BoundingBox bb = data.getBoundingBox(e.getTickDelta());
@@ -107,7 +113,7 @@ public class ESP extends AbstractModule {
 
             if (boxMinPos != null) {
                 String name = data.getName();
-                float nameWidth = ImGui.calcTextSizeX(name);
+                float nameWidth = ImTextRenderer.getTextWidth(name);
                 ImVec2 boxSize = boxMaxPos.minus(boxMinPos);
                 ImGui.getBackgroundDrawList().addRect(
                         boxMinPos, boxMaxPos,
@@ -121,6 +127,7 @@ public class ESP extends AbstractModule {
                         0,
                         1f
                 );
+                // draw health
                 {
                     float leftHealthPercent = Math.max(Math.min(data.getHealth() - data.getMaxHealth(), 0) / data.getMaxHealth(), -1);;
 
@@ -136,32 +143,14 @@ public class ESP extends AbstractModule {
                             0xFF00FF00
                     );
                 }
+                // draw name
                 {
                     float textX = boxMinPos.x + (boxSize.x - nameWidth) / 2, textY = boxMaxPos.y;
-                    ImGui.getBackgroundDrawList().addText(
-                            textX, textY - 1,
-                            0xFF333333,
-                            name
-                    );
-                    ImGui.getBackgroundDrawList().addText(
-                            textX - 1, textY,
-                            0xFF333333,
-                            name
-                    );
-                    ImGui.getBackgroundDrawList().addText(
-                            textX, textY + 1,
-                            0xFF333333,
-                            name
-                    );
-                    ImGui.getBackgroundDrawList().addText(
-                            textX + 1, textY,
-                            0xFF333333,
-                            name
-                    );
-                    ImGui.getBackgroundDrawList().addText(
+                    ImTextRenderer.drawOutlinedText(
+                            ImGui.getBackgroundDrawList(),
+                            name,
                             textX, textY,
-                            -1,
-                            name
+                            -1, 0xFF000000
                     );
                 }
             }

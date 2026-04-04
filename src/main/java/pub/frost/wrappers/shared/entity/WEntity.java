@@ -74,6 +74,10 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         return cast().getEyeHeight();
     }
 
+    public double distanceTo(double x, double y, double z) {
+        return cast().getDistance(x, y, z);
+    }
+
     public BoundingBox getBoundingBox() {
         double x = getX();
         double y = getY();
