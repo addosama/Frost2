@@ -28,7 +28,7 @@ public class AbstractModule implements Named, Described {
         Module annotation = this.getClass().getAnnotation(Module.class);
         if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
 
-        this.key = "modules." + annotation.key();
+        this.key = "modules." + annotation.key().toLowerCase();
         this.category = annotation.category();
 
         this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();

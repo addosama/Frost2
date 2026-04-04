@@ -10,7 +10,7 @@ public class Localizer {
     }
 
     public String get(String key) {
-        return getOrDefault(key, key);
+        return getOrDefault(key.toLowerCase(), key);
     }
     public String getOrDefault(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
