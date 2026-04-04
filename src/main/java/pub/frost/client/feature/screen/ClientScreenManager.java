@@ -33,6 +33,7 @@ public class ClientScreenManager {
         if (screen != null) setCurrentScreen(screen);
     }
     public void closeCurrentScreen() {
+        if (this.currentScreen == null) return;
         this.currentScreen.onClose();
         this.currentScreen = null;
         FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().grabMouse();
@@ -89,7 +90,7 @@ public class ClientScreenManager {
         );
     }
     public <T extends ClientScreen> T getScreen(Class<T> screenClass) {
-        return getScreen(screenClass, null);
+        return getScreen(screenClass, () -> null);
     }
 
     public void registerScreens() {

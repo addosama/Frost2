@@ -150,6 +150,9 @@ tasks.shadowJar {
     fun relocate(name: String) = relocate(name, "pub.frost.deps.$name")
 
     relocate("org.apache")
+    relocate("javax.vecmath")
+    relocate("imgui")
+    relocate("loutre.imgui")
 }
 
 tasks.assemble.get().dependsOn(tasks.remapJar)

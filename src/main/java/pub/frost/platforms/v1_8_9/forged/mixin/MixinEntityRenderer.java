@@ -22,9 +22,7 @@ public class MixinEntityRenderer {
             )
     )
     public void preRenderHand(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
-        ImGuiContext.draw(
-                () -> FrostCore.getInstance().getEventBus().call(new EventRender3D(partialTicks))
-        );
+        FrostCore.getInstance().getEventBus().call(new EventRender3D(partialTicks));
     }
 
     @Inject(
