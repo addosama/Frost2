@@ -42,5 +42,12 @@ public class WMinecraft extends StaticWrapper {
             }
             return cachedWorld;
         }
+
+        public void grabMouse() {
+            cast().setIngameFocus();
+        }
+        public void ungrabMouse() {
+            cast().setIngameNotInFocus();
+        }
     }
 }

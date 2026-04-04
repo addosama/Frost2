@@ -17,8 +17,9 @@ public class BindableManager {
         bindableMap.remove(bindable.toString());
     }
 
-    @EventHandler(priority = 0)
+    @EventHandler(priority = 5)
     private void handleKeyInput(EventKeyInput event) {
+        if (event.isCancelled()) return;
         for (IBindable bindable : bindableMap.values()) {
             if (bindable.getKeybind() == event.getKey()) {
                 if ((event.getAction() == 0 && !bindable.shouldActiveWhenRelease())) continue;

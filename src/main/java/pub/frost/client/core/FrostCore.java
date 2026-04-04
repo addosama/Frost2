@@ -4,6 +4,7 @@ import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.module.ModuleManager;
+import pub.frost.client.feature.screen.ClientScreenManager;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.i18n.Localizer;
 import pub.frost.wrappers.WrapperManager;
@@ -32,6 +33,7 @@ public final class FrostCore {
     private EventBus eventBus;
     private BindableManager bindableManager;
     private ModuleManager moduleManager;
+    private ClientScreenManager clientScreenManager;
 
     public FrostCore() {
         instance = this;
@@ -47,7 +49,10 @@ public final class FrostCore {
         bindableManager = new BindableManager();
         eventBus.register(bindableManager);
         moduleManager = new ModuleManager();
+        clientScreenManager = new ClientScreenManager();
+        eventBus.register(clientScreenManager);
 
         moduleManager.registerModules();
+        clientScreenManager.registerScreens();
     }
 }
