@@ -34,9 +34,10 @@ public class FontManager {
     }
 
     private ImFont getPuhui(float size) {
-        return getFont("Alibaba-PuHuiTi-Regular.otf", size);
+        return getFont("Alibaba-PuHuiTi-Regular.otf", size, ImGui.getIO().getFonts().getGlyphRangesChineseFull());
     }
 
     public final ImFont
-    puHui18 = getPuhui(25);
+    puHui18 = getPuhui(25),
+    puHui10 = getPuhui(14);
 }
