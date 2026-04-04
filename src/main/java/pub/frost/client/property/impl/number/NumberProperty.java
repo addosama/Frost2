@@ -14,7 +14,7 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
         this.maxValue = BigDecimal.valueOf(max.doubleValue());
         this.increaseStep = BigDecimal.valueOf(increaseStep.doubleValue());
 
-        set(current);
+        setValue(null, current);
     }
 
     @Override
@@ -30,7 +30,7 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
                 ),
                 increaseStep
         );
-        boolean flag = value.equals(castedNewValue);
+        boolean flag = castedNewValue.equals(value);
         this.value = castedNewValue;
         return flag;
     }
