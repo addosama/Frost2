@@ -64,11 +64,16 @@ public class AbstractModule implements Named, Described {
 
     private void registerProperties() {
         if (FrostCore.DEBUG) assert propertyList.isEmpty();
-        final String propKeyPrefix = "modules." + this.getKey() + ".props.";
+        final String propKeyPrefix = this.getKey() + ".props.";
 
         enabledProperty.enableOverriding();
         enabledProperty.setOverrideDisplayString(this::getName);
-        propertyList.add(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty));
+        propertyList.add(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty) {
+            @Override
+            public String getName() {
+                return FrostCore.getLocalizer().get("strings.enabled");
+            }
+        });
 
         this.propertyList.addAll(AbstractProperty.getPropertyDescriptorsForObject(
                 this, propKeyPrefix, String::toLowerCase
