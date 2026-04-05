@@ -34,6 +34,9 @@ public class ImGuiContext {
 
     public void startFrame() {
         if (!initialized) initialize();
+        ImGui.getStyle().setAntiAliasedFill(true);
+        ImGui.getStyle().setAntiAliasedLines(true);
+        ImGui.getStyle().setAntiAliasedLinesUseTex(true);
         imGuiImplGl2.newFrame();
         imGuiDisplay.newFrame();
         ImGui.newFrame();
