@@ -1,5 +1,6 @@
 package pub.frost.client.feature.screen.impl.clickgui.styles.panel;
 
+import imgui.ImColor;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
@@ -20,10 +21,14 @@ import java.util.List;
 public class PanelClickGui implements RenderableComponent {
     @Getter
     private final ColorTheme theme = new ColorTheme(
-            0xFFCCCCCC,
+            0x99FFFFFF,
             0x33000000,
             0,
-            0xFF808080
+            0xFF4D4D4D,
+            0xFF808080,
+            0xFF1A1A1A,
+            ImColor.rgba("#667DFFFF"),
+            0x1E999999
     );
 
     private final CategoryPanel categoryPanel;
@@ -49,6 +54,8 @@ public class PanelClickGui implements RenderableComponent {
 
         ImGui.begin("PanelClickGui", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
         categoryPanel.render(dummy, tickDelta);
+        ImGui.sameLine();
+        categoryPanel.getActiveButton().getBoundPanel().render(dummy, tickDelta);
         ImGui.end();
 
         ImGui.popStyleColor(2);
@@ -75,6 +82,10 @@ public class PanelClickGui implements RenderableComponent {
         WindowBgColor,
         WindowBorderColor,
         CategoryPanelBgColor,
-        SecondaryColor;
+        MainColor,
+        SecondaryColor,
+        TextHighlightColor,
+        IconHighlightColor,
+        CategoryHighlightColor;
     }
 }

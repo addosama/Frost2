@@ -2,6 +2,7 @@ package pub.frost.utils;
 
 import imgui.ImDrawList;
 import imgui.ImGui;
+import imgui.ImVec2;
 import pub.frost.utils.data.EnumTextFormatting;
 
 import java.util.regex.Matcher;
@@ -68,6 +69,13 @@ public class ImTextRenderer {
         drawText(list, unformatted, x, y + 1, outlineColor, 0);
         drawText(list, unformatted, x + 1, y, outlineColor, 0);
         drawText(list, string, x, y, color);
+    }
+
+    public static ImVec2 centerText(String string, float x, float y, boolean h, boolean v) {
+        return new ImVec2(
+                h? x - getTextWidth(string) / 2 : x,
+                v? y - getTextHeight() / 2 : y
+        );
     }
 
     public static float getTextWidth(String text) {

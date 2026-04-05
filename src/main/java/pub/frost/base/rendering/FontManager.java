@@ -36,8 +36,18 @@ public class FontManager {
     private ImFont getPuhui(float size) {
         return getFont("Alibaba-PuHuiTi-Regular.otf", size, ImGui.getIO().getFonts().getGlyphRangesChineseFull());
     }
+    private ImFont getIcon(float size) {
+        return getFont(
+                "iconfont.ttf", size,
+                new short[] {(short)0xE000, (short)0xF8FF, 0}
+        );
+    }
 
     public final ImFont
-    puHui18 = getPuhui(25),
-    puHui10 = getPuhui(14);
+            puHui18 = getPuhui(25),
+            puHui12 = getPuhui(16),
+            puHui10 = getPuhui(14);
+
+    public final ImFont
+            icon14 = getIcon(14);
 }
