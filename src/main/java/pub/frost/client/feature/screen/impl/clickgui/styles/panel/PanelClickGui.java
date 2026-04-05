@@ -1,0 +1,80 @@
+package pub.frost.client.feature.screen.impl.clickgui.styles.panel;
+
+import imgui.ImGui;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiStyleVar;
+import imgui.flag.ImGuiWindowFlags;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.screen.components.RenderableComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category.CategoryPanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButton;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButtonGroup;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PanelClickGui implements RenderableComponent {
+    @Getter
+    private final ColorTheme theme = new ColorTheme(
+            0xFFCCCCCC,
+            0x33000000,
+            0,
+            0xFF808080
+    );
+
+    private final CategoryPanel categoryPanel;
+
+    public PanelClickGui() {
+        this.categoryPanel = new CategoryPanel(this);
+        categoryPanel.addGroup(new CategoryButtonGroup(
+                this,
+                () -> FrostCore.getLocalizer().get("strings.features").toUpperCase(),
+                getModuleCategoryButtons(categoryPanel)
+        ));
+    }
+
+    @Override
+    public void render(boolean dummy, float tickDelta) {
+        ImGui.setNextWindowSize(800, 614);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 16);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
+        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 4, 4);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.5f);
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, theme.getWindowBgColor());
+        ImGui.pushStyleColor(ImGuiCol.Border, theme.getWindowBorderColor());
+
+        ImGui.begin("PanelClickGui", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize);
+        categoryPanel.render(dummy, tickDelta);
+        ImGui.end();
+
+        ImGui.popStyleColor(2);
+        ImGui.popStyleVar(4);
+    }
+
+    private List<CategoryButton> getModuleCategoryButtons(CategoryPanel panel) {
+        List<CategoryButton> list = new ArrayList<>();
+        for (ModuleCategory category : ModuleCategory.values()) {
+            list.add(new CategoryButton(
+                    this,
+                    panel,
+                    new ModuleListPanel(this, category),
+                    category.getIcon(),
+                    category::getName
+            ));
+        }
+        return list;
+    }
+
+    @RequiredArgsConstructor @Getter
+    public static class ColorTheme {
+        private final int
+        WindowBgColor,
+        WindowBorderColor,
+        CategoryPanelBgColor,
+        SecondaryColor;
+    }
+}

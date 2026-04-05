@@ -9,6 +9,7 @@ import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.screen.impl.clickgui.ScreenClickGui;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
 import java.util.HashMap;
@@ -94,6 +95,8 @@ public class ClientScreenManager {
     }
 
     public void registerScreens() {
-
+        registerScreen(
+                new ScreenClickGui()
+        );
     }
 }
