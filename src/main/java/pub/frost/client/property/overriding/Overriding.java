@@ -31,6 +31,11 @@ public class Overriding<T> {
         }
         return value;
     }
+    public boolean isActive() {
+        if (!isEnabled()) return false;
+        for (OverrideData<T> data : dataList) if (data.shouldApply()) return true;
+        return false;
+    }
 
     public void register(OverrideData<T> data) {
         dataList.add(data);

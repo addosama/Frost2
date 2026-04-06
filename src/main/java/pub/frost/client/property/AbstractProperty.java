@@ -26,6 +26,9 @@ public abstract class AbstractProperty<T> {
     }
 
     private final Overriding<T> overriding = new Overriding<>();
+    public boolean isOverridingEnabled() {
+        return overriding.isEnabled();
+    }
     public void enableOverriding() {
         overriding.enableOverriding();
     }
@@ -62,8 +65,17 @@ public abstract class AbstractProperty<T> {
     public final void set(T value) {
         T old = getValue();
         if (setValue(old, value)) {
+            if (overriding.isEnabled()) {
+                if (
+                        value == overriding.getOverrideValue(null)
+                        || overriding.isActive()
+                ) return;
+            }
             valueChangeListener.accept(old, value);
         }
+    }
+    public final boolean isOverrideActive() {
+        return overriding.isActive();
     }
 
     public abstract T getValue();
