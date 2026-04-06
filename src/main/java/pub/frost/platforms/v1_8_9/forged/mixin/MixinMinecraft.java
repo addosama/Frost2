@@ -48,9 +48,11 @@ public class MixinMinecraft {
     )
     private boolean handleMouse() {
         if (Mouse.next()) {
+            int eventButton = Mouse.getEventButton();
+            if (eventButton == -1) return true;
             EventKeyInput event = new EventKeyInput(
                     InputDevice.MOUSE,
-                    -1 - Mouse.getEventButton(),
+                    -1 - eventButton,
                     Mouse.getEventButtonState()? 1 : 0
             );
             FrostCore.getInstance().getEventBus().call(event);
@@ -74,7 +76,7 @@ public class MixinMinecraft {
             EventKeyInput event = new EventKeyInput(
                     InputDevice.KEYBOARD,
                     eventKey,
-                    Keyboard.getEventKeyState()? 1 : 0
+                    Keyboard.getEventKeyState()? 1 : Keyboard.isRepeatEvent()? 2 : 0
             );
             FrostCore.getInstance().getEventBus().call(event);
             return !event.isCancelled();

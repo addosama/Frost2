@@ -70,10 +70,9 @@ public class ClientScreenManager {
             if ((currentScreen.shouldBlockMouseInput() && event.getType() == InputDevice.MOUSE)) event.setCancelled(true);
             else if (currentScreen.shouldBlockKeyboardInput() && event.getType() == InputDevice.KEYBOARD) {
                 event.setCancelled(true);
-                if (event.getKey() == 1) {
-                    closeCurrentScreen();
-                }
+                if (event.getKey() == 1) closeCurrentScreen();
             }
+            if (currentScreen != null) currentScreen.onInput(event.getType(), event.getKey(), event.getAction());
         }
     }
 

@@ -7,8 +7,11 @@ import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.screen.components.InputListener;
 import pub.frost.client.feature.screen.components.RenderableComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category.CategoryPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
@@ -18,7 +21,7 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.wid
 import java.util.ArrayList;
 import java.util.List;
 
-public class PanelClickGui implements RenderableComponent {
+public class PanelClickGui implements RenderableComponent, InputListener {
     @Getter
     private final ColorTheme theme = new ColorTheme(
             0x99FFFFFF,
@@ -38,6 +41,8 @@ public class PanelClickGui implements RenderableComponent {
     );
 
     private final CategoryPanel categoryPanel;
+    @Getter @Setter
+    private InputListener activeListener;
 
     public PanelClickGui() {
         this.categoryPanel = new CategoryPanel(this);
@@ -80,6 +85,13 @@ public class PanelClickGui implements RenderableComponent {
             ));
         }
         return list;
+    }
+
+    @Override
+    public void onInput(InputDevice device, int code, int action) {
+        if (activeListener != null) {
+            activeListener.onInput(device, code, action);
+        }
     }
 
     @RequiredArgsConstructor @Getter

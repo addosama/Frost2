@@ -35,6 +35,9 @@ public abstract class AbstractProperty<T> {
     public void setOverrideDisplayString(Supplier<String> displayString) {
         overriding.setDisplayStringSupplier(displayString);
     }
+    public List<OverrideData<T>> getOverrideData() {
+        return overriding.getDataList();
+    }
 
     private final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
         data.getApplySupplier().setStateChangeConsumer(state -> {
@@ -52,6 +55,7 @@ public abstract class AbstractProperty<T> {
         overriding.register(data);
     }
     public void removeOverrideData(OverrideData<T> data) {
+        data.getApplySupplier().setState(false);
         overriding.unregister(data);
     }
 
