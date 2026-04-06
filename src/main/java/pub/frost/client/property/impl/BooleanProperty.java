@@ -8,7 +8,7 @@ public class BooleanProperty extends AbstractProperty<Boolean> {
     private boolean value;
 
     @Override
-    protected Boolean getValue() {
+    public Boolean getValue() {
         return value;
     }
 

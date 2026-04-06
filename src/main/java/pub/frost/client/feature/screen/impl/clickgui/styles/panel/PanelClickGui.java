@@ -31,7 +31,10 @@ public class PanelClickGui implements RenderableComponent {
             0x50999999,
             0xFFEBEBEB,
             0xFFF2F2F2,
-            0x20000000
+            0x20000000,
+            0xFFE5E5E5,
+            ImColor.rgba("#6699FFFF"),
+            0xFFFFFFFF
     );
 
     private final CategoryPanel categoryPanel;
@@ -92,6 +95,9 @@ public class PanelClickGui implements RenderableComponent {
         CategoryHighlightColor,
         MainPanelBgColor,
         ModulePanelBgColor,
-        SplitColor;
+        SplitColor,
+        SwitchDisabledBgColor,
+        SwitchEnabledBgColor,
+        SwitchIndicatorColor;
     }
 }

@@ -66,7 +66,7 @@ public abstract class AbstractProperty<T> {
         }
     }
 
-    protected abstract T getValue();
+    public abstract T getValue();
     protected abstract boolean setValue(T oldValue, T newValue);
 
     public static List<PropertyDescriptor> getPropertyDescriptorsForObject(

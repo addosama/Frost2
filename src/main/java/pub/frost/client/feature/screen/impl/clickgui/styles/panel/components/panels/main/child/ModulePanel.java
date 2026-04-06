@@ -8,18 +8,35 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.BooleanPropComponent;
+import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
+import pub.frost.client.property.impl.BooleanProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 public class ModulePanel extends PanelComponent {
     private final AbstractModule module;
     private final Supplier<Float> widthSupplier;
+    private final List<PanelComponent> components;
     public ModulePanel(PanelClickGui gui, AbstractModule module, Supplier<Float> widthSupplier) {
         super(gui);
         this.module = module;
         this.widthSupplier = widthSupplier;
+        this.components = new ArrayList<>();
+        module.getPropertyList().forEach(this::addPropertyComponent);
+    }
+
+    private void addPropertyComponent(PropertyDescriptor descriptor) {
+        AbstractProperty<?> abstractProp = descriptor.getProperty();
+        PropertyComponent component = null;
+        if (abstractProp instanceof BooleanProperty) {
+            component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
+        }
+        if (component != null) components.add(component);
     }
 
     @Override
@@ -56,7 +73,7 @@ public class ModulePanel extends PanelComponent {
             );
 
             boolean firstProp = true;
-            for (PropertyDescriptor prop : props) {
+            for (PanelComponent component : components) {
                 if (!firstProp) {
                     float splitWidth = ImGui.getContentRegionAvailX();
                     ImGui.dummy(splitWidth, 1);
@@ -67,7 +84,7 @@ public class ModulePanel extends PanelComponent {
                         );
                     }
                 } else firstProp = false;
-                drawPropertyComponent(prop);
+                component.render(dummy, tickDelta);
             }
 
             ImGui.endChild();
@@ -77,15 +94,5 @@ public class ModulePanel extends PanelComponent {
         ImGui.endChild();
         ImGui.popStyleColor();
         ImGui.popStyleVar();
-    }
-
-    private void drawPropertyComponent(PropertyDescriptor descriptor) {
-        ImGui.beginGroup();
-        ImGui.textColored(0xFF000000, descriptor.getName());
-        ImGui.endGroup();
-        ImGui.getWindowDrawList().addRect(
-                ImGui.getItemRectMin(), ImGui.getItemRectMax(),
-                0xFF00FF00
-        );
     }
 }

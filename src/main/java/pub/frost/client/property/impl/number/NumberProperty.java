@@ -18,7 +18,7 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
     }
 
     @Override
-    protected T getValue() {
+    public T getValue() {
         return castValue(value);
     }
     @Override
