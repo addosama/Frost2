@@ -1,4 +1,4 @@
-package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets;
+package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category;
 
 import imgui.ImDrawList;
 import imgui.ImFont;

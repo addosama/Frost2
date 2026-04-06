@@ -7,8 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButton;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButtonGroup;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButton;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButtonGroup;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -12,8 +12,8 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.screen.components.RenderableComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category.CategoryPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButton;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.CategoryButtonGroup;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButton;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButtonGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,10 @@ public class PanelClickGui implements RenderableComponent {
             0xFF808080,
             0xFF1A1A1A,
             ImColor.rgba("#667DFFFF"),
-            0x1E999999
+            0x50999999,
+            0xFFEBEBEB,
+            0xFFF2F2F2,
+            0x20000000
     );
 
     private final CategoryPanel categoryPanel;
@@ -48,7 +51,7 @@ public class PanelClickGui implements RenderableComponent {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 16);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 4, 4);
-        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.5f);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.9f);
         ImGui.pushStyleColor(ImGuiCol.WindowBg, theme.getWindowBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, theme.getWindowBorderColor());
 
@@ -86,6 +89,9 @@ public class PanelClickGui implements RenderableComponent {
         SecondaryColor,
         TextHighlightColor,
         IconHighlightColor,
-        CategoryHighlightColor;
+        CategoryHighlightColor,
+        MainPanelBgColor,
+        ModulePanelBgColor,
+        SplitColor;
     }
 }
