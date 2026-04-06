@@ -22,25 +22,16 @@ public class WMinecraft extends StaticWrapper {
 
 
     public class Instance extends InstanceWrapper implements FakeInstanceWrapper<Minecraft> {
-        private WEntityLivingBase cachedPlayer;
-        private WWorld cachedWorld;
-
         public Instance(Object wrappedObject) {
             super(wrappedObject);
         }
 
         public WEntityLivingBase getPlayer() {
-            if (cachedPlayer == null || cachedPlayer.getWrappedObject().hashCode() != cast().thePlayer.hashCode()) {
-                cachedPlayer = new WEntityLivingBase(cast().thePlayer);
-            }
-            return cachedPlayer;
+            return new WEntityLivingBase(cast().thePlayer);
         }
 
         public WWorld getWorld() {
-            if (cachedWorld == null || cachedWorld.getWrappedObject().hashCode() != cast().theWorld.hashCode()) {
-                cachedWorld = new WWorld(cast().theWorld);
-            }
-            return cachedWorld;
+            return new WWorld(cast().theWorld);
         }
 
         public void grabMouse() {
