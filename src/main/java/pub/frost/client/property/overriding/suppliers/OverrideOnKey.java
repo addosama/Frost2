@@ -8,7 +8,6 @@ import pub.frost.client.feature.bindable.api.IBindable;
 public class OverrideOnKey extends OverrideSupplier implements IBindable {
     @Getter @Setter
     private int keybind;
-    @Setter
     private boolean hold;
 
     public OverrideOnKey(int keybind, boolean hold) {
@@ -25,6 +24,11 @@ public class OverrideOnKey extends OverrideSupplier implements IBindable {
     @Override
     public void onActive(int action) {
         setState(!isState());
+    }
+
+    public void setHold(boolean hold) {
+        setState(false);
+        this.hold = hold;
     }
 
     @Override
