@@ -8,7 +8,7 @@ public class FloatProperty extends NumberProperty<Float> {
     }
 
     @Override
-    protected Float castValue(BigDecimal value) {
+    public Float castValue(BigDecimal value) {
         return value.floatValue();
     }
 }

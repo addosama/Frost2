@@ -37,7 +37,11 @@ public class PanelClickGui implements RenderableComponent, InputListener {
             0x20000000,
             0xFFE5E5E5,
             ImColor.rgba("#6699FFFF"),
-            0xFFFFFFFF
+            0xFFFFFFFF,
+            0xFFE5E5E5,
+            0xFFE5E5E5,
+            ImColor.rgba("#6699FFFF"),
+            ImColor.rgba("#6699FFFF")
     );
 
     private final CategoryPanel categoryPanel;
@@ -110,6 +114,10 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         SplitColor,
         SwitchDisabledBgColor,
         SwitchEnabledBgColor,
-        SwitchIndicatorColor;
+        SwitchIndicatorColor,
+        ButtonBgColor,
+        SliderBgColor,
+        SliderHighlightBgColor,
+        SliderIndicatorColor;
     }
 }

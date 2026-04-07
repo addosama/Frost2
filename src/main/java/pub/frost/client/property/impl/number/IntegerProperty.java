@@ -8,7 +8,7 @@ public class IntegerProperty extends NumberProperty<Integer> {
     }
 
     @Override
-    protected Integer castValue(BigDecimal value) {
+    public Integer castValue(BigDecimal value) {
         return value.intValue();
     }
 }

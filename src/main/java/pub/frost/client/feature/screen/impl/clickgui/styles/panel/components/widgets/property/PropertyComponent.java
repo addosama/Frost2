@@ -70,4 +70,9 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ove
         }
         return clicked;
     }
+
+    @Override
+    public boolean isVisible() {
+        return descriptor.getProperty().isVisible();
+    }
 }

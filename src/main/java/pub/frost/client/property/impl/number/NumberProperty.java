@@ -1,11 +1,13 @@
 package pub.frost.client.property.impl.number;
 
+import lombok.Getter;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.utils.MathUtils;
 
 import java.math.BigDecimal;
 
 public abstract class NumberProperty<T extends Number & Comparable<T>> extends AbstractProperty<T> {
+    @Getter
     private final BigDecimal minValue, maxValue, increaseStep;
     private BigDecimal value;
 
@@ -14,7 +16,7 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
         this.maxValue = BigDecimal.valueOf(max.doubleValue());
         this.increaseStep = BigDecimal.valueOf(increaseStep.doubleValue());
 
-        setValue(null, current);
+        this.value = getProcessedValue(current);
     }
 
     @Override
@@ -23,17 +25,26 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
     }
     @Override
     protected boolean setValue(T oldValue, T newValue) {
-        BigDecimal castedNewValue = MathUtils.roundToStep(
-                MathUtils.clamp(
-                        BigDecimal.valueOf(newValue.doubleValue()),
-                        minValue, maxValue
-                ),
-                increaseStep
-        );
+        BigDecimal castedNewValue = getProcessedValue(newValue);
         boolean flag = castedNewValue.equals(value);
         this.value = castedNewValue;
         return flag;
     }
 
-    protected abstract T castValue(BigDecimal value);
+    public String getValueAsString() {
+        return value.toPlainString();
+    }
+    public String getValueAsString(T value) {
+        return BigDecimal.valueOf(value.doubleValue()).toPlainString();
+    }
+    public final BigDecimal getProcessedValue(T value) {
+        return MathUtils.roundToStep(
+                MathUtils.clamp(
+                        BigDecimal.valueOf(value.doubleValue()),
+                        minValue, maxValue
+                ),
+                increaseStep
+        );
+    }
+    public abstract T castValue(BigDecimal value);
 }

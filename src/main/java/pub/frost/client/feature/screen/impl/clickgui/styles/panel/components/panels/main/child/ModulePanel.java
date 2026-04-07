@@ -10,9 +10,11 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.BooleanPropComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.NumberPropComponent;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.BooleanProperty;
+import pub.frost.client.property.impl.number.NumberProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +34,11 @@ public class ModulePanel extends PanelComponent {
 
     private void addPropertyComponent(PropertyDescriptor descriptor) {
         AbstractProperty<?> abstractProp = descriptor.getProperty();
-        PropertyComponent component = null;
+        PropertyComponent<?> component = null;
         if (abstractProp instanceof BooleanProperty) {
             component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
+        } else if (abstractProp instanceof NumberProperty) {
+            component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
         }
         if (component != null) components.add(component);
     }
@@ -42,7 +46,6 @@ public class ModulePanel extends PanelComponent {
     @Override
     public void render(boolean dummy, float tickDelta) {
         float width = widthSupplier.get();
-        List<PropertyDescriptor> props = module.getPropertyList();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 2);
         ImGui.pushStyleColor(ImGuiCol.ChildBg, 0);
@@ -74,17 +77,20 @@ public class ModulePanel extends PanelComponent {
 
             boolean firstProp = true;
             for (PanelComponent component : components) {
-                if (!firstProp) {
-                    float splitWidth = ImGui.getContentRegionAvailX();
-                    ImGui.dummy(splitWidth, 1);
-                    if (!dummy) {
-                        ImGui.getWindowDrawList().addRectFilled(
-                                ImGui.getItemRectMin(), ImGui.getItemRectMax(),
-                                gui.getTheme().getSplitColor()
-                        );
-                    }
-                } else firstProp = false;
-                component.render(dummy, tickDelta);
+                boolean render = component.isVisible();
+                if (render) {
+                    if (!firstProp) {
+                        float splitWidth = ImGui.getContentRegionAvailX();
+                        ImGui.dummy(splitWidth, 1);
+                        if (!dummy) {
+                            ImGui.getWindowDrawList().addRectFilled(
+                                    ImGui.getItemRectMin(), ImGui.getItemRectMax(),
+                                    gui.getTheme().getSplitColor()
+                            );
+                        }
+                    } else firstProp = false;
+                    component.render(dummy, tickDelta);
+                }
             }
 
             ImGui.endChild();

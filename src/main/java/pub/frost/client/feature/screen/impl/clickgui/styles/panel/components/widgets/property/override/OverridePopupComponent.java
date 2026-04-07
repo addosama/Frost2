@@ -1,9 +1,6 @@
 package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.override;
 
 import imgui.ImGui;
-import imgui.ImVec2;
-import imgui.flag.ImGuiBackendFlags;
-import imgui.flag.ImGuiButtonFlags;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.event.impl.types.InputDevice;
@@ -18,7 +15,6 @@ import pub.frost.utils.InputUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class OverridePopupComponent<T> extends PanelComponent implements InputListener {
     public interface ElementRenderer<T> {
@@ -47,9 +43,9 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
         ImGui.pushStyleColor(ImGuiCol.PopupBg, gui.getTheme().getModulePanelBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());
         if (ImGui.beginPopup(this.toString())) {
-            ImGui.pushStyleColor(ImGuiCol.Button, 0xFFE5E5E5);
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, 0xFFE5E5E5);
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, 0xFFE5E5E5);
+            ImGui.pushStyleColor(ImGuiCol.Button, gui.getTheme().getButtonBgColor());
+            ImGui.pushStyleColor(ImGuiCol.ButtonActive, gui.getTheme().getButtonBgColor());
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, gui.getTheme().getButtonBgColor());
             ImGui.pushStyleColor(ImGuiCol.Text, gui.getTheme().getMainColor());
 
             int renderedData = renderOverrideData(dummy, tickDelta);

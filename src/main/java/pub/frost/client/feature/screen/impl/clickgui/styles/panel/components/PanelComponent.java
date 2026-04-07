@@ -7,4 +7,7 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 @RequiredArgsConstructor
 public abstract class PanelComponent implements RenderableComponent {
     protected final PanelClickGui gui;
+    public boolean isVisible() {
+        return true;
+    }
 }
