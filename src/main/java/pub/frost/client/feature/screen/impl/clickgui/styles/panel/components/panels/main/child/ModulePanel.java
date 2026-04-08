@@ -10,10 +10,14 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.BooleanPropComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.ModePropComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.MultipleBooleanPropComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.NumberPropComponent;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
+import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.NumberProperty;
 
 import java.util.ArrayList;
@@ -39,6 +43,10 @@ public class ModulePanel extends PanelComponent {
             component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
         } else if (abstractProp instanceof NumberProperty) {
             component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
+        } else if (abstractProp instanceof ModeProperty) {
+            component = new ModePropComponent(gui, descriptor, (ModeProperty) abstractProp);
+        } else if (abstractProp instanceof MultipleBooleanProperty) {
+            component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
         }
         if (component != null) components.add(component);
     }

@@ -20,7 +20,7 @@ public enum EnumEntityTarget implements Named {
     final Predicate<Class<?>> predicate;
 
     EnumEntityTarget(Predicate<Class<?>> predicate, String key) {
-        this.key = "targets.entities." + key;
+        this.key = "strings.targets.entities." + key;
         this.predicate = predicate;
     }
     EnumEntityTarget(EnumEntity entity, String key) {
@@ -29,5 +29,10 @@ public enum EnumEntityTarget implements Named {
 
     public boolean isTarget(Class<?> clazz) {
         return predicate.test(clazz);
+    }
+
+    @Override
+    public String toString() {
+        return key;
     }
 }

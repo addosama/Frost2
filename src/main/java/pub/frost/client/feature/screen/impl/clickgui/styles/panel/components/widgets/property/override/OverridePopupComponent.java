@@ -8,6 +8,7 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.components.InputListener;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.ElementRenderer;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.suppliers.OverrideOnKey;
@@ -17,9 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OverridePopupComponent<T> extends PanelComponent implements InputListener {
-    public interface ElementRenderer<T> {
-        T renderElement(boolean dummy, float tickDelta, String id, T value);
-    }
     private interface InputConsumer extends InputListener {
         String getID();
     }
@@ -38,7 +36,7 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
     @Override
     public void render(boolean dummy, float tickDelta) {
         ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 12);
-        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1.9f);
+        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1.5f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
         ImGui.pushStyleColor(ImGuiCol.PopupBg, gui.getTheme().getModulePanelBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());

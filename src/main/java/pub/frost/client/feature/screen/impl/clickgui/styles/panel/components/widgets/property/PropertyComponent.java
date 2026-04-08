@@ -7,11 +7,10 @@ import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.override.OverridePopupComponent;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.utils.ImTextRenderer;
 
-public abstract class PropertyComponent<T> extends PanelComponent implements OverridePopupComponent.ElementRenderer<T> {
+public abstract class PropertyComponent<T> extends PanelComponent implements ElementRenderer<T> {
     protected final PropertyDescriptor descriptor;
     public PropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
         super(gui);
