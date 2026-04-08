@@ -14,50 +14,52 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class EventBus {
     // Map<EventClass, List<HandlerWrapper>>
     private final Map<Class<? extends Event>, CopyOnWriteArrayList<HandlerWrapper>> handlers = new ConcurrentHashMap<>();
-    // Map<ListenerInstance, List<HandlerWrapper>> 用于 unregister
-    private final Map<Object, List<HandlerWrapper>> listenerMap = new ConcurrentHashMap<>();
+    // identity key，避免 listener equals/hashCode override 影响 unregister
+    private final Map<IdentityKey, List<HandlerWrapper>> listenerMap = new ConcurrentHashMap<>();
+    // 保护 register/unregister 的复合修改原子性
+    private final Object mutationLock = new Object();
 
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     public void register(Object listener) {
-        List<HandlerWrapper> listenerHandlers = new ArrayList<>();
+        Objects.requireNonNull(listener, "listener");
 
-        for (Method method : listener.getClass().getDeclaredMethods()) {
-            if (!method.isAnnotationPresent(EventHandler.class)) continue;
+        List<HandlerWrapper> newWrappers = scanHandlers(listener);
+        IdentityKey key = new IdentityKey(listener);
 
-            Class<?>[] params = method.getParameterTypes();
-            if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) continue;
+        synchronized (mutationLock) {
+            // 防止重复注册同一实例导致旧 wrapper 残留
+            List<HandlerWrapper> oldWrappers = listenerMap.remove(key);
+            removeWrappers(oldWrappers);
 
-            Class<? extends Event> eventClass = (Class<? extends Event>) params[0];
-            int priority = method.getAnnotation(EventHandler.class).priority();
+            if (newWrappers.isEmpty()) {
+                return;
+            }
 
-            HandlerWrapper wrapper = new HandlerWrapper(listener, method, priority);
+            Set<Class<? extends Event>> touchedEventTypes = new HashSet<>();
+            for (HandlerWrapper wrapper : newWrappers) {
+                handlers.computeIfAbsent(wrapper.methodType, k -> new CopyOnWriteArrayList<>()).add(wrapper);
+                touchedEventTypes.add(wrapper.methodType);
+            }
 
-            handlers
-                    .computeIfAbsent(eventClass, k -> new CopyOnWriteArrayList<>())
-                    .add(wrapper);
+            // 仅排序受影响的事件列表
+            for (Class<? extends Event> eventClass : touchedEventTypes) {
+                CopyOnWriteArrayList<HandlerWrapper> list = handlers.get(eventClass);
+                if (list != null) {
+                    list.sort(Comparator.comparingInt((HandlerWrapper h) -> h.priority).reversed());
+                }
+            }
 
-            listenerHandlers.add(wrapper);
+            listenerMap.put(key, newWrappers);
         }
-
-        // 统一排序（只排相关的事件列表）
-        for (HandlerWrapper wrapper : listenerHandlers) {
-            Class<? extends Event> eventClass = wrapper.methodType;
-            handlers.get(eventClass).sort(Comparator.comparingInt(h -> -h.priority));
-        }
-
-        listenerMap.put(listener, listenerHandlers);
     }
 
     public void unregister(Object listener) {
-        List<HandlerWrapper> wrappers = listenerMap.remove(listener);
-        if (wrappers == null) return;
+        Objects.requireNonNull(listener, "listener");
 
-        for (HandlerWrapper wrapper : wrappers) {
-            List<HandlerWrapper> list = handlers.get(wrapper.methodType);
-            if (list != null) {
-                list.remove(wrapper);
-            }
+        synchronized (mutationLock) {
+            List<HandlerWrapper> wrappers = listenerMap.remove(new IdentityKey(listener));
+            removeWrappers(wrappers);
         }
     }
 
@@ -70,16 +72,69 @@ public class EventBus {
         }
     }
 
+    private List<HandlerWrapper> scanHandlers(Object listener) {
+        List<HandlerWrapper> result = new ArrayList<>();
+
+        for (Method method : listener.getClass().getDeclaredMethods()) {
+            if (method.isBridge() || method.isSynthetic()) continue;
+            if (!method.isAnnotationPresent(EventHandler.class)) continue;
+
+            Class<?>[] params = method.getParameterTypes();
+            if (params.length != 1 || !Event.class.isAssignableFrom(params[0])) continue;
+
+            Class<? extends Event> eventClass = (Class<? extends Event>) params[0];
+            int priority = method.getAnnotation(EventHandler.class).priority();
+
+            result.add(new HandlerWrapper(listener, method, priority, eventClass));
+        }
+
+        return result;
+    }
+
+    private void removeWrappers(List<HandlerWrapper> wrappers) {
+        if (wrappers == null || wrappers.isEmpty()) return;
+
+        for (HandlerWrapper wrapper : wrappers) {
+            CopyOnWriteArrayList<HandlerWrapper> list = handlers.get(wrapper.methodType);
+            if (list != null) {
+                list.remove(wrapper);
+                if (list.isEmpty()) {
+                    handlers.remove(wrapper.methodType, list);
+                }
+            }
+        }
+    }
+
+    private static final class IdentityKey {
+        private final Object ref;
+        private final int hash;
+
+        IdentityKey(Object ref) {
+            this.ref = Objects.requireNonNull(ref, "ref");
+            this.hash = System.identityHashCode(ref);
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return this == obj || (obj instanceof IdentityKey && ((IdentityKey) obj).ref == this.ref);
+        }
+    }
+
     private static class HandlerWrapper {
         final Object instance;
         final MethodHandle handle;
         final int priority;
         final Class<? extends Event> methodType;
 
-        HandlerWrapper(Object instance, Method method, int priority) {
+        HandlerWrapper(Object instance, Method method, int priority, Class<? extends Event> methodType) {
             this.instance = instance;
             this.priority = priority;
-            this.methodType = (Class<? extends Event>) method.getParameterTypes()[0];
+            this.methodType = methodType;
 
             try {
                 method.setAccessible(true);
