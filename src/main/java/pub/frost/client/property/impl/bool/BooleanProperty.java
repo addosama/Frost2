@@ -1,4 +1,4 @@
-package pub.frost.client.property.impl;
+package pub.frost.client.property.impl.bool;
 
 import lombok.AllArgsConstructor;
 import pub.frost.client.property.AbstractProperty;

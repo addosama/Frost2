@@ -6,7 +6,7 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.override.OverridePopupComponent;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.BooleanProperty;
+import pub.frost.client.property.impl.bool.BooleanProperty;
 
 public class BooleanPropComponent extends PropertyComponent<Boolean> {
     private final BooleanProperty prop;

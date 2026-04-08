@@ -3,8 +3,6 @@ package pub.frost.client.feature.module.impl.visual;
 import imgui.ImGui;
 import imgui.ImVec2;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.lwjgl.input.Keyboard;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRender2D;
@@ -13,13 +11,10 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
-import pub.frost.client.property.overriding.OverrideData;
-import pub.frost.client.property.overriding.suppliers.OverrideOnKey;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
-import pub.frost.utils.data.EnumTextFormatting;
 import pub.frost.wrappers.ClassEnum;
 import pub.frost.wrappers.shared.entity.EntityClasses;
 import pub.frost.wrappers.shared.entity.WEntity;
@@ -36,11 +31,6 @@ import java.util.List;
         category = ModuleCategory.VISUAL
 )
 public class ESP extends AbstractModule {
-    @Override
-    protected void onInitialized() {
-        getEnabledProperty().addOverrideData(new OverrideData<>(new OverrideOnKey(Keyboard.KEY_Z), true));
-    }
-
     private final List<EntityData> cachedData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;

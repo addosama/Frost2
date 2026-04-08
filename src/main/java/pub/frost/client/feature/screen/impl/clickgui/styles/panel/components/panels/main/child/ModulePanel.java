@@ -13,7 +13,7 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.wid
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.NumberPropComponent;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.BooleanProperty;
+import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.NumberProperty;
 
 import java.util.ArrayList;

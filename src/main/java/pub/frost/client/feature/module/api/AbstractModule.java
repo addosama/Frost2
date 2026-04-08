@@ -7,7 +7,7 @@ import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.BooleanProperty;
+import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
 import java.util.ArrayList;
