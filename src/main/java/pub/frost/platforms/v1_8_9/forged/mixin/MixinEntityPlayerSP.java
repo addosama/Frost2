@@ -2,7 +2,9 @@ package pub.frost.platforms.v1_8_9.forged.mixin;
 
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MovementInput;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -15,6 +17,9 @@ import pub.frost.client.core.FrostCore;
 
 @Mixin(EntityPlayerSP.class)
 public class MixinEntityPlayerSP {
+    @Shadow
+    public MovementInput movementInput;
+
     @Inject(
             method = "onUpdate",
             at = @At("HEAD")
@@ -40,7 +45,15 @@ public class MixinEntityPlayerSP {
             )
     )
     private void updateMovement(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(EventUpdateMovementInput.INSTANCE);
+        EventUpdateMovementInput event = new EventUpdateMovementInput(
+                movementInput.moveForward, movementInput.moveStrafe,
+                movementInput.jump, movementInput.sneak
+        );
+        FrostCore.getInstance().getEventBus().call(event);
+        movementInput.moveForward = event.getMoveForward();
+        movementInput.moveStrafe = event.getMoveStrafe();
+        movementInput.jump = event.isJump();
+        movementInput.sneak = event.isSneak();
     }
 
     @Redirect(

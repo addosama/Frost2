@@ -1,11 +1,14 @@
 package pub.frost.base.event.impl.events;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pub.frost.base.event.api.interfaces.Event;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE) @Getter
+@AllArgsConstructor @Getter @Setter
 public class EventUpdateMovementInput implements Event {
-    public static final EventUpdateMovementInput INSTANCE = new EventUpdateMovementInput();
+    private float moveForward;
+    private float moveStrafe;
+    private boolean jump;
+    private boolean sneak;
 }

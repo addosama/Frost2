@@ -3,10 +3,9 @@ package pub.frost.client.feature.module;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
-import pub.frost.client.feature.module.impl.movement.JumpDelay;
-import pub.frost.client.feature.module.impl.movement.Sprint;
-import pub.frost.client.feature.module.impl.visual.ESP;
-import pub.frost.client.feature.module.impl.visual.HUD;
+import pub.frost.client.feature.module.impl.combat.*;
+import pub.frost.client.feature.module.impl.movement.*;
+import pub.frost.client.feature.module.impl.visual.*;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -21,7 +20,8 @@ public class ModuleManager {
                 new Sprint(),
                 new HUD(),
                 new ESP(),
-                new JumpDelay()
+                new JumpDelay(),
+                new Velocity()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
