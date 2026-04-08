@@ -31,9 +31,6 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
         return flag;
     }
 
-    public String getValueAsString() {
-        return value.toPlainString();
-    }
     public String getValueAsString(T value) {
         return BigDecimal.valueOf(value.doubleValue()).toPlainString();
     }

@@ -24,6 +24,9 @@ public abstract class AbstractProperty<T> {
     public final boolean isVisible() {
         return visibilitySupplier.get();
     }
+    public final <P extends AbstractProperty<T>> P setVisibilitySupplier(Class<P> returnType, Supplier<Boolean> visibilitySupplier) {
+        return returnType.cast(setVisibilitySupplier(visibilitySupplier));
+    }
 
     private final Overriding<T> overriding = new Overriding<>();
     public boolean isOverridingEnabled() {

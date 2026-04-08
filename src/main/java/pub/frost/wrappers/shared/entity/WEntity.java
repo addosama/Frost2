@@ -1,7 +1,6 @@
 package pub.frost.wrappers.shared.entity;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import pub.frost.base.wrapping.impl.InstanceWrapper;
 import pub.frost.utils.MathUtils;
@@ -22,6 +21,9 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         cast().setSprinting(sprinting);
     }
 
+    public float getEyesHeight() {
+        return cast().getEyeHeight();
+    }
     public Vector3d getPositionEyes(float tickDelta) {
         Vec3 pos = cast().getPositionEyes(tickDelta);
         return new Vector3d(
@@ -53,6 +55,16 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         return cast().posZ;
     }
 
+    public double getLerpedX(float tickDelta) {
+        return MathUtils.lerp(getPrevX(), getX(), tickDelta);
+    }
+    public double getLerpedY(float tickDelta) {
+        return MathUtils.lerp(getPrevY(), getY(), tickDelta);
+    }
+    public double getLerpedZ(float tickDelta) {
+        return MathUtils.lerp(getPrevZ(), getZ(), tickDelta);
+    }
+
     public float getYaw() {
         return cast().rotationYaw;
     }
@@ -62,6 +74,13 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
 
     public Vector3d getPositionVector() {
         return new Vector3d(getX(), getY(), getZ());
+    }
+    public Vector3d getLerpedPositionVector(float tickDelta) {
+        return new Vector3d(
+                getLerpedX(tickDelta),
+                getLerpedY(tickDelta),
+                getLerpedZ(tickDelta)
+        );
     }
 
     public float getWidth() {
@@ -125,5 +144,9 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
                 y + height,
                 z + width / 2
         );
+    }
+
+    public boolean isInvisible() {
+        return cast().isInvisible();
     }
 }

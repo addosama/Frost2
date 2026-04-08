@@ -11,12 +11,15 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.utils.ImTextRenderer;
-import pub.frost.utils.MathUtils;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.wrappers.ClassEnum;
-import pub.frost.wrappers.shared.entity.EntityClasses;
+import pub.frost.wrappers.shared.entity.EnumEntity;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
@@ -31,6 +34,18 @@ import java.util.List;
         category = ModuleCategory.VISUAL
 )
 public class ESP extends AbstractModule {
+    @Property("targets")
+    public final MultipleBooleanProperty<EnumEntityTarget> targets = new MultipleBooleanProperty<>(EnumEntityTarget.class, EnumEntityTarget.PLAYERS);
+    @Property("targetInvisible")
+    public final BooleanProperty targetInvisible = new BooleanProperty(true);
+
+    @Property("name")
+    public final BooleanProperty renderName = new BooleanProperty(true);
+    @Property("health")
+    public final BooleanProperty renderHealth = new BooleanProperty(true);
+    @Property("box")
+    public final BooleanProperty renderBox = new BooleanProperty(true);
+
     private final List<EntityData> cachedData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;
@@ -53,17 +68,12 @@ public class ESP extends AbstractModule {
     public void onRender2D(EventRender2D e) {
         int width = (int) ImGui.getIO().getDisplaySizeX();
         int height = (int) ImGui.getIO().getDisplaySizeY();
-        float tickDelta = e.getTickDelta();
-        Vector3d playerPos; {
-            WEntity entity = mc.getPlayer();
-            double lerpedX = MathUtils.lerp(entity.getPrevX(), entity.getX(), tickDelta);
-            double lerpedY = MathUtils.lerp(entity.getPrevY(), entity.getY(), tickDelta);
-            double lerpedZ = MathUtils.lerp(entity.getPrevZ(), entity.getZ(), tickDelta);
-            playerPos = new Vector3d(lerpedX, lerpedY, lerpedZ);
-        }
+
+        Vector3d playerPos = mc.getPlayer().getLerpedPositionVector(e.getTickDelta());
         cachedData.sort(Comparator.comparingDouble(data -> -data.getEntity().distanceTo(
                 playerPos.getX(), playerPos.getY(), playerPos.getZ()
         )));
+
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
         for (EntityData data : cachedData) {
             BoundingBox bb = data.getBoundingBox(e.getTickDelta());
@@ -102,24 +112,23 @@ public class ESP extends AbstractModule {
             }
 
             if (boxMinPos != null) {
-                String name = data.getName();
-                float nameWidth = ImTextRenderer.getTextWidth(name);
                 ImVec2 boxSize = boxMaxPos.minus(boxMinPos);
-                ImGui.getBackgroundDrawList().addRect(
-                        boxMinPos, boxMaxPos,
-                        0xFF000000,
-                        0,
-                        3f
-                );
-                ImGui.getBackgroundDrawList().addRect(
-                        boxMinPos, boxMaxPos,
-                        -1,
-                        0,
-                        1f
-                );
-                // draw health
-                {
-                    float leftHealthPercent = Math.max(Math.min(data.getHealth() - data.getMaxHealth(), 0) / data.getMaxHealth(), -1);;
+                if (renderBox.get()) {
+                    ImGui.getBackgroundDrawList().addRect(
+                            boxMinPos, boxMaxPos,
+                            0xFF000000,
+                            0,
+                            3f
+                    );
+                    ImGui.getBackgroundDrawList().addRect(
+                            boxMinPos, boxMaxPos,
+                            -1,
+                            0,
+                            1f
+                    );
+                }
+                if (renderHealth.get()) {
+                    float leftHealthPercent = Math.max(Math.min(data.getHealth() - data.getMaxHealth(), 0) / data.getMaxHealth(), -1);
 
                     ImVec2 healthMinPos = boxMinPos.minus(4, leftHealthPercent * boxSize.y), healthMaxPos = boxMinPos.plus(-3, boxSize.y);
                     ImGui.getBackgroundDrawList().addRectFilled(
@@ -133,8 +142,10 @@ public class ESP extends AbstractModule {
                             0xFF00FF00
                     );
                 }
-                // draw name
-                {
+                if (renderName.get()) {
+                    String name = data.getName();
+                    float nameWidth = ImTextRenderer.getTextWidth(name);
+
                     float textX = boxMinPos.x + (boxSize.x - nameWidth) / 2, textY = boxMaxPos.y;
                     ImTextRenderer.drawOutlinedText(
                             ImGui.getBackgroundDrawList(),
@@ -149,10 +160,13 @@ public class ESP extends AbstractModule {
     }
 
     private boolean isTarget(WEntity entity) {
-        boolean notTarget = false;
-        notTarget |= entity.getWrappedObject() == mc.getPlayer().getWrappedObject();
-        notTarget |= !ClassEnum.isInstanceOf(entity, EntityClasses.EntityPlayer);
-        return !notTarget;
+        Class<?> clazz = entity.getWrappedClass();
+        if (entity.getWrappedObject() == mc.getPlayer().getWrappedObject()) return false;
+        if (entity.isInvisible() && !targetInvisible.get()) return false;
+        for (EnumEntityTarget target : targets.getEnabled()) {
+            if (target.isTarget(clazz)) return true;
+        }
+        return false;
     }
 
     @Getter
@@ -178,7 +192,7 @@ public class ESP extends AbstractModule {
             this.z = entity.getZ();
 
             float hp = 0, maxHP = 0;
-            if (ClassEnum.isInstanceOf(entity, EntityClasses.EntityLivingBase)) {
+            if (ClassEnum.isInstanceOf(entity, EnumEntity.EntityLivingBase)) {
                 WEntityLivingBase living = entity.castTo(WEntityLivingBase.class);
                 hp = living.getHealth();
                 maxHP = living.getMaxHealth();
@@ -187,13 +201,6 @@ public class ESP extends AbstractModule {
             this.maxHealth = maxHP;
         }
 
-        Vector3d getLerpedPos(float tickDelta) {
-            return new Vector3d(
-                    MathUtils.lerp(prevX, x, tickDelta),
-                    MathUtils.lerp(prevY, y, tickDelta),
-                    MathUtils.lerp(prevZ, z, tickDelta)
-            );
-        }
         BoundingBox getBoundingBox(float tickDelta) {
             return entity.getLerpedBoundingBox(tickDelta);
         }
