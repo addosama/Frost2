@@ -28,6 +28,7 @@ import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 @Module(
         key = "KillAura",
@@ -51,6 +52,15 @@ public class KillAura extends AbstractModule {
 
     @Property("attackMode")
     public final ModeProperty<EnumInteractType> attackType = new ModeProperty<>(EnumInteractType.LEGIT);
+
+    private final Predicate<Rotation> raytracePredicate = r -> {
+        HitResult result = mc.getPlayer().rayTrace(
+                mc.getPlayer().getVectorForRotation(r.getPitch(), r.getYaw()),
+                attackRange.get(), 1
+        );
+        if (result == null) return false;
+        return result.getType() == HitResult.EnumHitType.ENTITY;
+    };
 
     private WEntityLivingBase target = null;
     private void resetTarget() {
@@ -76,15 +86,8 @@ public class KillAura extends AbstractModule {
             Rotation rotation = RotationUtils.searchRotationHittingBoundingBox(
                     mc.getPlayer().getPositionEyes(1),
                     target.getBoundingBox(),
-                    r -> {
-                        HitResult result = mc.getPlayer().rayTrace(
-                                mc.getPlayer().getVectorForRotation(r.getPitch(), r.getYaw()),
-                                attackRange.get(), 1
-                        );
-                        if (result == null) return false;
-                        return result.getType() == HitResult.EnumHitType.ENTITY;
-                    },
-                    4
+                    raytracePredicate,
+                    2
             );
             if (rotation != null) {
                 event.setYaw(rotation.getYaw());

@@ -61,7 +61,9 @@ public class RotationUtils {
                 Rotation rotation = getRotationAimingPoint(eyePos, center);
                 if (predicate.test(rotation)) return rotation;
                 else for (Vector3d vertex : box.getVertices()) {
-                    nextList.add(new BoundingBox(vertex, center));
+                    Rotation vertexRotation = getRotationAimingPoint(eyePos, vertex);
+                    if (predicate.test(vertexRotation)) return vertexRotation;
+                    else nextList.add(new BoundingBox(vertex, center));
                 }
             }
             boundingBoxes = nextList;
