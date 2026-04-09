@@ -7,6 +7,7 @@ import pub.frost.base.wrapping.impl.InstanceWrapper;
 import pub.frost.base.wrapping.impl.StaticWrapper;
 import pub.frost.platforms.v1_8_9.forged.mixin.AccessorMinecraft;
 import pub.frost.wrappers.FakeInstanceWrapper;
+import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import pub.frost.wrappers.shared.world.WWorld;
 
@@ -29,10 +30,10 @@ public class WMinecraft extends StaticWrapper {
             super(wrappedObject);
         }
 
-        public WEntityLivingBase getPlayer() {
+        public WEntityClientPlayer getPlayer() {
             EntityPlayerSP player = cast().thePlayer;
             if (player == null) return null;
-            return new WEntityLivingBase(player);
+            return new WEntityClientPlayer(player);
         }
 
         public WWorld getWorld() {

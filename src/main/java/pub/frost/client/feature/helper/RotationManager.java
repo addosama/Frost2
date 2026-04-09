@@ -11,12 +11,12 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.wrappers.shared.client.WMinecraft;
-import pub.frost.wrappers.shared.entity.WEntityLivingBase;
+import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 
 @Getter
 public class RotationManager {
     @Setter
-    private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;
+    private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch, armYaw, armPitch, prevArmYaw, prevArmPitch;
     private float silentYaw, silentPitch, prevSilentYaw, prevSilentPitch;
 
     @Setter
@@ -95,9 +95,12 @@ public class RotationManager {
 
     @EventHandler(priority = 100)
     private void onPreGameTick(EventGameTick e) {
-        WEntityLivingBase player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
+        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
         if (player == null) return;
         if (e.getType() == TickType.PRE) {
+            setPrevArmYaw(getPrevPlayerYaw());
+            setPrevArmPitch(getPrevPlayerPitch());
+
             setPrevPlayerYaw(player.getPrevYaw());
             setPrevPlayerPitch(player.getPrevPitch());
             setPlayerYaw(player.getYaw());
@@ -116,6 +119,11 @@ public class RotationManager {
 
             player.setYaw(getPlayerYaw());
             player.setPitch(getPlayerPitch());
+
+            player.setPrevRenderArmYaw(getPrevArmYaw());
+            player.setPrevRenderArmPitch(getPrevArmPitch());
+            player.setRenderArmYaw(getPlayerYaw());
+            player.setRenderArmPitch(getPlayerPitch());
         }
     }
 }
