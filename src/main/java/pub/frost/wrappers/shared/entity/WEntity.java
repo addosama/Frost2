@@ -71,6 +71,12 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
     public float getPitch() {
         return cast().rotationPitch;
     }
+    public void setYaw(float yaw) {
+        cast().rotationYaw = yaw;
+    }
+    public void setPitch(float pitch) {
+        cast().rotationPitch = pitch;
+    }
 
     public Vector3d getPositionVector() {
         return new Vector3d(getX(), getY(), getZ());

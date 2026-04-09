@@ -3,6 +3,7 @@ package pub.frost.client.core;
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.client.feature.bindable.BindableManager;
+import pub.frost.client.feature.helper.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.feature.screen.ClientScreenManager;
 import pub.frost.client.i18n.I18n;
@@ -35,6 +36,8 @@ public final class FrostCore {
     private ModuleManager moduleManager;
     private ClientScreenManager clientScreenManager;
 
+    private RotationManager rotationManager;
+
     public FrostCore() {
         instance = this;
     }
@@ -51,6 +54,9 @@ public final class FrostCore {
         moduleManager = new ModuleManager();
         clientScreenManager = new ClientScreenManager();
         eventBus.register(clientScreenManager);
+
+        rotationManager = new RotationManager();
+        eventBus.register(rotationManager);
 
         moduleManager.registerModules();
         clientScreenManager.registerScreens();

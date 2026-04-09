@@ -1,6 +1,8 @@
 package pub.frost.wrappers.shared.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.world.World;
 import pub.frost.base.wrapping.impl.InstanceWrapper;
 import pub.frost.base.wrapping.impl.StaticWrapper;
 import pub.frost.wrappers.FakeInstanceWrapper;
@@ -21,17 +23,21 @@ public class WMinecraft extends StaticWrapper {
     }
 
 
-    public class Instance extends InstanceWrapper implements FakeInstanceWrapper<Minecraft> {
+    public static class Instance extends InstanceWrapper implements FakeInstanceWrapper<Minecraft> {
         public Instance(Object wrappedObject) {
             super(wrappedObject);
         }
 
         public WEntityLivingBase getPlayer() {
-            return new WEntityLivingBase(cast().thePlayer);
+            EntityPlayerSP player = cast().thePlayer;
+            if (player == null) return null;
+            return new WEntityLivingBase(player);
         }
 
         public WWorld getWorld() {
-            return new WWorld(cast().theWorld);
+            World world = cast().theWorld;
+            if (world == null) return null;
+            return new WWorld(world);
         }
 
         public void grabMouse() {
