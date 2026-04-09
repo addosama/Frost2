@@ -1,9 +1,26 @@
 package pub.frost.utils;
 
 import org.joml.Vector3d;
+import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
 
+import java.util.*;
+import java.util.function.Predicate;
+
 public class RotationUtils {
+    public static float wrapYawTo180(float value) {
+        value %= 360.0F;
+        if (value >= 180.0F) {
+            value -= 360.0F;
+        }
+
+        if (value < -180.0F) {
+            value += 360.0F;
+        }
+
+        return value;
+    }
+
     public static float getDirection(float rotationYaw, float moveForward, float moveStrafing) {
         if (moveForward < 0F) rotationYaw += 180F;
 
@@ -32,5 +49,25 @@ public class RotationUtils {
         }
 
         return new Rotation((float) yaw, (float) pitch);
+    }
+
+    public static Rotation searchRotationHittingBoundingBox(Vector3d eyePos, BoundingBox target, Predicate<Rotation> predicate, int maxStep) {
+        int currentStep = 0;
+        List<BoundingBox> boundingBoxes = Collections.singletonList(target);
+        while (currentStep <= maxStep) {
+            List<BoundingBox> nextList = new ArrayList<>();
+            for (BoundingBox box : boundingBoxes) {
+                Vector3d center = box.getCenter();
+                Rotation rotation = getRotationAimingPoint(eyePos, center);
+                if (predicate.test(rotation)) return rotation;
+                else for (Vector3d vertex : box.getVertices()) {
+                    nextList.add(new BoundingBox(vertex, center));
+                }
+            }
+            boundingBoxes = nextList;
+            currentStep ++;
+        }
+
+        return null;
     }
 }

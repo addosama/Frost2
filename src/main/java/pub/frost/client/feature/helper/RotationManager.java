@@ -45,6 +45,7 @@ public class RotationManager {
 
     private void postRotationEvent() {
         EventRotation event = new EventRotation(getPlayerYaw(), getPlayerPitch(), 0);
+        FrostCore.getInstance().getEventBus().call(event);
         setTargetYaw(event.getYaw());
         setTargetPitch(event.getPitch());
         speed = MathHelper.clamp_float(event.getSpeed(), 0, 180);
@@ -105,8 +106,8 @@ public class RotationManager {
             player.setYaw(getSilentYaw());
             player.setPitch(getSilentPitch());
         } else {
-            player.setYaw(getPlayerYaw());
-            player.setPitch(getPlayerPitch());
+//            player.setYaw(getPlayerYaw());
+//            player.setPitch(getPlayerPitch());
         }
     }
 }

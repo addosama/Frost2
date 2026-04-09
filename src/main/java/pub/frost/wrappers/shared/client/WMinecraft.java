@@ -5,6 +5,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.world.World;
 import pub.frost.base.wrapping.impl.InstanceWrapper;
 import pub.frost.base.wrapping.impl.StaticWrapper;
+import pub.frost.platforms.v1_8_9.forged.mixin.AccessorMinecraft;
 import pub.frost.wrappers.FakeInstanceWrapper;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import pub.frost.wrappers.shared.world.WWorld;
@@ -45,6 +46,13 @@ public class WMinecraft extends StaticWrapper {
         }
         public void ungrabMouse() {
             cast().setIngameNotInFocus();
+        }
+
+        public void clickLMB() {
+//            ((AccessorMinecraft) cast()).clickMouse();
+        }
+        public void clickRMB() {
+//            ((AccessorMinecraft) cast()).rightClickMouse();
         }
     }
 }

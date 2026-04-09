@@ -1,5 +1,6 @@
 package pub.frost.utils.data.raytrace;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.joml.Vector3d;
 import pub.frost.utils.data.BlockPosition;
@@ -7,7 +8,7 @@ import pub.frost.utils.data.EnumDirection;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.wrappers.shared.entity.WEntity;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor @Getter
 public class HitResult {
     private final EnumHitType type;
     private final BlockPosition blockPos;

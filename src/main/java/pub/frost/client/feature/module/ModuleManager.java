@@ -21,7 +21,8 @@ public class ModuleManager {
                 new HUD(),
                 new ESP(),
                 new JumpDelay(),
-                new Velocity()
+                new Velocity(),
+                new KillAura()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize

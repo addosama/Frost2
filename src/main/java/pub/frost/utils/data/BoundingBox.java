@@ -1,6 +1,8 @@
 package pub.frost.utils.data;
 
 import org.joml.Vector3d;
+import pub.frost.utils.VecUtils;
+import pub.frost.utils.data.raytrace.HitResult;
 
 public class BoundingBox {
     public final double minX, minY, minZ, maxX, maxY, maxZ;
@@ -53,9 +55,148 @@ public class BoundingBox {
 
     public Vector3d getCenter() {
         return new Vector3d(
-                minX + getSizeX(),
-                minY + getSizeY(),
-                minZ + getSizeZ()
+                minX + getSizeX() * 0.5D,
+                minY + getSizeY() * 0.5D,
+                minZ + getSizeZ() * 0.5D
         );
+    }
+
+    public BoundingBox addCoord(double x, double y, double z) {
+        double d = this.minX;
+        double e = this.minY;
+        double f = this.minZ;
+        double g = this.maxX;
+        double h = this.maxY;
+        double i = this.maxZ;
+        if (x < 0.0D) {
+            d += x;
+        } else if (x > 0.0D) {
+            g += x;
+        }
+
+        if (y < 0.0D) {
+            e += y;
+        } else if (y > 0.0D) {
+            h += y;
+        }
+
+        if (z < 0.0D) {
+            f += z;
+        } else if (z > 0.0D) {
+            i += z;
+        }
+
+        return new BoundingBox(d, e, f, g, h, i);
+    }
+    public BoundingBox expand(double x, double y, double z) {
+        double d = this.minX - x;
+        double e = this.minY - y;
+        double f = this.minZ - z;
+        double g = this.maxX + x;
+        double h = this.maxY + y;
+        double i = this.maxZ + z;
+        return new BoundingBox(d, e, f, g, h, i);
+    }
+
+    public HitResult calculateIntercept(Vector3d vecA, Vector3d vecB) {
+        Vector3d vec3 = VecUtils.getIntermediateWithXValue(vecA, vecB, this.minX);
+        Vector3d vec32 = VecUtils.getIntermediateWithXValue(vecA, vecB, this.maxX);
+        Vector3d vec33 = VecUtils.getIntermediateWithYValue(vecA, vecB, this.minY);
+        Vector3d vec34 = VecUtils.getIntermediateWithYValue(vecA, vecB, this.maxY);
+        Vector3d vec35 = VecUtils.getIntermediateWithZValue(vecA, vecB, this.minZ);
+        Vector3d vec36 = VecUtils.getIntermediateWithZValue(vecA, vecB, this.maxZ);
+        Vector3d vec37 = null;
+        
+        if (!this.isVecInYZ(vec3)) {
+            vec3 = null;
+        }
+        if (!this.isVecInYZ(vec32)) {
+            vec32 = null;
+        }
+        if (!this.isVecInXZ(vec33)) {
+            vec33 = null;
+        }
+        if (!this.isVecInXZ(vec34)) {
+            vec34 = null;
+        }
+        if (!this.isVecInXY(vec35)) {
+            vec35 = null;
+        }
+        if (!this.isVecInXY(vec36)) {
+            vec36 = null;
+        }
+        if (vec3 != null) {
+            vec37 = vec3;
+        }
+
+        if (vec32 != null && (vec37 == null || vecA.distanceSquared(vec32) < vecA.distanceSquared(vec37))) {
+            vec37 = vec32;
+        }
+        if (vec33 != null && (vec37 == null || vecA.distanceSquared(vec33) < vecA.distanceSquared(vec37))) {
+            vec37 = vec33;
+        }
+        if (vec34 != null && (vec37 == null || vecA.distanceSquared(vec34) < vecA.distanceSquared(vec37))) {
+            vec37 = vec34;
+        }
+        if (vec35 != null && (vec37 == null || vecA.distanceSquared(vec35) < vecA.distanceSquared(vec37))) {
+            vec37 = vec35;
+        }
+        if (vec36 != null && (vec37 == null || vecA.distanceSquared(vec36) < vecA.distanceSquared(vec37))) {
+            vec37 = vec36;
+        }
+        if (vec37 == null) {
+            return null;
+        } else {
+            EnumDirection enumFacing = null;
+            if (vec37 == vec3) {
+                enumFacing = EnumDirection.WEST;
+            } else if (vec37 == vec32) {
+                enumFacing = EnumDirection.EAST;
+            } else if (vec37 == vec33) {
+                enumFacing = EnumDirection.DOWN;
+            } else if (vec37 == vec34) {
+                enumFacing = EnumDirection.UP;
+            } else if (vec37 == vec35) {
+                enumFacing = EnumDirection.NORTH;
+            } else {
+                enumFacing = EnumDirection.SOUTH;
+            }
+
+            return HitResult.buildBlockHit(new BlockPosition(0, 0, 0), enumFacing, vec37);
+        }
+    }
+
+    private boolean isVecInYZ(Vector3d vec) {
+        if (vec == null) {
+            return false;
+        } else {
+            return vec.y >= this.minY && vec.y <= this.maxY && vec.z >= this.minZ && vec.z <= this.maxZ;
+        }
+    }
+    private boolean isVecInXZ(Vector3d vec) {
+        if (vec == null) {
+            return false;
+        } else {
+            return vec.x >= this.minX && vec.x <= this.maxX && vec.z >= this.minZ && vec.z <= this.maxZ;
+        }
+    }
+    private boolean isVecInXY(Vector3d vec) {
+        if (vec == null) {
+            return false;
+        } else {
+            return vec.x >= this.minX && vec.x <= this.maxX && vec.y >= this.minY && vec.y <= this.maxY;
+        }
+    }
+
+    public boolean isVecInside(Vector3d vec) {
+        if (!(vec.x <= this.minX) && !(vec.x >= this.maxX)) {
+            if (!(vec.y <= this.minY) && !(vec.y >= this.maxY)) {
+                return !(vec.z <= this.minZ) && !(vec.z >= this.maxZ);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 }
