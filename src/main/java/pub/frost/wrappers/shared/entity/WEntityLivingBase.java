@@ -17,6 +17,20 @@ public class WEntityLivingBase extends WEntity {
         return cast().hurtTime;
     }
 
+    public float getYawHead() {
+        return cast().getRotationYawHead();
+    }
+    public float getPrevYawHead() {
+        return cast().prevRotationYawHead;
+    }
+
+    public void setYawHead(float rotationYawHead) {
+        cast().setRotationYawHead(rotationYawHead);
+    }
+    public void setPrevYawHead(float prevRotationYawHead) {
+        cast().prevRotationYawHead  = prevRotationYawHead;
+    }
+
     @Override
     public EntityLivingBase cast() {
         return cast(getWrappedObject(), EntityLivingBase.class);

@@ -84,6 +84,12 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
     public float getPrevPitch() {
         return cast().prevRotationPitch;
     }
+    public void setPrevYaw(float prevYaw) {
+        cast().prevRotationYaw = prevYaw;
+    }
+    public void setPrevPitch(float prevPitch) {
+        cast().prevRotationPitch = prevPitch;
+    }
 
     public float getYaw() {
         return cast().rotationYaw;

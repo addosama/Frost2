@@ -21,7 +21,7 @@ public class MixinEntityRenderer {
                     opcode = Opcodes.GETFIELD
             )
     )
-    public void preRenderHand(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
+    private void preRenderHand(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(new EventRender3D(partialTicks));
     }
 
@@ -29,7 +29,7 @@ public class MixinEntityRenderer {
             method = "updateCameraAndRender",
             at = @At("TAIL")
     )
-    public void postRender(float partialTicks, long nanoTime, CallbackInfo ci) {
+    private void postRender(float partialTicks, long nanoTime, CallbackInfo ci) {
         ImGuiContext.draw(
                 () -> FrostCore.getInstance().getEventBus().call(new EventPostRender(partialTicks))
         );

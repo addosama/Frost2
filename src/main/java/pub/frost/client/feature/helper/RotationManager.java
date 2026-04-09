@@ -2,26 +2,26 @@ package pub.frost.client.feature.helper;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.minecraft.util.MathHelper;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventRotation;
 import pub.frost.base.event.impl.events.EventUpdateMovementInput;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
+import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.wrappers.shared.client.WMinecraft;
-import pub.frost.wrappers.shared.entity.WEntity;
+import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
 @Getter
 public class RotationManager {
     @Setter
-    private float playerYaw, playerPitch;
+    private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;
     private float silentYaw, silentPitch, prevSilentYaw, prevSilentPitch;
 
     @Setter
-    private static float targetYaw, targetPitch;
-    private static float speed;
+    private float targetYaw, targetPitch;
+    private float speed;
 
     private void processSilentRotation() {
         float nextSilentYaw = getSilentYaw(), nextSilentPitch = getSilentPitch();
@@ -29,26 +29,26 @@ public class RotationManager {
         postRotationEvent();
 
         if (speed > 0) {
-            float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - nextSilentYaw);
+            float deltaYaw = RotationUtils.wrapYawTo180(targetYaw - nextSilentYaw);
             float deltaPitch = targetPitch - nextSilentPitch;
-            nextSilentYaw += MathHelper.clamp_float(deltaYaw, -speed, speed);
-            nextSilentPitch += MathHelper.clamp_float(deltaPitch, -speed, speed);
+            nextSilentYaw += MathUtils.clamp(deltaYaw, -speed, speed);
+            nextSilentPitch += MathUtils.clamp(deltaPitch, -speed, speed);
         } else {
             nextSilentYaw = targetYaw;
             nextSilentPitch = targetPitch;
         }
-        nextSilentPitch = MathHelper.clamp_float(nextSilentPitch, -90, 90);
+        nextSilentPitch = MathUtils.clamp(nextSilentPitch, -90f, 90f);
 
         setSilentYaw(nextSilentYaw);
         setSilentPitch(nextSilentPitch);
     }
 
     private void postRotationEvent() {
-        EventRotation event = new EventRotation(getPlayerYaw(), getPlayerPitch(), 0);
+        EventRotation event = new EventRotation(getPlayerYaw(), getPlayerPitch(), 180);
         FrostCore.getInstance().getEventBus().call(event);
         setTargetYaw(event.getYaw());
         setTargetPitch(event.getPitch());
-        speed = MathHelper.clamp_float(event.getSpeed(), 0, 180);
+        speed = MathUtils.clamp(event.getSpeed(), 0f, 180f);
     }
 
     private void setSilentYaw(float silentYaw) {
@@ -70,7 +70,7 @@ public class RotationManager {
         int angleUnit = 45;
         float angleTolerance = 22.5F;
         float directionFactor = Math.max(Math.abs(forward), Math.abs(strafe));
-        double angleDifference = MathHelper.wrapAngleTo180_float(RotationUtils.getDirection(getPlayerYaw(), forward, strafe) - yaw);
+        double angleDifference = RotationUtils.wrapYawTo180(RotationUtils.getDirection(getPlayerYaw(), forward, strafe) - yaw);
         double angleDistance = Math.abs(angleDifference);
         forward = 0.0F;
         strafe = 0.0F;
@@ -95,19 +95,27 @@ public class RotationManager {
 
     @EventHandler(priority = 100)
     private void onPreGameTick(EventGameTick e) {
-        WEntity player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
+        WEntityLivingBase player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
         if (player == null) return;
         if (e.getType() == TickType.PRE) {
+            setPrevPlayerYaw(player.getPrevYaw());
+            setPrevPlayerPitch(player.getPrevPitch());
             setPlayerYaw(player.getYaw());
             setPlayerPitch(player.getPitch());
 
             processSilentRotation();
 
+            player.setPrevYaw(getPrevSilentYaw());
+            player.setPrevPitch(getPrevSilentPitch());
+
             player.setYaw(getSilentYaw());
             player.setPitch(getSilentPitch());
         } else {
-//            player.setYaw(getPlayerYaw());
-//            player.setPitch(getPlayerPitch());
+            player.setPrevYaw(getPrevPlayerYaw());
+            player.setPrevPitch(getPrevPlayerPitch());
+
+            player.setYaw(getPlayerYaw());
+            player.setPitch(getPlayerPitch());
         }
     }
 }

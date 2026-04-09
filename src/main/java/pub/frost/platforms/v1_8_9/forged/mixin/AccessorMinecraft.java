@@ -6,4 +6,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Minecraft.class)
 public interface AccessorMinecraft {
+    @Invoker
+    void callClickMouse();
+    @Invoker
+    void callRightClickMouse();
 }

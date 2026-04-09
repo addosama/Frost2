@@ -49,10 +49,10 @@ public class WMinecraft extends StaticWrapper {
         }
 
         public void clickLMB() {
-//            ((AccessorMinecraft) cast()).clickMouse();
+            ((AccessorMinecraft) getWrappedObject()).callClickMouse();
         }
         public void clickRMB() {
-//            ((AccessorMinecraft) cast()).rightClickMouse();
+            ((AccessorMinecraft) getWrappedObject()).callRightClickMouse();
         }
     }
 }

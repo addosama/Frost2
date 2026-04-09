@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRotation;
+import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -98,8 +99,10 @@ public class KillAura extends AbstractModule {
 
     @EventHandler
     private void onUpdate(EventPlayerUpdateTick e) {
-        if (target != null) {
-            mc.clickLMB();
+        if (e.getType() == TickType.PRE) {
+            if (target != null) {
+                mc.clickLMB();
+            }
         }
     }
 

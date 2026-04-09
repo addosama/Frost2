@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -14,26 +15,18 @@ import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 
 @Mixin(Minecraft.class)
-public class MixinMinecraft {
+public abstract class MixinMinecraft {
     @Inject(
-            method = "runGameLoop",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/profiler/Profiler;startSection(Ljava/lang/String;)V",
-                    ordinal = 1
-            )
+            method = "runTick",
+            at = @At("HEAD")
     )
     private void preGameTick(CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(EventGameTick.PRE);
     }
 
     @Inject(
-            method = "runGameLoop",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/profiler/Profiler;endStartSection(Ljava/lang/String;)V",
-                    ordinal = 0
-            )
+            method = "runTick",
+            at = @At("TAIL")
     )
     private void postGameTick(CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(EventGameTick.POST);
