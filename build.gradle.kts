@@ -87,8 +87,9 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.42")
 
     shadowImpl("org.apache.commons:commons-lang3:3.20.0")
-
     shadowImpl("io.github.spair:imgui-java-binding:1.90.0")
+    shadowImpl("org.joml:joml:1.10.8")
+
     shadowImpl("io.github.spair:imgui-java-natives-windows:1.90.0")
     shadowImpl("com.github.Enaium:ImGui-LWJGL2:e30f6b9")
 }
@@ -151,6 +152,7 @@ tasks.shadowJar {
 
     relocate("org.apache")
     relocate("javax.vecmath")
+    relocate("org.joml")
     relocate("imgui")
     relocate("loutre.imgui")
 }
