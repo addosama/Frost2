@@ -12,9 +12,9 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
     private BigDecimal value;
 
     public NumberProperty(T min, T max, T increaseStep, T current) {
-        this.minValue = BigDecimal.valueOf(min.doubleValue());
-        this.maxValue = BigDecimal.valueOf(max.doubleValue());
-        this.increaseStep = BigDecimal.valueOf(increaseStep.doubleValue());
+        this.minValue = new BigDecimal(min.toString());
+        this.maxValue = new BigDecimal(max.toString());
+        this.increaseStep = new BigDecimal(increaseStep.toString());
 
         this.value = getProcessedValue(current);
     }
@@ -32,12 +32,12 @@ public abstract class NumberProperty<T extends Number & Comparable<T>> extends A
     }
 
     public String getValueAsString(T value) {
-        return BigDecimal.valueOf(value.doubleValue()).toPlainString();
+        return getProcessedValue(value).toPlainString();
     }
     public final BigDecimal getProcessedValue(T value) {
         return MathUtils.roundToStep(
                 MathUtils.clamp(
-                        BigDecimal.valueOf(value.doubleValue()),
+                        new BigDecimal(value.toString()),
                         minValue, maxValue
                 ),
                 increaseStep

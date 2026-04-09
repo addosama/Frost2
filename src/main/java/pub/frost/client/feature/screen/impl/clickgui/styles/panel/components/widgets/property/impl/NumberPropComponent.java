@@ -39,8 +39,12 @@ public class NumberPropComponent<T extends Number & Comparable<T>> extends Prope
 
         ImGui.invisibleButton(id, 100, 18);
         ImVec2 rectMin = ImGui.getItemRectMin(), rectMax = ImGui.getItemRectMax(), size = ImGui.getItemRectSize();
-        if (ImGui.isMouseDown(0) && ImGui.isMouseHoveringRect(rectMin, rectMax)) dragging = true;
+
+        if (ImGui.getIO().getWantCaptureMouse()) {
+            if (ImGui.isMouseClicked(0) && ImGui.isMouseHoveringRect(rectMin, rectMax)) dragging = true;
+        }
         if (ImGui.isMouseReleased(0)) dragging = false;
+
         if (dragging) {
             float relativeMouseX = ImGui.getMousePosX() - rectMin.x;
             float mousePercent = relativeMouseX / size.x;
