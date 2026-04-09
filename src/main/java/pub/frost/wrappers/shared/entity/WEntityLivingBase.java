@@ -13,7 +13,7 @@ public class WEntityLivingBase extends WEntity {
     public float getMaxHealth() {
         return cast().getMaxHealth();
     }
-    public float getHurtTime() {
+    public int getHurtTime() {
         return cast().hurtTime;
     }
 

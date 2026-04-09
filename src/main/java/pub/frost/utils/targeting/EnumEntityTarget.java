@@ -1,5 +1,6 @@
 package pub.frost.utils.targeting;
 
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.wrappers.ClassEnum;
 import pub.frost.wrappers.shared.entity.EnumEntity;
@@ -20,7 +21,7 @@ public enum EnumEntityTarget implements Named {
     final Predicate<Class<?>> predicate;
 
     EnumEntityTarget(Predicate<Class<?>> predicate, String key) {
-        this.key = "strings.targets.entities." + key;
+        this.key = "targets.entities." + key;
         this.predicate = predicate;
     }
     EnumEntityTarget(EnumEntity entity, String key) {
@@ -34,5 +35,10 @@ public enum EnumEntityTarget implements Named {
     @Override
     public String toString() {
         return key;
+    }
+
+    @Override
+    public String getName() {
+        return FrostCore.getLocalizer().get("strings." + this + ".name");
     }
 }

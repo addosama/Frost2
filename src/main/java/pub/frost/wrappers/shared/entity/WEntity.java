@@ -14,6 +14,10 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         super(wrappedObject);
     }
 
+    public boolean isDead() {
+        return cast().isDead;
+    }
+
     public boolean isSprinting() {
         return cast().isSprinting();
     }
@@ -101,6 +105,9 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
 
     public double distanceTo(double x, double y, double z) {
         return cast().getDistance(x, y, z);
+    }
+    public double distanceTo(Vector3d pos) {
+        return distanceTo(pos.x, pos.y, pos.z);
     }
 
     public BoundingBox getBoundingBox() {

@@ -14,6 +14,13 @@ public class BoundingBox {
         this.maxZ = Math.max(z1, z2);
     }
 
+    public BoundingBox(Vector3d vec1, Vector3d vec2) {
+        this(
+                vec1.x(), vec1.y(), vec1.z(),
+                vec2.x(), vec2.y(), vec2.z()
+        );
+    }
+
     public Vector3d getMinVector() {
         return new Vector3d(minX, minY, minZ);
     }
@@ -32,5 +39,23 @@ public class BoundingBox {
                 new Vector3d(maxX, maxY, maxZ),
                 new Vector3d(maxX, maxY, minZ)
         };
+    }
+
+    public double getSizeX() {
+        return maxX - minX;
+    }
+    public double getSizeY() {
+        return maxY - minY;
+    }
+    public double getSizeZ() {
+        return maxZ - minZ;
+    }
+
+    public Vector3d getCenter() {
+        return new Vector3d(
+                minX + getSizeX(),
+                minY + getSizeY(),
+                minZ + getSizeZ()
+        );
     }
 }
