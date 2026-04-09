@@ -1,6 +1,6 @@
 package pub.frost.utils.data;
 
-import javax.vecmath.Vector3d;
+import org.joml.Vector3d;
 
 public class BoundingBox {
     public final double minX, minY, minZ, maxX, maxY, maxZ;

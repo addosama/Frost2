@@ -7,7 +7,7 @@ import pub.frost.utils.MathUtils;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.wrappers.FakeInstanceWrapper;
 
-import javax.vecmath.Vector3d;
+import org.joml.Vector3d;
 
 public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Entity> {
     public WEntity(Object wrappedObject) {

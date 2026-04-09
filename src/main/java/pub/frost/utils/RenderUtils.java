@@ -4,9 +4,9 @@ import imgui.ImVec2;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
+import org.joml.Vector4f;
 import java.nio.FloatBuffer;
 
 public class RenderUtils {
@@ -50,7 +50,6 @@ public class RenderUtils {
         buffer.get(values);
         Matrix4f matrix = new Matrix4f();
         matrix.set(values);
-        matrix.transpose(); // 必须转置，因为 OpenGL 是列主序，而 vecmath transform 是按行算的
         return matrix;
     }
 }

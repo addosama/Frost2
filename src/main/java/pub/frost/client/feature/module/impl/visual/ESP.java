@@ -23,8 +23,8 @@ import pub.frost.wrappers.shared.entity.EnumEntity;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3d;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -71,7 +71,7 @@ public class ESP extends AbstractModule {
 
         Vector3d playerPos = mc.getPlayer().getLerpedPositionVector(e.getTickDelta());
         cachedData.sort(Comparator.comparingDouble(data -> -data.getEntity().distanceTo(
-                playerPos.getX(), playerPos.getY(), playerPos.getZ()
+                playerPos.x(), playerPos.y(), playerPos.z()
         )));
 
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
