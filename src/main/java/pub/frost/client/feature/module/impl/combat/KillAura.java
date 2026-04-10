@@ -3,6 +3,8 @@ package pub.frost.client.feature.module.impl.combat;
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
+import pub.frost.base.event.impl.events.EventPreProcessInteract;
+import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
@@ -15,10 +17,11 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
+import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
-import pub.frost.utils.interacting.EnumInteractType;
+import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.ClassEnum;
@@ -29,7 +32,6 @@ import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Predicate;
 
 @Module(
         key = "KillAura",
@@ -51,25 +53,18 @@ public class KillAura extends AbstractModule {
     @Property("attackRange")
     public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f);
 
-    @Property("attackMode")
-    public final ModeProperty<EnumInteractType> attackType = new ModeProperty<>(EnumInteractType.LEGIT);
-
-    private final Predicate<Rotation> raytracePredicate = r -> {
-        HitResult result = mc.getPlayer().rayTrace(
-                mc.getPlayer().getVectorForRotation(r.getPitch(), r.getYaw()),
-                attackRange.get(), 1
-        );
-        if (result == null) return false;
-        return result.getType() == HitResult.EnumHitType.ENTITY;
-    };
+    @Property("cps")
+    private final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
 
     private WEntityLivingBase target = null;
     private void resetTarget() {
         target = null;
     }
+    private boolean rotationProvided = false;
 
     @EventHandler
     private void onRotation(EventRotation event) {
+        rotationProvided = false;
         List<WEntityLivingBase> validTargets = provideValidTargetList();
         if (validTargets.isEmpty()) {
             resetTarget();
@@ -78,31 +73,42 @@ public class KillAura extends AbstractModule {
         if (validTargets.size() > 1) sortByPriority(validTargets);
 
         if (mode.is(Mode.SINGLE)) {
-            if (target == null || !validTargets.contains(target)) {
+            if (target == null || !validTargets.stream().collect(ArrayList::new,
+                    (list, e) -> list.add(e.getWrappedObject()),
+                    ArrayList::addAll
+            ).contains(target.getWrappedObject())) {
                 target = validTargets.get(0);
             }
         } else target = validTargets.get(0);
 
         if (target != null) {
-            Rotation rotation = RotationUtils.searchRotationHittingBoundingBox(
-                    mc.getPlayer().getPositionEyes(1),
-                    target.getBoundingBox(),
-                    raytracePredicate,
-                    2
-            );
+            Rotation rotation = getRotation();
             if (rotation != null) {
                 event.setYaw(rotation.getYaw());
                 event.setPitch(rotation.getPitch());
+                rotationProvided = true;
+            }
+        }
+    }
+
+    private long lastAttack = 0;
+    private int attackCount = 0;
+    @EventHandler
+    private void onRender2D(EventRender2D event) {
+        if (target != null && rotationProvided) {
+            int minimumDelay = 1000 / cps.get();
+            if (System.currentTimeMillis() > lastAttack + minimumDelay) {
+                lastAttack = System.currentTimeMillis();
+                attackCount ++;
             }
         }
     }
 
     @EventHandler
-    private void onUpdate(EventPlayerUpdateTick e) {
-        if (e.getType() == TickType.PRE) {
-            if (target != null) {
-                mc.clickLMB();
-            }
+    private void onProcessInteract(EventPreProcessInteract e) {
+        while (attackCount > 0) {
+            mc.clickLMB();
+            attackCount --;
         }
     }
 
@@ -136,6 +142,36 @@ public class KillAura extends AbstractModule {
             comparator = comparator.thenComparing(p.getComparator().apply(mc.getPlayer()));
         }
         list.sort(comparator);
+    }
+    private Rotation getRotation() {
+        return RotationUtils.searchRotationHittingBoundingBox(
+                mc.getPlayer().getPositionEyes(1),
+                target.getBoundingBox(),
+                r ->
+                        mc.getPlayer().getPositionVector().distance(target.getPositionVector()) > attackRange.get()
+                                || rayTraceTarget(r),
+                2
+        );
+    }
+
+    private boolean rayTraceTarget(Rotation r) {
+        HitResult result = mc.getPlayer().rayTrace(
+                mc.getPlayer().getVectorForRotation(r.getPitch(), r.getYaw()),
+                attackRange.get(), 1
+        );
+        if (result == null) return false;
+        if (result.getType() == HitResult.EnumHitType.ENTITY) {
+            EntityHitResult entityHit = (EntityHitResult) result;
+            return entityHit.getHitEntity().getWrappedObject() == target.getWrappedObject();
+        }
+        return false;
+    }
+
+    @Override
+    protected void onEnabled() {
+        resetTarget();
+        attackCount = 0;
+        lastAttack = 0;
     }
 
     @RequiredArgsConstructor

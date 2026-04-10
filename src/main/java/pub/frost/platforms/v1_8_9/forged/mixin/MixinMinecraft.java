@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventKeyInput;
+import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 
@@ -73,5 +74,17 @@ public abstract class MixinMinecraft {
             return !event.isCancelled();
         }
         return false;
+    }
+
+    @Inject(
+            method = "runTick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/settings/KeyBinding;isPressed()Z",
+                    ordinal = 10
+            )
+    )
+    private void preProcessInteract(CallbackInfo ci) {
+        FrostCore.getInstance().getEventBus().call(new EventPreProcessInteract());
     }
 }
