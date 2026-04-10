@@ -5,7 +5,6 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
-import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.wrappers.shared.client.WMinecraft;
@@ -75,8 +74,8 @@ public class AbstractModule implements Named, Described {
             }
         });
 
-        this.propertyList.addAll(AbstractProperty.getPropertyDescriptorsForObject(
-                this, propKeyPrefix, String::toLowerCase
+        this.propertyList.addAll(PropertyDescriptor.buildDescriptorListForObject(
+                this, propKeyPrefix, null
         ));
     }
 

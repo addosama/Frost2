@@ -4,12 +4,14 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import pub.frost.client.property.annotations.Property;
-import pub.frost.client.property.annotations.PropertyGrouping;
+import pub.frost.client.property.annotations.PropertyGroupHead;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.Overriding;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -88,60 +90,18 @@ public abstract class AbstractProperty<T> {
     public abstract T getValue();
     protected abstract boolean setValue(T oldValue, T newValue);
 
-    public static List<PropertyDescriptor> getPropertyDescriptorsForObject(
-            Object object,
-            String keyPrefix, Function<String, String> keyProcessor
-    ) {
-        int unnamedIndex = 0;
-        Stack<String> groupKeyPrefixStack = new Stack<>();
-        Stack<List<PropertyDescriptor>> groupListStack = new Stack<>();
-        groupKeyPrefixStack.push("");
-        groupListStack.push(new ArrayList<>());
-
-
-        for (Field field : object.getClass().getDeclaredFields()) {
-            if (!isPropertyField(field)) continue;
-            if (field.isAnnotationPresent(Deprecated.class)) continue;
-
-            try {
-                Property propDataAnno = field.getAnnotation(Property.class);
-                AbstractProperty<?> currentProp = (AbstractProperty<?>) field.get(object);
-                if (field.isAnnotationPresent(PropertyGrouping.Push.class)) {
-                    PropertyGrouping.Push groupAnno = field.getAnnotation(PropertyGrouping.Push.class);
-                    groupKeyPrefixStack.push(groupAnno.value());
-                    groupListStack.push(new ArrayList<>());
-                }
-
-                String propKey = propDataAnno.value(); {
-                    if (StringUtils.isBlank(propKey)) {
-                        propKey = "unnamed-property-" + unnamedIndex;
-                        unnamedIndex++;
-                    }
-                    String groupPrefix = groupKeyPrefixStack.peek();
-                    if (!StringUtils.isBlank(groupPrefix)) {
-                        propKey = groupPrefix + ".subprops." + propKey;
-                    }
-                    propKey = keyProcessor.apply(keyPrefix + propKey);
-                }
-
-                if (propDataAnno.allowOverriding()) currentProp.enableOverriding();
-
-                groupListStack.peek().add(new PropertyDescriptor(propKey, currentProp));
-                if (field.isAnnotationPresent(PropertyGrouping.Pop.class)) {
-                    List<PropertyDescriptor> poppedList = groupListStack.pop();
-                    groupListStack.peek().add(new PropertyDescriptor(
-                            keyProcessor.apply(keyPrefix + groupKeyPrefixStack.pop()),
-                            poppedList
-                    ));
-                }
-            } catch (IllegalAccessException ignored) {
-            }
-        }
-
-        return groupListStack.pop();
-    }
-
-    private static boolean isPropertyField(Field field) {
+    public static boolean isPropertyField(Field field) {
         return field.isAnnotationPresent(Property.class) && AbstractProperty.class.isAssignableFrom(field.getType());
+    }
+    public static boolean isGroupHead(Field field) {
+        if (field.isAnnotationPresent(PropertyGroupHead.class)) {
+            Type type = field.getGenericType();
+            if (!(type instanceof ParameterizedType)) return false;
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            if (parameterizedType.getRawType() != Supplier.class) return false;
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            return actualTypeArguments.length == 1 && actualTypeArguments[0] == Boolean.class;
+        }
+        return false;
     }
 }

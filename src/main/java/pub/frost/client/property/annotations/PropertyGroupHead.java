@@ -7,11 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Property {
+public @interface PropertyGroupHead {
     String value();
-
-    String startGroup() default "";
-    boolean endGroup() default false;
-
-    boolean allowOverriding() default false;
 }

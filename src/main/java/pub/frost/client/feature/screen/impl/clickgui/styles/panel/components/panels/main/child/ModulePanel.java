@@ -9,10 +9,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.BooleanPropComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.ModePropComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.MultipleBooleanPropComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.NumberPropComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.*;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
@@ -39,14 +36,18 @@ public class ModulePanel extends PanelComponent {
     private void addPropertyComponent(PropertyDescriptor descriptor) {
         AbstractProperty<?> abstractProp = descriptor.getProperty();
         PropertyComponent<?> component = null;
-        if (abstractProp instanceof BooleanProperty) {
-            component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
-        } else if (abstractProp instanceof NumberProperty) {
-            component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
-        } else if (abstractProp instanceof ModeProperty) {
-            component = new ModePropComponent(gui, descriptor, (ModeProperty) abstractProp);
-        } else if (abstractProp instanceof MultipleBooleanProperty) {
-            component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
+        if (abstractProp != null) {
+            if (abstractProp instanceof BooleanProperty) {
+                component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
+            } else if (abstractProp instanceof NumberProperty) {
+                component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
+            } else if (abstractProp instanceof ModeProperty) {
+                component = new ModePropComponent(gui, descriptor, (ModeProperty) abstractProp);
+            } else if (abstractProp instanceof MultipleBooleanProperty) {
+                component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
+            }
+        } else if (descriptor.isGroup()) {
+            component = new GroupedPropElement(gui, descriptor);
         }
         if (component != null) components.add(component);
     }

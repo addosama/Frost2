@@ -72,6 +72,6 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
 
     @Override
     public boolean isVisible() {
-        return descriptor.getProperty().isVisible();
+        return descriptor.isVisible();
     }
 }
