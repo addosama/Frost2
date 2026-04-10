@@ -30,10 +30,13 @@ public class ModulePanel extends PanelComponent {
         this.module = module;
         this.widthSupplier = widthSupplier;
         this.components = new ArrayList<>();
-        module.getPropertyList().forEach(this::addPropertyComponent);
+        module.getPropertyList().forEach(d -> {
+            PanelComponent component = getPropertyComponent(d);
+            if (component != null) components.add(component);
+        });
     }
 
-    private void addPropertyComponent(PropertyDescriptor descriptor) {
+    private PanelComponent getPropertyComponent(PropertyDescriptor descriptor) {
         AbstractProperty<?> abstractProp = descriptor.getProperty();
         PropertyComponent<?> component = null;
         if (abstractProp != null) {
@@ -47,9 +50,14 @@ public class ModulePanel extends PanelComponent {
                 component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
             }
         } else if (descriptor.isGroup()) {
-            component = new GroupedPropElement(gui, descriptor);
+            List<PanelComponent> groupComponents = new ArrayList<>();
+            descriptor.getChildProperties().forEach(d -> {
+                PanelComponent child = getPropertyComponent(d);
+                if (child != null) groupComponents.add(child);
+            });
+            component = new GroupedPropElement(gui, descriptor, groupComponents);
         }
-        if (component != null) components.add(component);
+        return component;
     }
 
     @Override
