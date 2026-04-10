@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventPostRender;
+import pub.frost.base.event.impl.events.EventPreRender;
 import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.core.FrostCore;
@@ -33,5 +34,13 @@ public class MixinEntityRenderer {
         ImGuiContext.draw(
                 () -> FrostCore.getInstance().getEventBus().call(new EventPostRender(partialTicks))
         );
+    }
+
+    @Inject(
+            method = "updateCameraAndRender",
+            at = @At("HEAD")
+    )
+    private void preRender(CallbackInfo ci) {
+        FrostCore.getInstance().getEventBus().call(new EventPreRender());
     }
 }
