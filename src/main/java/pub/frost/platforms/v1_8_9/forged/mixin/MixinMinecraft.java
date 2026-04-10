@@ -41,7 +41,6 @@ public abstract class MixinMinecraft {
     private boolean handleMouse() {
         if (Mouse.next()) {
             int eventButton = Mouse.getEventButton();
-            if (eventButton == -1) return true;
             EventKeyInput event = new EventKeyInput(
                     InputDevice.MOUSE,
                     -1 - eventButton,

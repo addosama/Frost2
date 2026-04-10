@@ -19,6 +19,7 @@ public class BindableManager {
 
     @EventHandler(priority = 5)
     private void handleKeyInput(EventKeyInput event) {
+        if (event.getKey() == 0) return;
         if (event.isCancelled()) return;
         for (IBindable bindable : bindableMap.values()) {
             if (bindable.getKeybind() == event.getKey()) {

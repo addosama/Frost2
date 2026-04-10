@@ -122,6 +122,7 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
                                 inputConsumer = new InputConsumer() {
                                     @Override
                                     public void onInput(InputDevice device, int code, int action) {
+                                        if (code == 0) return;
                                         if (action != 2) {
                                             if (device == InputDevice.MOUSE) {
                                                 if (code == -1) return;

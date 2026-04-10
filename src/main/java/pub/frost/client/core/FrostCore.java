@@ -2,6 +2,7 @@ package pub.frost.client.core;
 
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
+import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.helper.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;
@@ -49,6 +50,7 @@ public final class FrostCore {
         i18nHelper.loadLanguages();
 
         eventBus = new EventBus();
+        eventBus.register(ImGuiContext.getInstance());
         bindableManager = new BindableManager();
         eventBus.register(bindableManager);
         moduleManager = new ModuleManager();
