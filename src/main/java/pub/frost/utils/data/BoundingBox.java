@@ -43,6 +43,23 @@ public class BoundingBox {
         };
     }
 
+    public Vector3d[] getTopVertices() {
+        return new Vector3d[] {
+                new Vector3d(minX, maxY, minZ),
+                new Vector3d(minX, maxY, maxZ),
+                new Vector3d(maxX, maxY, maxZ),
+                new Vector3d(maxX, maxY, minZ)
+        };
+    }
+    public Vector3d[] getBottomVertices() {
+        return new Vector3d[] {
+                new Vector3d(minX, minY, minZ),
+                new Vector3d(minX, minY, maxZ),
+                new Vector3d(maxX, minY, maxZ),
+                new Vector3d(maxX, minY, minZ)
+        };
+    }
+
     public double getSizeX() {
         return maxX - minX;
     }

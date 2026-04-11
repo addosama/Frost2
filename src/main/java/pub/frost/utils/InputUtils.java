@@ -13,6 +13,9 @@ public class InputUtils {
         } else return Keyboard.getKeyName(keyCode);
     }
 
+    public static boolean isKeyDown(int keyCode) {
+        return Keyboard.isKeyDown(keyCode);
+    }
     public static boolean isMouseDown(int button) {
         return Mouse.isButtonDown(button);
     }

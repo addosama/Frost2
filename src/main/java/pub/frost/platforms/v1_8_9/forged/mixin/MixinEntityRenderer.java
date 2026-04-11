@@ -1,14 +1,17 @@
 package pub.frost.platforms.v1_8_9.forged.mixin;
 
 import net.minecraft.client.renderer.EntityRenderer;
+import net.minecraft.client.settings.GameSettings;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventPreRender;
 import pub.frost.base.event.impl.events.EventRender3D;
+import pub.frost.base.event.impl.events.EventUpdateLightMap;
 import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.core.FrostCore;
 
@@ -42,5 +45,19 @@ public class MixinEntityRenderer {
     )
     private void preRender(CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(new EventPreRender());
+    }
+
+    @Redirect(
+            method = "updateLightmap",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/settings/GameSettings;gammaSetting:F",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    public float onGetGamma(GameSettings instance) {
+        EventUpdateLightMap event = new EventUpdateLightMap(instance.gammaSetting);
+        FrostCore.getInstance().getEventBus().call(event);
+        return event.getGamma();
     }
 }

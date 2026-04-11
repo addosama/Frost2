@@ -8,6 +8,7 @@ import pub.frost.client.i18n.interfaces.Named;
 public enum ModuleCategory implements Named {
     COMBAT("\ue88a", "combat"),
     MOVEMENT("\ue86b", "movement"),
+    UTILITY("\ue64a", "utility"),
     VISUAL("\ue869", "visual"),;
 
     @Getter

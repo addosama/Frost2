@@ -13,6 +13,7 @@ import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.EnumDirection;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.wrappers.FakeInstanceWrapper;
+import pub.frost.wrappers.shared.block.WIBlockState;
 import pub.frost.wrappers.shared.entity.WEntity;
 
 import java.util.ArrayList;
@@ -65,5 +66,12 @@ public class WWorld extends InstanceWrapper implements FakeInstanceWrapper<World
             }
         }
         return null;
+    }
+
+    public WIBlockState getBlockState(BlockPosition pos) {
+        return new WIBlockState(cast().getBlockState(new BlockPos(pos.x, pos.y, pos.z)));
+    }
+    public boolean isAirBlock(BlockPosition pos) {
+        return cast().isAirBlock(new BlockPos(pos.x, pos.y, pos.z));
     }
 }
