@@ -36,26 +36,6 @@ public class MixinEntityPlayerSP {
         FrostCore.getInstance().getEventBus().call(new EventPlayerUpdateTick(TickType.POST));
     }
 
-    @Inject(
-            method = "onLivingUpdate",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/util/MovementInput;updatePlayerMoveState()V",
-                    shift = At.Shift.AFTER
-            )
-    )
-    private void updateMovement(CallbackInfo ci) {
-        EventUpdateMovementInput event = new EventUpdateMovementInput(
-                movementInput.moveForward, movementInput.moveStrafe,
-                movementInput.jump, movementInput.sneak
-        );
-        FrostCore.getInstance().getEventBus().call(event);
-        movementInput.moveForward = event.getMoveForward();
-        movementInput.moveStrafe = event.getMoveStrafe();
-        movementInput.jump = event.isJump();
-        movementInput.sneak = event.isSneak();
-    }
-
     @Redirect(
             method = "onLivingUpdate",
             at = @At(

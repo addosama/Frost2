@@ -29,6 +29,6 @@ public class MixinNetHandlerPlayClient {
                         z * event.getZMultiplier()
                 );
             }
-        }
+        } else instance.setVelocity(x, y, z);
     }
 }
