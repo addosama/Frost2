@@ -52,12 +52,14 @@ public class PanelClickGui implements RenderableComponent, InputListener {
     private InputListener activeListener;
 
     public PanelClickGui() {
-        this.categoryPanel = new CategoryPanel(this);
-        categoryPanel.addGroup(new CategoryButtonGroup(
+        CategoryPanel catePanel = new CategoryPanel(this);
+        catePanel.addGroup(new CategoryButtonGroup(
                 this,
                 () -> FrostCore.getLocalizer().get("strings.features").toUpperCase(),
-                getModuleCategoryButtons(categoryPanel)
+                getModuleCategoryButtons(catePanel)
         ));
+
+        this.categoryPanel = catePanel;
     }
 
     @Override
@@ -98,6 +100,9 @@ public class PanelClickGui implements RenderableComponent, InputListener {
     public void onInput(InputDevice device, int code, int action) {
         if (activeListener != null) {
             activeListener.onInput(device, code, action);
+        }
+        if (categoryPanel != null) {
+            categoryPanel.getActiveButton().getBoundPanel().onInput(device, code, action);
         }
     }
 

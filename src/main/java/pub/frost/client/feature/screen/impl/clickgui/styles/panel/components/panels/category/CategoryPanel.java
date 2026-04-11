@@ -15,7 +15,7 @@ import java.util.List;
 
 public class CategoryPanel extends PanelComponent {
     private final List<CategoryButtonGroup> buttonGroupList;
-    @Getter @Setter
+    @Setter
     private CategoryButton activeButton;
 
     public CategoryPanel(PanelClickGui gui) {
@@ -23,9 +23,13 @@ public class CategoryPanel extends PanelComponent {
         this.buttonGroupList = new ArrayList<>();
     }
 
+    private void checkActiveButton() {
+        if (activeButton == null) setActiveButton(buttonGroupList.get(0).getButtonList().get(0));
+    }
+
     @Override
     public void render(boolean dummy, float tickDelta) {
-        if (activeButton == null) setActiveButton(buttonGroupList.get(0).getButtonList().get(0));
+        checkActiveButton();
 
         ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 12);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 8, 8);
@@ -44,5 +48,10 @@ public class CategoryPanel extends PanelComponent {
 
     public void addGroup(CategoryButtonGroup buttonGroup) {
         buttonGroupList.add(buttonGroup);
+    }
+
+    public CategoryButton getActiveButton() {
+        checkActiveButton();
+        return activeButton;
     }
 }
