@@ -37,6 +37,7 @@ import java.util.List;
         key = "KillAura",
         category = ModuleCategory.COMBAT
 )
+// todo FOV
 public class KillAura extends AbstractModule {
     @Property("mode")
     public final ModeProperty<Mode> mode = new ModeProperty<>(Mode.SINGLE);
@@ -55,6 +56,11 @@ public class KillAura extends AbstractModule {
 
     @Property("cps")
     private final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+
+    @Property("RotationSpeed")
+    private final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
+    @Property("LockView")
+    private final BooleanProperty lockView = new BooleanProperty(true);
 
     private WEntityLivingBase target = null;
     private void resetTarget() {
@@ -86,6 +92,8 @@ public class KillAura extends AbstractModule {
             if (rotation != null) {
                 event.setYaw(rotation.getYaw());
                 event.setPitch(rotation.getPitch());
+                event.setSpeed(rotationSpeed.get());
+                event.setLockView(lockView.get());
                 rotationProvided = true;
             }
         }
