@@ -1,6 +1,10 @@
 package pub.frost.client.feature.module.impl.visual;
 
-import imgui.ImGui;
+import imgui.*;
+import imgui.flag.ImGuiChildFlags;
+import imgui.flag.ImGuiCol;
+import imgui.flag.ImGuiStyleVar;
+import imgui.flag.ImGuiWindowFlags;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.rendering.FontManager;
@@ -21,9 +25,10 @@ public class HUD extends AbstractModule {
     @EventHandler
     public void onRender(EventRender2D e) {
         ImGui.pushFont(FontManager.INSTANCE.puHui18);
-        ImTextRenderer.drawShadowedText(ImGui.getBackgroundDrawList(), "Frost", 4, 4, -1);
 
-        float yIndex = 40;
+        drawWatermark();
+
+        float yIndex = 44;
         for (
                 AbstractModule m
                 : FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled).stream()
@@ -32,9 +37,42 @@ public class HUD extends AbstractModule {
                     return diff < 0? -1 : diff == 0? 0 : 1;
                 }).collect(Collectors.toList())
         ) {
-            ImTextRenderer.drawShadowedText(ImGui.getBackgroundDrawList(), m.getName(), 4, yIndex, -1);
+            ImTextRenderer.drawShadowedText(ImGui.getBackgroundDrawList(), m.getName(), 8, yIndex, -1);
             yIndex += ImTextRenderer.getTextHeight() + 2;
         }
         ImGui.popFont();
+    }
+
+    private void drawWatermark() {
+        float x = 8, y = 8;
+        int bgColor = ImColor.rgba(20, 25, 51, 204);
+        int textColor = ImColor.rgba("#E5EAFFFF");
+        ImDrawList draws = ImGui.getBackgroundDrawList();
+        {
+            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            draws.addRectFilled(
+                    x, y, x + 30, y + 30,
+                    bgColor, 12f
+            );
+            draws.addText(
+                    x + 8, y + 7,
+                    textColor, "\ue601"
+            );
+            ImGui.popFont();
+            x += 30;
+        }
+        x += 5;
+        {
+            String text = "Frost";
+            float width = ImGui.calcTextSizeX(text) + 18f;
+            draws.addRectFilled(
+                    x, y, x + width, y + 30,
+                    bgColor, 12f
+            );
+            draws.addText(
+                    x + 9, y + 2,
+                    textColor, text
+            );
+        }
     }
 }

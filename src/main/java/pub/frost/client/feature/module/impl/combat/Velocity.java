@@ -17,6 +17,9 @@ import pub.frost.client.property.impl.number.PercentProperty;
         category = ModuleCategory.COMBAT
 )
 public class Velocity extends AbstractModule {
+    @Property("MotionCheck")
+    public final BooleanProperty motionCheck = new BooleanProperty(true);
+
     @Property("editMotion")
     public final BooleanProperty editMotion = new BooleanProperty(false);
     @Property("cancel")
@@ -42,7 +45,9 @@ public class Velocity extends AbstractModule {
 
     @EventHandler
     public void onVelocity(EventPlayerVelocity event) {
-        this.hasVelocity = true;
+        this.hasVelocity = !motionCheck.get() || hasMotion(event);
+        if (!hasVelocity) return;
+
         if (editMotion.get()) {
             if (cancel.get()) {
                 event.cancel();
@@ -63,6 +68,9 @@ public class Velocity extends AbstractModule {
         }
     }
 
+    private boolean hasMotion(EventPlayerVelocity event) {
+        return event.getMotionX() != 0 || event.getMotionZ() != 0;
+    }
     private boolean shouldEditMotion() {
         return editMotion.get() && !cancel.get();
     }

@@ -14,6 +14,10 @@ public class WEntityPlayer extends WEntityLivingBase {
         return cast(instance).isSpectator();
     }
 
+    public Object getHeldItem(Object instance) {
+        return cast(instance).getHeldItem();
+    }
+
     @Override
     public EntityPlayer cast(Object instance) {
         return cast(instance, EntityPlayer.class);

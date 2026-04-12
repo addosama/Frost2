@@ -16,6 +16,7 @@ import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.client.property.impl.number.PercentProperty;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
@@ -24,6 +25,10 @@ import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
+import pub.frost.wrappers.shared.entity.WEntityPlayer;
+import pub.frost.wrappers.shared.item.WItem;
+import pub.frost.wrappers.shared.item.WItemStack;
+import pub.frost.wrappers.shared.item.WItemSword;
 import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.ArrayList;
@@ -52,12 +57,20 @@ public class KillAura extends AbstractModule {
     public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f);
 
     @Property("cps")
-    private final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+    public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+    @Property("BlockHit")
+    public final BooleanProperty blockHit = new BooleanProperty(true);
+    @Property("BlockRange")
+    public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(FloatProperty.class, blockHit::get);
+    @Property("BlockChance")
+    public final PercentProperty blockChance = new PercentProperty(0, 1, 1).setVisibilitySupplier(PercentProperty.class, blockHit::get);
+    @Property("DistanceBasedChance")
+    public final BooleanProperty distanceBasedChance = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, blockHit::get);
 
     @Property("RotationSpeed")
-    private final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
+    public final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
     @Property("LockView")
-    private final BooleanProperty lockView = new BooleanProperty(true);
+    public final BooleanProperty lockView = new BooleanProperty(false);
 
     private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
     private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
@@ -115,10 +128,25 @@ public class KillAura extends AbstractModule {
 
     @EventHandler
     private void onProcessInteract(EventPreProcessInteract e) {
-        while (attackCount > 0) {
-            mcWrapper.clickLMB(mc);
-            attackCount --;
-        }
+        if (target != null) {
+            while (attackCount > 0) {
+                mcWrapper.clickLMB(mc);
+                attackCount --;
+            }
+            if (blockHit.get() && isHoldingSword()) {
+                double distance = entityWrapper.distanceTo(
+                        target,
+                        entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))
+                );
+                if (blockRange.get() == 0) return;
+                if (distance > blockRange.get()) return;
+                float chance = blockChance.get();
+                if (distanceBasedChance.get()) {
+                    chance *= (float) (distance / blockRange.get());
+                }
+                if (Math.random() >= chance) mcWrapper.clickRMB(mc);
+            }
+        } else attackCount = 0;
     }
 
     private List<Object> provideValidTargetList() {
@@ -174,6 +202,14 @@ public class KillAura extends AbstractModule {
             return entityHit.getHitEntity() == target;
         }
         return false;
+    }
+
+    private boolean isHoldingSword() {
+        Object itemHeld = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityPlayer.class).getHeldItem(mcWrapper.getPlayer(mc));
+        if (itemHeld == null) return false;
+        return FrostCore.getInstance().getWrapperManager().getWrapper(WItemSword.class).isTarget(
+                FrostCore.getInstance().getWrapperManager().getWrapper(WItemStack.class).getItem(itemHeld).getClass()
+        );
     }
 
     @Override
