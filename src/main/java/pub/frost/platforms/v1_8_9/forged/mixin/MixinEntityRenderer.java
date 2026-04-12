@@ -43,8 +43,8 @@ public class MixinEntityRenderer {
             method = "updateCameraAndRender",
             at = @At("HEAD")
     )
-    private void preRender(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventPreRender());
+    private void preRender(float partialTicks, long nanoTime, CallbackInfo ci) {
+        FrostCore.getInstance().getEventBus().call(new EventPreRender(partialTicks));
     }
 
     @Redirect(

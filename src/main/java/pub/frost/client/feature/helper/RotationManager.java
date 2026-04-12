@@ -14,25 +14,16 @@ import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 @Getter
 public class RotationManager {
     @Setter
-    private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch, armYaw, armPitch, prevArmYaw, prevArmPitch;
+    private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;
     private float silentYaw, silentPitch, prevSilentYaw, prevSilentPitch;
-    private float silentArmYaw, silentArmPitch, prevSilentArmYaw, prevSilentArmPitch;
 
-    @Setter
+    private boolean applied;
     private float targetYaw, targetPitch;
     private float speed;
-
-    private float translateArmYaw(float armYaw, float baseYaw, float targetYaw) {
-        return targetYaw + RotationUtils.wrapYawTo180(armYaw - baseYaw);
-    }
-    private float translateArmPitch(float armPitch, float basePitch, float targetPitch) {
-        return targetPitch + (armPitch - basePitch);
-    }
+    private boolean lockView;
 
     private void processSilentRotation() {
         float nextSilentYaw = getSilentYaw(), nextSilentPitch = getSilentPitch();
-
-        postRotationEvent();
 
         if (speed > 0) {
             float deltaYaw = RotationUtils.wrapYawTo180(targetYaw - nextSilentYaw);
@@ -49,12 +40,16 @@ public class RotationManager {
         setSilentPitch(nextSilentPitch);
     }
 
-    private void postRotationEvent() {
-        EventRotation event = new EventRotation(getPlayerYaw(), getPlayerPitch(), 180);
+    private boolean postRotationEvent() {
+        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
+        EventRotation event = new EventRotation(player.getYaw(), player.getPitch(), 180, false);
         FrostCore.getInstance().getEventBus().call(event);
-        setTargetYaw(event.getYaw());
-        setTargetPitch(event.getPitch());
+        targetYaw = event.getYaw();
+        targetPitch = event.getPitch();
         speed = MathUtils.clamp(event.getSpeed(), 0f, 180f);
+        lockView = event.isLockView();
+
+        return targetYaw != silentYaw || targetPitch != silentPitch;
     }
 
     private void setSilentYaw(float silentYaw) {
@@ -104,71 +99,40 @@ public class RotationManager {
         WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
         if (player == null) return;
         if (e.getType() == TickType.PRE) {
+            setPrevPlayerYaw(player.getPrevYaw());
+            setPrevPlayerPitch(player.getPrevPitch());
+            setPlayerYaw(player.getYaw());
+            setPlayerPitch(player.getPitch());
+
+            if (!postRotationEvent()) {
+                applied = false;
+                return;
+            }
+
             processSilentRotation();
 
             player.setPrevYaw(getPrevSilentYaw());
             player.setPrevPitch(getPrevSilentPitch());
-
             player.setYaw(getSilentYaw());
             player.setPitch(getSilentPitch());
+
+            if (lockView) {
+                setPrevPlayerYaw(getPrevSilentYaw());
+                setPrevPlayerPitch(getPrevSilentPitch());
+                setPlayerYaw(getSilentYaw());
+                setPlayerPitch(getSilentPitch());
+            }
+
+            applied = true;
+        } else {
+            if (!applied) return;
+
+            player.setPrevYaw(getPrevPlayerYaw());
+            player.setPrevPitch(getPrevPlayerPitch());
+            player.setYaw(getPlayerYaw());
+            player.setPitch(getPlayerPitch());
+
+            applied = false;
         }
-    }
-
-    @EventHandler
-    private void onPreRender(EventPreRender e) {
-        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
-        if (player == null) return;
-
-        prevSilentArmYaw = player.getPrevRenderArmYaw();
-        prevSilentArmPitch = player.getPrevRenderArmPitch();
-        silentArmYaw = player.getRenderArmYaw();
-        silentArmPitch = player.getRenderArmPitch();
-
-        float renderPrevArmYaw = translateArmYaw(getPrevSilentArmYaw(), getPrevSilentYaw(), getPrevPlayerYaw());
-        float renderPrevArmPitch = translateArmPitch(getPrevSilentArmPitch(), getPrevSilentPitch(), getPrevPlayerPitch());
-        float renderArmYaw = translateArmYaw(getSilentArmYaw(), getSilentYaw(), getPlayerYaw());
-        float renderArmPitch = translateArmPitch(getSilentArmPitch(), getSilentPitch(), getPlayerPitch());
-
-        setPrevArmYaw(renderPrevArmYaw);
-        setPrevArmPitch(renderPrevArmPitch);
-        setArmYaw(renderArmYaw);
-        setArmPitch(renderArmPitch);
-
-        player.setPrevYaw(getPrevPlayerYaw());
-        player.setPrevPitch(getPrevPlayerPitch());
-
-        player.setYaw(getPlayerYaw());
-        player.setPitch(getPlayerPitch());
-
-        player.setPrevRenderArmYaw(renderPrevArmYaw);
-        player.setPrevRenderArmPitch(renderPrevArmPitch);
-        player.setRenderArmYaw(renderArmYaw);
-        player.setRenderArmPitch(renderArmPitch);
-    }
-
-    @EventHandler(priority = 0)
-    private void onPostRender(EventPostRender e) {
-        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
-        if (player == null) return;
-
-        setPrevPlayerYaw(player.getPrevYaw());
-        setPrevPlayerPitch(player.getPrevPitch());
-        setPlayerYaw(player.getYaw());
-        setPlayerPitch(player.getPitch());
-
-        setPrevArmYaw(player.getPrevRenderArmYaw());
-        setPrevArmPitch(player.getPrevRenderArmPitch());
-        setArmYaw(player.getRenderArmYaw());
-        setArmPitch(player.getRenderArmPitch());
-
-        player.setPrevYaw(getPrevSilentYaw());
-        player.setPrevPitch(getPrevSilentPitch());
-        player.setYaw(getSilentYaw());
-        player.setPitch(getSilentPitch());
-
-        player.setPrevRenderArmYaw(getPrevSilentArmYaw());
-        player.setPrevRenderArmPitch(getPrevSilentArmPitch());
-        player.setRenderArmYaw(getSilentArmYaw());
-        player.setRenderArmPitch(getSilentArmPitch());
     }
 }
