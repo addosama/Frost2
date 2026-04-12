@@ -1,6 +1,6 @@
 package pub.frost.wrappers;
 
-import pub.frost.base.wrapping.AbstractWrapper;
+import pub.frost.base.wrapping.legacy.AbstractWrapper;
 
 public interface ClassEnum {
     Class<?> getClazz();

@@ -2,7 +2,7 @@ package pub.frost.wrappers.shared.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
-import pub.frost.base.wrapping.impl.InstanceWrapper;
+import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;

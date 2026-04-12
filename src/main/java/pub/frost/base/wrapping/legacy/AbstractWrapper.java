@@ -1,4 +1,4 @@
-package pub.frost.base.wrapping;
+package pub.frost.base.wrapping.legacy;
 
 import lombok.Getter;
 

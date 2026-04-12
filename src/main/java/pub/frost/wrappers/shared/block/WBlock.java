@@ -1,12 +1,9 @@
 package pub.frost.wrappers.shared.block;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
-import net.minecraft.world.World;
-import pub.frost.base.wrapping.impl.InstanceWrapper;
+import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.wrappers.FakeInstanceWrapper;

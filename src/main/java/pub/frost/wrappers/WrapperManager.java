@@ -1,6 +1,6 @@
 package pub.frost.wrappers;
 
-import pub.frost.base.wrapping.impl.StaticWrapper;
+import pub.frost.base.wrapping.legacy.impl.StaticWrapper;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

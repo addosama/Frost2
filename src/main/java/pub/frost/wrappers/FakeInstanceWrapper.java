@@ -1,6 +1,6 @@
 package pub.frost.wrappers;
 
-import pub.frost.base.wrapping.impl.InstanceWrapper;
+import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
 
 @SuppressWarnings("unchecked")
 public interface FakeInstanceWrapper<T> {

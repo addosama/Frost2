@@ -3,12 +3,11 @@ package pub.frost.wrappers.shared.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.world.World;
-import pub.frost.base.wrapping.impl.InstanceWrapper;
-import pub.frost.base.wrapping.impl.StaticWrapper;
+import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
+import pub.frost.base.wrapping.legacy.impl.StaticWrapper;
 import pub.frost.platforms.v1_8_9.forged.mixin.AccessorMinecraft;
 import pub.frost.wrappers.FakeInstanceWrapper;
 import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
-import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import pub.frost.wrappers.shared.world.WWorld;
 
 public class WMinecraft extends StaticWrapper {

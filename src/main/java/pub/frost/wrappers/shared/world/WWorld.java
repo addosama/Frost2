@@ -7,7 +7,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import org.joml.Vector3d;
-import pub.frost.base.wrapping.impl.InstanceWrapper;
+import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.EnumDirection;

@@ -1,7 +1,7 @@
-package pub.frost.base.wrapping.impl;
+package pub.frost.base.wrapping.legacy.impl;
 
 import lombok.Getter;
-import pub.frost.base.wrapping.AbstractWrapper;
+import pub.frost.base.wrapping.legacy.AbstractWrapper;
 
 @Getter
 public class StaticWrapper extends AbstractWrapper {
