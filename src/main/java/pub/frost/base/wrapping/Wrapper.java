@@ -1,4 +1,4 @@
-package pub.frost.base.wrapping.legacy;
+package pub.frost.base.wrapping;
 
 import lombok.Getter;
 
@@ -7,15 +7,20 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import static java.lang.invoke.MethodHandles.Lookup.*;
+import static java.lang.invoke.MethodHandles.Lookup.PRIVATE;
 
-public abstract class AbstractWrapper {
+public class Wrapper {
     @Getter
-    protected final Class<?> wrappedClass;
+    protected final Class<?> targetClass;
     protected final MethodHandles.Lookup lookup;
 
-    public AbstractWrapper(Class<?> wrappedClass) {
-        this.wrappedClass = wrappedClass;
-        this.lookup = createLookup(wrappedClass);
+    public Wrapper(Class<?> targetClass) {
+        this.targetClass = targetClass;
+        this.lookup = createLookup(targetClass);
+    }
+
+    public boolean isTarget(Class<?> clazz) {
+        return targetClass.isAssignableFrom(clazz);
     }
 
     private static MethodHandles.Lookup createLookup(Class<?> targetClass) {

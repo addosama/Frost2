@@ -1,5 +1,6 @@
 package pub.frost.utils;
 
+import net.minecraft.util.MathHelper;
 import org.joml.Vector3d;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
@@ -71,5 +72,13 @@ public class RotationUtils {
         }
 
         return null;
+    }
+
+    public static Vector3d getVectorForRotation(float pitch, float yaw) {
+        float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
+        float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
+        float f2 = -MathHelper.cos(-pitch * 0.017453292F);
+        float f3 = MathHelper.sin(-pitch * 0.017453292F);
+        return new Vector3d((double)(f1 * f2), (double)f3, (double)(f * f2));
     }
 }

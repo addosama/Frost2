@@ -36,7 +36,7 @@ public class RightClicker extends AbstractModule {
     private void onProcessInteract(EventPreProcessInteract e) {
         if (InputUtils.isMouseDown(1)) {
             while (clickCount > 0) {
-                mc.clickRMB();
+                mcWrapper.clickRMB(mc);
                 clickCount--;
             }
         } else resetRecorders();

@@ -8,6 +8,7 @@ import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.base.rendering.FontManager;
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -18,13 +19,13 @@ import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.targeting.EnumEntityTarget;
-import pub.frost.wrappers.ClassEnum;
-import pub.frost.wrappers.shared.entity.EnumEntity;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
+import pub.frost.wrappers.shared.world.WWorld;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -46,6 +47,10 @@ public class ESP extends AbstractModule {
     @Property("box")
     public final BooleanProperty renderBox = new BooleanProperty(true);
 
+    private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
+    private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
+    private final WEntityLivingBase livingEntityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
+
     private final List<EntityData> cachedData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;
@@ -53,7 +58,7 @@ public class ESP extends AbstractModule {
     @EventHandler
     public void onUpdate(EventPlayerUpdateTick event) {
         cachedData.clear();
-        mc.getWorld().getLoadedEntityList().stream().filter(
+        worldWrapper.getLoadedEntityList(mcWrapper.getWorld(mc)).stream().filter(
                 this::isTarget
         ).forEach(en -> cachedData.add(new EntityData(en)));
     }
@@ -69,8 +74,9 @@ public class ESP extends AbstractModule {
         int width = (int) ImGui.getIO().getDisplaySizeX();
         int height = (int) ImGui.getIO().getDisplaySizeY();
 
-        Vector3d playerPos = mc.getPlayer().getLerpedPositionVector(e.getTickDelta());
-        cachedData.sort(Comparator.comparingDouble(data -> -data.getEntity().distanceTo(
+        Vector3d playerPos = entityWrapper.getLerpedPositionVector(mcWrapper.getPlayer(mc), e.getTickDelta());
+        cachedData.sort(Comparator.comparingDouble(data -> -entityWrapper.distanceTo(
+                data.getEntity(),
                 playerPos.x(), playerPos.y(), playerPos.z()
         )));
 
@@ -159,10 +165,10 @@ public class ESP extends AbstractModule {
         ImGui.popFont();
     }
 
-    private boolean isTarget(WEntity entity) {
-        Class<?> clazz = entity.getWrappedClass();
-        if (entity.getWrappedObject() == mc.getPlayer().getWrappedObject()) return false;
-        if (entity.isInvisible() && !targetInvisible.get()) return false;
+    private boolean isTarget(Object entity) {
+        Class<?> clazz = entity.getClass();
+        if (entity == mcWrapper.getPlayer(mc)) return false;
+        if (entityWrapper.isInvisible(entity) && !targetInvisible.get()) return false;
         for (EnumEntityTarget target : targets.getEnabled()) {
             if (target.isTarget(clazz)) return true;
         }
@@ -170,8 +176,9 @@ public class ESP extends AbstractModule {
     }
 
     @Getter
-    private static class EntityData {
-        final WEntity entity;
+    private class EntityData {
+        final Object entity;
+
         final String name;
 
         final double prevX, prevY, prevZ;
@@ -179,30 +186,29 @@ public class ESP extends AbstractModule {
 
         final float health, maxHealth;
 
-        EntityData(WEntity entity) {
+        EntityData(Object entity) {
             this.entity = entity;
 
-            this.name = entity.getName();
+            this.name = entityWrapper.getName(entity);
 
-            this.prevX = entity.getPrevX();
-            this.prevY = entity.getPrevY();
-            this.prevZ = entity.getPrevZ();
-            this.x = entity.getX();
-            this.y = entity.getY();
-            this.z = entity.getZ();
+            this.prevX = entityWrapper.getPrevX(entity);
+            this.prevY = entityWrapper.getPrevY(entity);
+            this.prevZ = entityWrapper.getPrevZ(entity);
+            this.x = entityWrapper.getX(entity);
+            this.y = entityWrapper.getY(entity);
+            this.z = entityWrapper.getZ(entity);
 
             float hp = 0, maxHP = 0;
-            if (ClassEnum.isInstanceOf(entity, EnumEntity.EntityLivingBase)) {
-                WEntityLivingBase living = entity.castTo(WEntityLivingBase.class);
-                hp = living.getHealth();
-                maxHP = living.getMaxHealth();
+            if (livingEntityWrapper.isTarget(entity.getClass())) {
+                hp = livingEntityWrapper.getHealth(entity);
+                maxHP = livingEntityWrapper.getMaxHealth(entity);
             }
             this.health = hp;
             this.maxHealth = maxHP;
         }
 
         BoundingBox getBoundingBox(float tickDelta) {
-            return entity.getLerpedBoundingBox(tickDelta);
+            return entityWrapper.getLerpedBoundingBox(entity, tickDelta);
         }
     }
 }

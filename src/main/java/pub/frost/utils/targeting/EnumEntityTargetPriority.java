@@ -13,21 +13,22 @@ import java.util.function.Function;
 @Getter
 public enum EnumEntityTargetPriority implements Named {
     ANGLE("angle", player -> {
-        Vector3d eyePos = player.getPositionEyes(1);
-        float playerYaw = RotationUtils.wrapYawTo180(player.getYaw());
+        WEntityLivingBase wrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
+        Vector3d eyePos = wrapper.getPositionEyes(player, 1);
+        float playerYaw = RotationUtils.wrapYawTo180(wrapper.getYaw(player));
         return Comparator.comparingDouble(target -> Math.abs(
-                RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, target.getPositionVector()).getYaw())
+                RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, wrapper.getPositionVector(target)).getYaw())
                 - playerYaw
         ));
     }),
-    DISTANCE("distance", player -> Comparator.comparingDouble(entity -> player.distanceTo(entity.getPositionVector()))),
-    HEALTH("health", p -> Comparator.comparingDouble(WEntityLivingBase::getHealth)),
-    HURTTIME("hurttime", p -> Comparator.comparingInt(WEntityLivingBase::getHurtTime)),;
+    DISTANCE("distance", player -> Comparator.comparingDouble(entity -> FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class).distanceTo(player, FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class).getPositionVector(entity)))),
+    HEALTH("health", p -> Comparator.comparingDouble(FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class)::getHealth)),
+    HURTTIME("hurttime", p -> Comparator.comparingInt(FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class)::getHurtTime)),;
 
     final String key;
-    final Function<WEntityLivingBase, Comparator<WEntityLivingBase>> comparator;
+    final Function<Object, Comparator<Object>> comparator;
 
-    EnumEntityTargetPriority(String key, Function<WEntityLivingBase, Comparator<WEntityLivingBase>> comparator) {
+    EnumEntityTargetPriority(String key, Function<Object, Comparator<Object>> comparator) {
         this.key = "targeting.priority.entity." + key;
         this.comparator = comparator;
     }

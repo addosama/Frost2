@@ -21,7 +21,7 @@ public class HitResult {
         MISS
     }
 
-    public static EntityHitResult buildEntityHit(WEntity entity, BlockPosition blockPos, EnumDirection hitDirection, Vector3d hitVec) {
+    public static EntityHitResult buildEntityHit(Object entity, BlockPosition blockPos, EnumDirection hitDirection, Vector3d hitVec) {
         return new EntityHitResult(blockPos, hitDirection, hitVec, entity);
     }
     public static HitResult buildBlockHit(BlockPosition blockPos, EnumDirection hitDirection, Vector3d hitVec) {

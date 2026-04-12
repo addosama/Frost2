@@ -1,45 +1,47 @@
 package pub.frost.wrappers.shared.block;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
-import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
+import net.minecraft.world.World;
+import pub.frost.base.wrapping.Wrapper;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.wrappers.FakeInstanceWrapper;
-import pub.frost.wrappers.shared.entity.WEntity;
-import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WBlock extends InstanceWrapper implements FakeInstanceWrapper<Block> {
-    public WBlock(Object wrappedObject) {
-        super(wrappedObject);
+public class WBlock extends Wrapper implements FakeInstanceWrapper<Block> {
+    public WBlock() {
+        super(Block.class);
     }
 
-    public boolean isCollidable() {
-        return cast().isCollidable();
+    public boolean isCollidable(Object instance) {
+        return cast(instance).isCollidable();
     }
 
     public List<BoundingBox> getCollisionBoxes(
-            WWorld worldIn,
+            Object instance,
+            Object worldIn,
             BlockPosition pos,
-            WIBlockState state,
+            Object state,
             BoundingBox mask,
-            WEntity collidingEntity
+            Object collidingEntity
     ) {
         List<AxisAlignedBB> boxList = new ArrayList<>();
-        cast().addCollisionBoxesToList(
-                worldIn.cast(),
+        cast(instance).addCollisionBoxesToList(
+                (World) worldIn,
                 new BlockPos(pos.x, pos.y, pos.z),
-                state.cast(),
+                (IBlockState) state,
                 new AxisAlignedBB(
                         mask.minX, mask.minY, mask.minZ,
                         mask.maxX, mask.maxY, mask.maxZ
                 ),
                 boxList,
-                collidingEntity.cast()
+                (Entity) collidingEntity
         );
         return boxList.stream().collect(
                 ArrayList::new,

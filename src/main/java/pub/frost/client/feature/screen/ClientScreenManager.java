@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 public class ClientScreenManager {
     private static final Map<Class<? extends ClientScreen>, ClientScreen> clientScreenMap = new HashMap<>();
 
+    protected final Object mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
+    protected final WMinecraft mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
+
     private @Getter ClientScreen currentScreen = null;
     public void setCurrentScreen(ClientScreen screen) {
         if (this.currentScreen != null) {
@@ -37,7 +40,7 @@ public class ClientScreenManager {
         if (this.currentScreen == null) return;
         this.currentScreen.onClose();
         this.currentScreen = null;
-        FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().grabMouse();
+        mcWrapper.grabMouse(mc);
     }
 
     @EventHandler
@@ -45,7 +48,7 @@ public class ClientScreenManager {
         if (event.getType() == TickType.POST) {
             if (currentScreen != null) {
                 if (!currentScreen.allowCursorGrabbing()) {
-                    FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().ungrabMouse();
+                    mcWrapper.ungrabMouse(mc);
                 }
             }
         }

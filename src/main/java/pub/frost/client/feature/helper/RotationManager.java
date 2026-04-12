@@ -13,6 +13,10 @@ import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 
 @Getter
 public class RotationManager {
+    protected final Object mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
+    protected final WMinecraft mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
+    protected final WEntityClientPlayer playerWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityClientPlayer.class);
+
     @Setter
     private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;
     private float silentYaw, silentPitch, prevSilentYaw, prevSilentPitch;
@@ -41,8 +45,8 @@ public class RotationManager {
     }
 
     private boolean postRotationEvent() {
-        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
-        EventRotation event = new EventRotation(player.getYaw(), player.getPitch(), 180, false);
+        Object player = mcWrapper.getPlayer(mc);
+        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false);
         FrostCore.getInstance().getEventBus().call(event);
         targetYaw = event.getYaw();
         targetPitch = event.getPitch();
@@ -96,13 +100,13 @@ public class RotationManager {
 
     @EventHandler(priority = 100)
     private void onPreGameTick(EventGameTick e) {
-        WEntityClientPlayer player = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance().getPlayer();
+        Object player = mcWrapper.getPlayer(mc);
         if (player == null) return;
         if (e.getType() == TickType.PRE) {
-            setPrevPlayerYaw(player.getPrevYaw());
-            setPrevPlayerPitch(player.getPrevPitch());
-            setPlayerYaw(player.getYaw());
-            setPlayerPitch(player.getPitch());
+            setPrevPlayerYaw(playerWrapper.getPrevYaw(player));
+            setPrevPlayerPitch(playerWrapper.getPrevPitch(player));
+            setPlayerYaw(playerWrapper.getYaw(player));
+            setPlayerPitch(playerWrapper.getPitch(player));
 
             if (!postRotationEvent()) {
                 applied = false;
@@ -111,10 +115,10 @@ public class RotationManager {
 
             processSilentRotation();
 
-            player.setPrevYaw(getPrevSilentYaw());
-            player.setPrevPitch(getPrevSilentPitch());
-            player.setYaw(getSilentYaw());
-            player.setPitch(getSilentPitch());
+            playerWrapper.setPrevYaw(player, getPrevSilentYaw());
+            playerWrapper.setPrevPitch(player, getPrevSilentPitch());
+            playerWrapper.setYaw(player, getSilentYaw());
+            playerWrapper.setPitch(player, getSilentPitch());
 
             if (lockView) {
                 setPrevPlayerYaw(getPrevSilentYaw());
@@ -127,10 +131,10 @@ public class RotationManager {
         } else {
             if (!applied) return;
 
-            player.setPrevYaw(getPrevPlayerYaw());
-            player.setPrevPitch(getPrevPlayerPitch());
-            player.setYaw(getPlayerYaw());
-            player.setPitch(getPlayerPitch());
+            playerWrapper.setPrevYaw(player, getPrevPlayerYaw());
+            playerWrapper.setPrevPitch(player, getPrevPlayerPitch());
+            playerWrapper.setYaw(player, getPlayerYaw());
+            playerWrapper.setPitch(player, getPlayerPitch());
 
             applied = false;
         }

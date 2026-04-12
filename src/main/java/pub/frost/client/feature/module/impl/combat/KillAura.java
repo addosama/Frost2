@@ -2,11 +2,9 @@ package pub.frost.client.feature.module.impl.combat;
 
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
-import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -24,10 +22,9 @@ import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
-import pub.frost.wrappers.ClassEnum;
-import pub.frost.wrappers.shared.entity.EnumEntity;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
+import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,7 +59,11 @@ public class KillAura extends AbstractModule {
     @Property("LockView")
     private final BooleanProperty lockView = new BooleanProperty(true);
 
-    private WEntityLivingBase target = null;
+    private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
+    private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
+    private final WEntityLivingBase livingEntityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
+
+    private Object target = null;
     private void resetTarget() {
         target = null;
     }
@@ -71,7 +72,7 @@ public class KillAura extends AbstractModule {
     @EventHandler
     private void onRotation(EventRotation event) {
         rotationProvided = false;
-        List<WEntityLivingBase> validTargets = provideValidTargetList();
+        List<Object> validTargets = provideValidTargetList();
         if (validTargets.isEmpty()) {
             resetTarget();
             return;
@@ -80,9 +81,9 @@ public class KillAura extends AbstractModule {
 
         if (mode.is(Mode.SINGLE)) {
             if (target == null || !validTargets.stream().collect(ArrayList::new,
-                    (list, e) -> list.add(e.getWrappedObject()),
+                    ArrayList::add,
                     ArrayList::addAll
-            ).contains(target.getWrappedObject())) {
+            ).contains(target)) {
                 target = validTargets.get(0);
             }
         } else target = validTargets.get(0);
@@ -115,26 +116,25 @@ public class KillAura extends AbstractModule {
     @EventHandler
     private void onProcessInteract(EventPreProcessInteract e) {
         while (attackCount > 0) {
-            mc.clickLMB();
+            mcWrapper.clickLMB(mc);
             attackCount --;
         }
     }
 
-    private List<WEntityLivingBase> provideValidTargetList() {
-        List<WEntityLivingBase> list = new ArrayList<>();
-        for (WEntity entity : mc.getWorld().getLoadedEntityList()) {
-            if (entity.isDead()) continue;
-            if (!ClassEnum.isInstanceOf(entity, EnumEntity.EntityLivingBase)) continue;
-            if (entity.getWrappedObject() == mc.getPlayer().getWrappedObject()) continue;
+    private List<Object> provideValidTargetList() {
+        List<Object> list = new ArrayList<>();
+        for (Object entity : worldWrapper.getLoadedEntityList(mcWrapper.getWorld(mc))) {
+            if (entityWrapper.isDead(entity)) continue;
+            if (!livingEntityWrapper.isTarget(entity.getClass())) continue;
+            if (entity == mcWrapper.getPlayer(mc)) continue;
 
-            WEntityLivingBase living = entity.castTo(WEntityLivingBase.class);
-            if (living.getHealth() <= 0) continue;
-            if (living.distanceTo(mc.getPlayer().getPositionVector()) > targetRange.getValue()) continue;
+            if (livingEntityWrapper.getHealth(entity) <= 0) continue;
+            if (livingEntityWrapper.distanceTo(entity, entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))) > targetRange.getValue()) continue;
 
             for (EnumEntityTarget target : targets.getEnabled()) {
-                if (target.isTarget(living.getWrappedClass())) {
-                    if (targetInvisible.get() || !entity.isInvisible()) {
-                        list.add(living);
+                if (target.isTarget(entity.getClass())) {
+                    if (targetInvisible.get() || !entityWrapper.isInvisible(entity)) {
+                        list.add(entity);
                         break;
                     }
                 }
@@ -142,35 +142,36 @@ public class KillAura extends AbstractModule {
         }
         return list;
     }
-    private void sortByPriority(List<WEntityLivingBase> list) {
+    private void sortByPriority(List<Object> list) {
         EnumEntityTargetPriority value = priority.getValue();
-        Comparator<WEntityLivingBase> comparator = value.getComparator().apply(mc.getPlayer());
+        Comparator<Object> comparator = value.getComparator().apply(mcWrapper.getPlayer(mc));
         for (EnumEntityTargetPriority p : EnumEntityTargetPriority.values()) {
             if (p == value) continue;
-            comparator = comparator.thenComparing(p.getComparator().apply(mc.getPlayer()));
+            comparator = comparator.thenComparing(p.getComparator().apply(mcWrapper.getPlayer(mc)));
         }
         list.sort(comparator);
     }
     private Rotation getRotation() {
         return RotationUtils.searchRotationHittingBoundingBox(
-                mc.getPlayer().getPositionEyes(1),
-                target.getBoundingBox(),
+                entityWrapper.getPositionEyes(mcWrapper.getPlayer(mc), 1),
+                entityWrapper.getBoundingBox(target),
                 r ->
-                        mc.getPlayer().getPositionVector().distance(target.getPositionVector()) > attackRange.get()
+                        entityWrapper.getPositionVector(mcWrapper.getPlayer(mc)).distance(entityWrapper.getPositionVector(target)) > attackRange.get()
                                 || rayTraceTarget(r),
                 2
         );
     }
 
     private boolean rayTraceTarget(Rotation r) {
-        HitResult result = mc.getPlayer().rayTrace(
-                mc.getPlayer().getVectorForRotation(r.getPitch(), r.getYaw()),
+        HitResult result = entityWrapper.rayTrace(
+                mcWrapper.getPlayer(mc),
+                RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
                 attackRange.get(), 1
         );
         if (result == null) return false;
         if (result.getType() == HitResult.EnumHitType.ENTITY) {
             EntityHitResult entityHit = (EntityHitResult) result;
-            return entityHit.getHitEntity().getWrappedObject() == target.getWrappedObject();
+            return entityHit.getHitEntity() == target;
         }
         return false;
     }

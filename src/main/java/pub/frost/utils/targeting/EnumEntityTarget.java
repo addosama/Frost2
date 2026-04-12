@@ -2,16 +2,15 @@ package pub.frost.utils.targeting;
 
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
-import pub.frost.wrappers.ClassEnum;
-import pub.frost.wrappers.shared.entity.EnumEntity;
+import pub.frost.wrappers.shared.entity.*;
 
 import java.util.function.Predicate;
 
 public enum EnumEntityTarget implements Named {
-    PLAYERS(EnumEntity.EntityPlayer, "players"),
-    ANIMALS(EnumEntity.EntityAnimal, "animals"),
-    MOBS(EnumEntity.EntityMob, "mobs"),
-    VILLAGERS(EnumEntity.EntityVillager, "villagers"),
+    PLAYERS(WEntityPlayer.class, "players"),
+    ANIMALS(WEntityAnimal.class, "animals"),
+    MOBS(WEntityMob.class, "mobs"),
+    VILLAGERS(WEntityVillager.class, "villagers"),
     OTHER(
             c -> !(PLAYERS.isTarget(c) || ANIMALS.isTarget(c) || MOBS.isTarget(c) || VILLAGERS.isTarget(c)),
             "other"
@@ -24,8 +23,8 @@ public enum EnumEntityTarget implements Named {
         this.key = "targets.entities." + key;
         this.predicate = predicate;
     }
-    EnumEntityTarget(EnumEntity entity, String key) {
-        this(c -> ClassEnum.isInstanceOf(c, entity), key);
+    EnumEntityTarget(Class<? extends WEntity> entityWrapper, String key) {
+        this(c -> FrostCore.getInstance().getWrapperManager().getWrapper(entityWrapper).isTarget(c), key);
     }
 
     public boolean isTarget(Class<?> clazz) {

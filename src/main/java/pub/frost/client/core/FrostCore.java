@@ -3,13 +3,13 @@ package pub.frost.client.core;
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
+import pub.frost.base.wrapping.WrapperManager;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.helper.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.feature.screen.ClientScreenManager;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.i18n.Localizer;
-import pub.frost.wrappers.WrapperManager;
 
 @Getter
 public final class FrostCore {

@@ -3,36 +3,25 @@ package pub.frost.wrappers.shared.entity;
 import net.minecraft.entity.EntityLivingBase;
 
 public class WEntityLivingBase extends WEntity {
-    public WEntityLivingBase(Object obj) {
-        super(obj);
+    public WEntityLivingBase() {
+        super(EntityLivingBase.class);
+    }
+    public WEntityLivingBase(Class<?> targetClass) {
+        super(targetClass);
     }
 
-    public float getHealth() {
-        return cast().getHealth();
+    public float getHealth(Object instance) {
+        return cast(instance).getHealth();
     }
-    public float getMaxHealth() {
-        return cast().getMaxHealth();
+    public float getMaxHealth(Object instance) {
+        return cast(instance).getMaxHealth();
     }
-    public int getHurtTime() {
-        return cast().hurtTime;
-    }
-
-    public float getYawHead() {
-        return cast().getRotationYawHead();
-    }
-    public float getPrevYawHead() {
-        return cast().prevRotationYawHead;
-    }
-
-    public void setYawHead(float rotationYawHead) {
-        cast().setRotationYawHead(rotationYawHead);
-    }
-    public void setPrevYawHead(float prevRotationYawHead) {
-        cast().prevRotationYawHead  = prevRotationYawHead;
+    public int getHurtTime(Object instance) {
+        return cast(instance).hurtTime;
     }
 
     @Override
-    public EntityLivingBase cast() {
-        return cast(getWrappedObject(), EntityLivingBase.class);
+    public EntityLivingBase cast(Object instance) {
+        return cast(instance, EntityLivingBase.class);
     }
 }

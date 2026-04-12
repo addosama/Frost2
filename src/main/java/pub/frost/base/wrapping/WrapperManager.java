@@ -1,6 +1,4 @@
-package pub.frost.wrappers;
-
-import pub.frost.base.wrapping.legacy.impl.StaticWrapper;
+package pub.frost.base.wrapping;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -8,19 +6,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WrapperManager {
-    private final Map<Class<? extends StaticWrapper>, StaticWrapper> cachedWrappers;
+    private final Map<Class<? extends Wrapper>, Wrapper> cachedWrappers;
 
     public WrapperManager() {
         this.cachedWrappers = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends StaticWrapper> T getWrapper(Class<T> clazz) {
+    public <T extends Wrapper> T getWrapper(Class<T> clazz) {
         return (T) cachedWrappers.computeIfAbsent(
                 clazz,
                 wrapperClazz -> {
                     try {
-                        Constructor<? extends StaticWrapper> constructor = wrapperClazz.getConstructor();
+                        Constructor<? extends Wrapper> constructor = wrapperClazz.getConstructor();
                         constructor.setAccessible(true);
                         return constructor.newInstance();
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException |

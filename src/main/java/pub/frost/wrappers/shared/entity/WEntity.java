@@ -2,8 +2,10 @@ package pub.frost.wrappers.shared.entity;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
-import pub.frost.base.wrapping.legacy.impl.InstanceWrapper;
+import pub.frost.base.wrapping.Wrapper;
+import pub.frost.client.core.FrostCore;
 import pub.frost.utils.MathUtils;
+import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.raytrace.HitResult;
@@ -14,148 +16,141 @@ import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.List;
 
-public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Entity> {
-    public WEntity(Object wrappedObject) {
-        super(wrappedObject);
+public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity> {
+    public WEntity() {
+        super(Entity.class);
     }
 
-    public WWorld getWorld() {
-        return new WWorld(cast().worldObj);
+    public WEntity(Class<?> targetClass) {
+        super(targetClass);
     }
 
-    public boolean isDead() {
-        return cast().isDead;
+    public Object getWorld(Object instance) {
+        return cast(instance).worldObj;
     }
 
-    public boolean isSprinting() {
-        return cast().isSprinting();
-    }
-    public void setSprinting(boolean sprinting) {
-        cast().setSprinting(sprinting);
+    public boolean isDead(Object instance) {
+        return cast(instance).isDead;
     }
 
-    public float getEyesHeight() {
-        return cast().getEyeHeight();
+    public boolean isSprinting(Object instance) {
+        return cast(instance).isSprinting();
     }
-    public Vector3d getPositionEyes(float tickDelta) {
-        Vec3 pos = cast().getPositionEyes(tickDelta);
+    public void setSprinting(Object instance, boolean sprinting) {
+        cast(instance).setSprinting(sprinting);
+    }
+
+    public float getEyesHeight(Object instance) {
+        return cast(instance).getEyeHeight();
+    }
+    public Vector3d getPositionEyes(Object instance, float tickDelta) {
+        Vec3 pos = cast(instance).getPositionEyes(tickDelta);
         return new Vector3d(
                 pos.xCoord, pos.yCoord, pos.zCoord
         );
     }
 
-    public String getName() {
-        return cast().getName();
+    public String getName(Object instance) {
+        return cast(instance).getName();
     }
 
-    public double getPrevX() {
-        return cast().prevPosX;
+    public double getPrevX(Object instance) {
+        return cast(instance).prevPosX;
     }
-    public double getPrevY() {
-        return cast().prevPosY;
+    public double getPrevY(Object instance) {
+        return cast(instance).prevPosY;
     }
-    public double getPrevZ() {
-        return cast().prevPosZ;
-    }
-
-    public double getX() {
-        return cast().posX;
-    }
-    public double getY() {
-        return cast().posY;
-    }
-    public double getZ() {
-        return cast().posZ;
+    public double getPrevZ(Object instance) {
+        return cast(instance).prevPosZ;
     }
 
-    public double getLerpedX(float tickDelta) {
-        return MathUtils.lerp(getPrevX(), getX(), tickDelta);
+    public double getX(Object instance) {
+        return cast(instance).posX;
     }
-    public double getLerpedY(float tickDelta) {
-        return MathUtils.lerp(getPrevY(), getY(), tickDelta);
+    public double getY(Object instance) {
+        return cast(instance).posY;
     }
-    public double getLerpedZ(float tickDelta) {
-        return MathUtils.lerp(getPrevZ(), getZ(), tickDelta);
-    }
-
-    public float getPrevYaw() {
-        return cast().prevRotationYaw;
-    }
-    public float getPrevPitch() {
-        return cast().prevRotationPitch;
-    }
-    public void setPrevYaw(float prevYaw) {
-        cast().prevRotationYaw = prevYaw;
-    }
-    public void setPrevPitch(float prevPitch) {
-        cast().prevRotationPitch = prevPitch;
+    public double getZ(Object instance) {
+        return cast(instance).posZ;
     }
 
-    public float getYaw() {
-        return cast().rotationYaw;
+    public double getLerpedX(Object instance, float tickDelta) {
+        return MathUtils.lerp(getPrevX(instance), getX(instance), tickDelta);
     }
-    public float getPitch() {
-        return cast().rotationPitch;
+    public double getLerpedY(Object instance, float tickDelta) {
+        return MathUtils.lerp(getPrevY(instance), getY(instance), tickDelta);
     }
-    public void setYaw(float yaw) {
-        cast().rotationYaw = yaw;
-    }
-    public void setPitch(float pitch) {
-        cast().rotationPitch = pitch;
+    public double getLerpedZ(Object instance, float tickDelta) {
+        return MathUtils.lerp(getPrevZ(instance), getZ(instance), tickDelta);
     }
 
-    public Vector3d getVectorForRotation(float pitch, float yaw) {
-        float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
-        float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
-        float f2 = -MathHelper.cos(-pitch * 0.017453292F);
-        float f3 = MathHelper.sin(-pitch * 0.017453292F);
-        return new Vector3d((double)(f1 * f2), (double)f3, (double)(f * f2));
+    public float getPrevYaw(Object instance) {
+        return cast(instance).prevRotationYaw;
+    }
+    public float getPrevPitch(Object instance) {
+        return cast(instance).prevRotationPitch;
+    }
+    public void setPrevYaw(Object instance, float prevYaw) {
+        cast(instance).prevRotationYaw = prevYaw;
+    }
+    public void setPrevPitch(Object instance, float prevPitch) {
+        cast(instance).prevRotationPitch = prevPitch;
     }
 
-    public Vector3d getLook(float tickDelta) {
-        if (tickDelta == 1.0F) {
-            return this.getVectorForRotation(getPitch(), getYaw());
-        } else {
-            float f = getPrevPitch() + (getPitch() - getPrevPitch()) * tickDelta;
-            float f1 = getPrevYaw() + (getYaw() - getPrevYaw()) * tickDelta;
-            return this.getVectorForRotation(f, f1);
-        }
+    public float getYaw(Object instance) {
+        return cast(instance).rotationYaw;
+    }
+    public float getPitch(Object instance) {
+        return cast(instance).rotationPitch;
+    }
+    public void setYaw(Object instance, float yaw) {
+        cast(instance).rotationYaw = yaw;
+    }
+    public void setPitch(Object instance, float pitch) {
+        cast(instance).rotationPitch = pitch;
     }
 
-    public Vector3d getPositionVector() {
-        return new Vector3d(getX(), getY(), getZ());
-    }
-    public Vector3d getLerpedPositionVector(float tickDelta) {
+    public Vector3d getLook(Object instance, float tickDelta) {
+        Vec3 ret = cast(instance).getLook(tickDelta);
         return new Vector3d(
-                getLerpedX(tickDelta),
-                getLerpedY(tickDelta),
-                getLerpedZ(tickDelta)
+                ret.xCoord, ret.yCoord, ret.zCoord
         );
     }
 
-    public float getWidth() {
-        return cast().width;
+    public Vector3d getPositionVector(Object instance) {
+        return new Vector3d(getX(instance), getY(instance), getZ(instance));
     }
-    public float getHeight() {
-        return cast().height;
-    }
-    public float getEyeHeight() {
-        return cast().getEyeHeight();
-    }
-
-    public double distanceTo(double x, double y, double z) {
-        return cast().getDistance(x, y, z);
-    }
-    public double distanceTo(Vector3d pos) {
-        return distanceTo(pos.x, pos.y, pos.z);
+    public Vector3d getLerpedPositionVector(Object instance, float tickDelta) {
+        return new Vector3d(
+                getLerpedX(instance, tickDelta),
+                getLerpedY(instance, tickDelta),
+                getLerpedZ(instance, tickDelta)
+        );
     }
 
-    public BoundingBox getBoundingBox() {
-        double x = getX();
-        double y = getY();
-        double z = getZ();
-        float width = getWidth();
-        float height = getHeight();
+    public float getWidth(Object instance) {
+        return cast(instance).width;
+    }
+    public float getHeight(Object instance) {
+        return cast(instance).height;
+    }
+    public float getEyeHeight(Object instance) {
+        return cast(instance).getEyeHeight();
+    }
+
+    public double distanceTo(Object instance, double x, double y, double z) {
+        return cast(instance).getDistance(x, y, z);
+    }
+    public double distanceTo(Object instance, Vector3d pos) {
+        return distanceTo(instance, pos.x, pos.y, pos.z);
+    }
+
+    public BoundingBox getBoundingBox(Object instance) {
+        double x = getX(instance);
+        double y = getY(instance);
+        double z = getZ(instance);
+        float width = getWidth(instance);
+        float height = getHeight(instance);
 
         return new BoundingBox(
                 x - width / 2,
@@ -166,12 +161,12 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
                 z + width / 2
         );
     }
-    public BoundingBox getPrevBoundingBox() {
-        double x = getPrevX();
-        double y = getPrevY();
-        double z = getPrevZ();
-        float width = getWidth();
-        float height = getHeight();
+    public BoundingBox getPrevBoundingBox(Object instance) {
+        double x = getPrevX(instance);
+        double y = getPrevY(instance);
+        double z = getPrevZ(instance);
+        float width = getWidth(instance);
+        float height = getHeight(instance);
 
         return new BoundingBox(
                 x - width / 2,
@@ -182,12 +177,12 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
                 z + width / 2
         );
     }
-    public BoundingBox getLerpedBoundingBox(float delta) {
-        double x = MathUtils.lerp(getPrevX(), getX(), delta);
-        double y = MathUtils.lerp(getPrevY(), getY(), delta);
-        double z = MathUtils.lerp(getPrevZ(), getZ(), delta);
-        float width = getWidth();
-        float height = getHeight();
+    public BoundingBox getLerpedBoundingBox(Object instance, float delta) {
+        double x = MathUtils.lerp(getPrevX(instance), getX(instance), delta);
+        double y = MathUtils.lerp(getPrevY(instance), getY(instance), delta);
+        double z = MathUtils.lerp(getPrevZ(instance), getZ(instance), delta);
+        float width = getWidth(instance);
+        float height = getHeight(instance);
 
         return new BoundingBox(
                 x - width / 2,
@@ -199,32 +194,35 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         );
     }
 
-    public boolean isInvisible() {
-        return cast().isInvisible();
+    public boolean isInvisible(Object instance) {
+        return cast(instance).isInvisible();
     }
 
-    public HitResult raytraceBlocks(Vector3d eyePos, Vector3d lookVec, double blockReachDistance) {
+    public HitResult raytraceBlocks(Object instance, Vector3d eyePos, Vector3d lookVec, double blockReachDistance) {
         Vector3d vec32 = new Vector3d(eyePos).add(
                 lookVec.x() * blockReachDistance,
                 lookVec.y() * blockReachDistance,
                 lookVec.z() * blockReachDistance
         );
-        return getWorld().raytraceBlocks(eyePos, vec32, false, false, true);
+        return FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class).raytraceBlocks(
+                getWorld(instance),
+                eyePos, vec32, false, false, true
+        );
     }
 
-    public boolean canBeCollidedWith() {
-        return cast().canBeCollidedWith();
+    public boolean canBeCollidedWith(Object instance) {
+        return cast(instance).canBeCollidedWith();
     }
-    public float getCollisionBorderSize() {
-        return cast().getCollisionBorderSize();
+    public float getCollisionBorderSize(Object instance) {
+        return cast(instance).getCollisionBorderSize();
     }
 
-    public HitResult rayTrace(Vector3d lookingVec, double reachDistance, float partialTicks) {
+    public HitResult rayTrace(Object instance, Vector3d lookingVec, double reachDistance, float partialTicks) {
         HitResult objectMouseOver;
-        WEntity pointedEntity = null;
+        Object pointedEntity = null;
 
-        Vector3d eyePos = getPositionEyes(partialTicks);
-        objectMouseOver = raytraceBlocks(eyePos, lookingVec, reachDistance);
+        Vector3d eyePos = getPositionEyes(instance, partialTicks);
+        objectMouseOver = raytraceBlocks(instance, eyePos, lookingVec, reachDistance);
 
         double d1 = reachDistance;
         boolean flag = reachDistance > 3.0D;
@@ -240,20 +238,21 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         );
         Vector3d vec33 = null;
         float f = 1.0F;
-        List<WEntity> list = getWorld().getEntitiesInAABBExcluding(
-                this,
-                this.getBoundingBox().addCoord(
+        List<Object> list = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class).getEntitiesInAABBExcluding(
+                getWorld(instance),
+                instance,
+                this.getBoundingBox(instance).addCoord(
                         lookingVec.x() * reachDistance,
                         lookingVec.y() * reachDistance,
                         lookingVec.z() * reachDistance
                 ).expand(f, f, f),
-                en -> EntitySelectors.NOT_SPECTATING.apply(en.cast()) && en.canBeCollidedWith()
+                en -> EntitySelectors.NOT_SPECTATING.apply(cast(en)) && canBeCollidedWith(en)
         );
         double d2 = d1;
 
-        for (WEntity entity : list) {
-            float f1 = entity.getCollisionBorderSize();
-            BoundingBox boundingBox = entity.getBoundingBox().expand(f1, f1, f1);
+        for (Object entity : list) {
+            float f1 = getCollisionBorderSize(entity);
+            BoundingBox boundingBox = getBoundingBox(entity).expand(f1, f1, f1);
             HitResult hitResult = boundingBox.calculateIntercept(eyePos, vec32);
             if (boundingBox.isVecInside(eyePos)) {
                 if (d2 >= 0.0D) {
@@ -264,7 +263,7 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
             } else if (hitResult != null) {
                 double d3 = eyePos.distance(hitResult.getHitVec());
                 if (d3 < d2 || d2 == 0.0D) {
-                    if (entity == this.getRidingEntity() && !this.canRiderInteract()) {
+                    if (entity == this.getRidingEntity(instance) && !this.canRiderInteract(instance)) {
                         if (d2 == 0.0D) {
                             pointedEntity = entity;
                             vec33 = hitResult.getHitVec();
@@ -294,11 +293,10 @@ public class WEntity extends InstanceWrapper implements FakeInstanceWrapper<Enti
         return objectMouseOver;
     }
 
-    public WEntity getRidingEntity() {
-        Entity riding = cast().ridingEntity;
-        return riding != null? new WEntity(riding): null;
+    public Object getRidingEntity(Object instance) {
+        return cast(instance).ridingEntity;
     }
-    public boolean canRiderInteract() {
-        return cast().canRiderInteract();
+    public boolean canRiderInteract(Object instance) {
+        return cast(instance).canRiderInteract();
     }
 }

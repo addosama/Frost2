@@ -5,7 +5,8 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
 public abstract class ClientScreen {
-    protected final WMinecraft.Instance mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
+    protected final Object mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
+    protected final WMinecraft mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
 
     public abstract void render(boolean dummy, float tickDelta);
 
@@ -20,7 +21,7 @@ public abstract class ClientScreen {
     }
 
     public void onDisplay() {
-        if (!allowCursorGrabbing()) mc.ungrabMouse();
+        if (!allowCursorGrabbing()) mcWrapper.ungrabMouse(mc);
     }
     public void onClose() {
 

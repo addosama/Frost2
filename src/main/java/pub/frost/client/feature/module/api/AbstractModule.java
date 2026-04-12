@@ -21,7 +21,8 @@ public class AbstractModule implements Named, Described {
 
     public final BooleanProperty enabledProperty = new BooleanProperty(false);
 
-    protected final WMinecraft.Instance mc;
+    protected final Object mc;
+    protected final WMinecraft mcWrapper;
 
     public AbstractModule() {
         Module annotation = this.getClass().getAnnotation(Module.class);
@@ -31,6 +32,7 @@ public class AbstractModule implements Named, Described {
         this.category = annotation.category();
 
         this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
+        this.mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
 
         enabledProperty.setValueChangeListener((old, current) -> {
             if (current) {

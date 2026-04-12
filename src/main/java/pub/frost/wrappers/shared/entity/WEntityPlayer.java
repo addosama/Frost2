@@ -3,16 +3,19 @@ package pub.frost.wrappers.shared.entity;
 import net.minecraft.entity.player.EntityPlayer;
 
 public class WEntityPlayer extends WEntityLivingBase {
-    public WEntityPlayer(Object obj) {
-        super(obj);
+    public WEntityPlayer() {
+        super(EntityPlayer.class);
+    }
+    public WEntityPlayer(Class<?> targetClass) {
+        super(targetClass);
     }
 
-    public boolean isSpectator() {
-        return cast().isSpectator();
+    public boolean isSpectator(Object instance) {
+        return cast(instance).isSpectator();
     }
 
     @Override
-    public EntityPlayer cast() {
-        return cast(getWrappedObject(), EntityPlayer.class);
+    public EntityPlayer cast(Object instance) {
+        return cast(instance, EntityPlayer.class);
     }
 }
