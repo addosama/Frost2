@@ -18,6 +18,10 @@ public class WEntityPlayer extends WEntityLivingBase {
         return cast(instance).getHeldItem();
     }
 
+    public String getDisplayName(Object instance) {
+        return cast(instance).getDisplayName().getFormattedText();
+    }
+
     @Override
     public EntityPlayer cast(Object instance) {
         return cast(instance, EntityPlayer.class);

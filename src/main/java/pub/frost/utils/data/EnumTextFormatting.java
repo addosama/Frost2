@@ -46,7 +46,7 @@ public enum EnumTextFormatting {
         return getColorByIndex(list.indexOf(code));
     }
     public static int getColorByIndex(int index) {
-        if (index < 0 || index >= 16) return -1;
+        if (index < 0 || index >= 16) return 0;
         int base = (index >> 3 & 1) * 85;
         int r = (index >> 2 & 1) * 170 + base;
         int g = (index >> 1 & 1) * 170 + base;
