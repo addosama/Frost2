@@ -6,6 +6,7 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.combat.*;
 import pub.frost.client.feature.module.impl.movement.*;
 import pub.frost.client.feature.module.impl.utility.RightClicker;
+import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.feature.module.impl.visual.*;
 
 import java.util.*;
@@ -26,7 +27,8 @@ public class ModuleManager {
                 new KillAura(),
                 new FullBright(),
                 new RightClicker(),
-                new Eagle()
+                new Eagle(),
+                new Teams()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize

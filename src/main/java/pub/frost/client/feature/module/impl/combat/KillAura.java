@@ -9,6 +9,7 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
@@ -26,7 +27,6 @@ import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 import pub.frost.wrappers.shared.entity.WEntityPlayer;
-import pub.frost.wrappers.shared.item.WItem;
 import pub.frost.wrappers.shared.item.WItemStack;
 import pub.frost.wrappers.shared.item.WItemSword;
 import pub.frost.wrappers.shared.world.WWorld;
@@ -48,6 +48,8 @@ public class KillAura extends AbstractModule {
     public final MultipleBooleanProperty<EnumEntityTarget> targets = new MultipleBooleanProperty<>(EnumEntityTarget.class, EnumEntityTarget.PLAYERS);
     @Property("targetInvisible")
     public final BooleanProperty targetInvisible = new BooleanProperty(true);
+    @Property("TeamCheck")
+    public final BooleanProperty teamCheck = new BooleanProperty(true);
     @Property("priority")
     public final ModeProperty<EnumEntityTargetPriority> priority = new ModeProperty<>(EnumEntityTargetPriority.ANGLE);
 
@@ -161,6 +163,8 @@ public class KillAura extends AbstractModule {
 
             if (livingEntityWrapper.getHealth(entity) <= 0) continue;
             if (livingEntityWrapper.distanceTo(entity, entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))) > targetRange.getValue()) continue;
+
+            if (teamCheck.get() && Teams.isTeammate(entity)) continue;
 
             for (EnumEntityTarget target : targets.getEnabled()) {
                 if (target.isTarget(entity.getClass())) {

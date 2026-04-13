@@ -12,12 +12,15 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
+import pub.frost.utils.EntityUtils;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.data.EnumTextFormatting;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.wrappers.shared.entity.WEntity;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
@@ -46,6 +49,8 @@ public class ESP extends AbstractModule {
     public final BooleanProperty renderHealth = new BooleanProperty(true);
     @Property("box")
     public final BooleanProperty renderBox = new BooleanProperty(true);
+    @Property("data")
+    public final BooleanProperty renderData = new BooleanProperty(true);
 
     private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
     private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
@@ -160,6 +165,20 @@ public class ESP extends AbstractModule {
                             -1, 0xFF000000
                     );
                 }
+                if (renderData.get()) {
+                    float x = boxMinPos.x + boxSize.x + 2f;
+                    float yOffset = 0;
+                    if (Teams.isTeammate(data.getEntity())) {
+                        ImTextRenderer.drawOutlinedText(
+                                ImGui.getBackgroundDrawList(),
+                                EnumTextFormatting.GREEN + "TEAM",
+                                x, boxMinPos.y,
+                                -1,
+                                0xFF000000
+                        );
+                        yOffset += ImTextRenderer.getTextHeight();
+                    }
+                }
             }
         }
         ImGui.popFont();
@@ -189,7 +208,7 @@ public class ESP extends AbstractModule {
         EntityData(Object entity) {
             this.entity = entity;
 
-            this.name = entityWrapper.getName(entity);
+            this.name = EntityUtils.tryGetDisplayName(entity);
 
             this.prevX = entityWrapper.getPrevX(entity);
             this.prevY = entityWrapper.getPrevY(entity);
