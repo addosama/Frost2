@@ -143,13 +143,14 @@ public class KillAura extends AbstractModule {
                         target,
                         entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))
                 );
-                if (blockRange.get() == 0) return;
-                if (distance > blockRange.get()) return;
+                double range = blockRange.get();
+                if (range == 0) return;
+                if (distance > range) return;
                 float chance = blockChance.get();
                 if (distanceBasedChance.get()) {
-                    chance *= (float) (distance / blockRange.get());
+                    chance *= (float) ((range - distance) / range);
                 }
-                if (Math.random() >= chance) mcWrapper.clickRMB(mc);
+                if (Math.random() <= chance) mcWrapper.clickRMB(mc);
             }
         } else attackCount = 0;
     }

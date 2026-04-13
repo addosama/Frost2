@@ -6,6 +6,7 @@ import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.base.wrapping.Wrapper;
 import pub.frost.base.wrapping.WrapperManager;
 import pub.frost.client.feature.bindable.BindableManager;
+import pub.frost.client.feature.helper.PlayerListener;
 import pub.frost.client.feature.helper.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.feature.screen.ClientScreenManager;
@@ -39,6 +40,7 @@ public final class FrostCore {
     private ClientScreenManager clientScreenManager;
 
     private RotationManager rotationManager;
+    private PlayerListener playerListener;
 
     public FrostCore() {
         instance = this;
@@ -60,6 +62,8 @@ public final class FrostCore {
 
         rotationManager = new RotationManager();
         eventBus.register(rotationManager);
+        playerListener = new PlayerListener();
+        eventBus.register(playerListener);
 
         moduleManager.registerModules();
         clientScreenManager.registerScreens();

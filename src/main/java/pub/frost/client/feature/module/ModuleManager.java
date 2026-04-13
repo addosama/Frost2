@@ -5,6 +5,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.combat.*;
 import pub.frost.client.feature.module.impl.movement.*;
+import pub.frost.client.feature.module.impl.utility.AutoTool;
 import pub.frost.client.feature.module.impl.utility.RightClicker;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.feature.module.impl.visual.*;
@@ -28,7 +29,8 @@ public class ModuleManager {
                 new FullBright(),
                 new RightClicker(),
                 new Eagle(),
-                new Teams()
+                new Teams(),
+                new AutoTool()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
