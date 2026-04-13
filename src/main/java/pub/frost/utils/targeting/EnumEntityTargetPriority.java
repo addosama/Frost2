@@ -15,7 +15,7 @@ public enum EnumEntityTargetPriority implements Named {
     ANGLE("angle", player -> {
         WEntityLivingBase wrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
         Vector3d eyePos = wrapper.getPositionEyes(player, 1);
-        float playerYaw = RotationUtils.wrapYawTo180(wrapper.getYaw(player));
+        float playerYaw = RotationUtils.wrapYawTo180(FrostCore.getInstance().getRotationManager().getPlayerYaw());
         return Comparator.comparingDouble(target -> Math.abs(
                 RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, wrapper.getPositionVector(target)).getYaw())
                 - playerYaw
