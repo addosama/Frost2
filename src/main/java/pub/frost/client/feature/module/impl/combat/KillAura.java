@@ -60,6 +60,8 @@ public class KillAura extends AbstractModule {
     public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
     @Property("BlockHit")
     public final BooleanProperty blockHit = new BooleanProperty(true);
+    @Property("NotWhileHurt")
+    public final BooleanProperty notWhileHurt = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, blockHit::get);
     @Property("BlockRange")
     public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(FloatProperty.class, blockHit::get);
     @Property("BlockChance")
@@ -134,6 +136,7 @@ public class KillAura extends AbstractModule {
                 attackCount --;
             }
             if (blockHit.get() && isHoldingSword()) {
+                if (notWhileHurt.get() && livingEntityWrapper.getHurtTime(mcWrapper.getPlayer(mc)) > 0) return;
                 double distance = entityWrapper.distanceTo(
                         target,
                         entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))

@@ -3,6 +3,7 @@ package pub.frost.client.core;
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
+import pub.frost.base.wrapping.Wrapper;
 import pub.frost.base.wrapping.WrapperManager;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.helper.RotationManager;
@@ -62,5 +63,9 @@ public final class FrostCore {
 
         moduleManager.registerModules();
         clientScreenManager.registerScreens();
+    }
+
+    public static  <T extends Wrapper> T getWrapper(Class<T> clazz) {
+        return getInstance().getWrapperManager().getWrapper(clazz);
     }
 }

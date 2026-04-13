@@ -13,6 +13,9 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.EnumDirection;
 import pub.frost.wrappers.shared.entity.WEntity;
+import pub.frost.wrappers.shared.entity.WEntityPlayer;
+import pub.frost.wrappers.shared.item.WItemBlock;
+import pub.frost.wrappers.shared.item.WItemStack;
 import pub.frost.wrappers.shared.world.WWorld;
 
 @Module(
@@ -22,6 +25,10 @@ import pub.frost.wrappers.shared.world.WWorld;
 public class Eagle extends AbstractModule {
     @Property("PitchCheck")
     public final BooleanProperty pitchCheck = new BooleanProperty(true);
+    @Property("BlockCheck")
+    public final BooleanProperty blockCheck = new BooleanProperty(true);
+    @Property("ModifyInput")
+    public final BooleanProperty modifyInput = new BooleanProperty(true);
 
     private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
     private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
@@ -40,9 +47,20 @@ public class Eagle extends AbstractModule {
 
     @EventHandler
     private void onMoveInput(EventUpdateMovementInput event) {
-        if (!onEdge) return;
-        if (!pitchCheck.get() || entityWrapper.getPitch(mcWrapper.getPlayer(mc)) > 75) {
-            event.setSneak(true);
+        boolean sneak = false;
+        if (onEdge) {
+            sneak = true;
+            if (pitchCheck.get() && entityWrapper.getPitch(mcWrapper.getPlayer(mc)) < 75) sneak = false;
+            if (blockCheck.get() && !isHoldingBlock()) sneak = false;
         }
+        event.setSneak(modifyInput.get()? sneak : onEdge);
+    }
+
+    private boolean isHoldingBlock() {
+        Object itemHeld = FrostCore.getWrapper(WEntityPlayer.class).getHeldItem(mcWrapper.getPlayer(mc));
+        if (itemHeld != null) {
+            return FrostCore.getWrapper(WItemBlock.class).isTarget(FrostCore.getWrapper(WItemStack.class).getItem(itemHeld));
+        }
+        return false;
     }
 }

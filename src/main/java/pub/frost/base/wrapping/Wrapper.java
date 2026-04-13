@@ -19,6 +19,10 @@ public class Wrapper {
         this.lookup = createLookup(targetClass);
     }
 
+    public boolean isTarget(Object object) {
+        return isTarget(object.getClass());
+    }
+
     public boolean isTarget(Class<?> clazz) {
         return targetClass.isAssignableFrom(clazz);
     }

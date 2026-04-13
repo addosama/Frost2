@@ -152,7 +152,6 @@ tasks.shadowJar {
 
     relocate("org.apache")
     relocate("org.joml")
-    relocate("imgui")
     relocate("loutre.imgui")
 }
 
