@@ -53,6 +53,9 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity> {
     public String getName(Object instance) {
         return cast(instance, Entity.class).getName();
     }
+    public String getDisplayName(Object instance) {
+        return cast(instance, Entity.class).getDisplayName().getFormattedText();
+    }
 
     public double getPrevX(Object instance) {
         return cast(instance, Entity.class).prevPosX;

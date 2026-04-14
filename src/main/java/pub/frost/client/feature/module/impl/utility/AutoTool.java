@@ -6,6 +6,9 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.utils.InputUtils;
 import pub.frost.utils.ItemUtils;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.wrappers.shared.block.WIBlockState;
@@ -19,6 +22,9 @@ import pub.frost.wrappers.shared.world.WWorld;
         category = ModuleCategory.UTILITY
 )
 public class AutoTool extends AbstractModule {
+    @Property("RequireMouseDown")
+    public BooleanProperty requireMouseDown = new BooleanProperty(true);
+
     private final WEntity entityWrapper = FrostCore.getWrapper(WEntityClientPlayer.class);
     private final WEntityClientPlayer playerWrapper = FrostCore.getWrapper(WEntityClientPlayer.class);
     private final WWorld worldWrapper = FrostCore.getWrapper(WWorld.class);
@@ -27,6 +33,7 @@ public class AutoTool extends AbstractModule {
 
     @EventHandler
     public void onUpdate(EventPlayerUpdateTick e) {
+        if (requireMouseDown.get() && !InputUtils.isMouseDown(0)) return;
         if (FrostCore.getInstance().getPlayerListener().isStartDiggingTick()) {
             Object player = mcWrapper.getPlayer(mc);
             HitResult hitResult = entityWrapper.rayTrace(

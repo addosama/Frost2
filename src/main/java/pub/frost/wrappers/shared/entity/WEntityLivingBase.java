@@ -11,17 +11,16 @@ public class WEntityLivingBase extends WEntity {
     }
 
     public float getHealth(Object instance) {
-        return cast(instance).getHealth();
+        return cast(instance, EntityLivingBase.class).getHealth();
     }
     public float getMaxHealth(Object instance) {
-        return cast(instance).getMaxHealth();
+        return cast(instance, EntityLivingBase.class).getMaxHealth();
     }
     public int getHurtTime(Object instance) {
-        return cast(instance).hurtTime;
+        return cast(instance, EntityLivingBase.class).hurtTime;
     }
 
-    @Override
-    public EntityLivingBase cast(Object instance) {
-        return cast(instance, EntityLivingBase.class);
+    public Object getHeldItem(Object instance) {
+        return cast(instance, EntityLivingBase.class).getHeldItem();
     }
 }

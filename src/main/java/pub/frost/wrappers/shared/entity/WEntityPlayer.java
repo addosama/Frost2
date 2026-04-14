@@ -11,23 +11,10 @@ public class WEntityPlayer extends WEntityLivingBase {
     }
 
     public boolean isSpectator(Object instance) {
-        return cast(instance).isSpectator();
-    }
-
-    public Object getHeldItem(Object instance) {
-        return cast(instance).getHeldItem();
-    }
-
-    public String getDisplayName(Object instance) {
-        return cast(instance).getDisplayName().getFormattedText();
+        return cast(instance, EntityPlayer.class).isSpectator();
     }
 
     public Object getInventory(Object instance) {
-        return cast(instance).inventory;
-    }
-
-    @Override
-    public EntityPlayer cast(Object instance) {
-        return cast(instance, EntityPlayer.class);
+        return cast(instance, EntityPlayer.class).inventory;
     }
 }

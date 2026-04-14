@@ -9,7 +9,7 @@ public class WPlayerDiggingPacket extends WPacket {
     }
 
     public int getStatus(Object instance) {
-        switch (cast(instance).getStatus()) {
+        switch (cast(instance, C07PacketPlayerDigging.class).getStatus()) {
             case START_DESTROY_BLOCK: return START_DESTROY_BLOCK;
             case ABORT_DESTROY_BLOCK: return ABORT_DESTROY_BLOCK;
             case STOP_DESTROY_BLOCK: return STOP_DESTROY_BLOCK;
@@ -18,11 +18,6 @@ public class WPlayerDiggingPacket extends WPacket {
             case RELEASE_USE_ITEM: return RELEASE_USE_ITEM;
         }
         return -1;
-    }
-
-    @Override
-    public C07PacketPlayerDigging cast(Object in) {
-        return cast(in, C07PacketPlayerDigging.class);
     }
 
     public static final int
