@@ -5,6 +5,7 @@ import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -76,9 +77,9 @@ public class KillAura extends AbstractModule {
     @Property("LockView")
     public final BooleanProperty lockView = new BooleanProperty(false);
 
-    private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
-    private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
-    private final WEntityLivingBase livingEntityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
+    private final WWorld worldWrapper = World;
+    private final WEntity entityWrapper = Entity;
+    private final WEntityLivingBase livingEntityWrapper = EntityLivingBase;
 
     private Object target = null;
     private void resetTarget() {
@@ -213,10 +214,10 @@ public class KillAura extends AbstractModule {
     }
 
     private boolean isHoldingSword() {
-        Object itemHeld = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityPlayer.class).getHeldItem(mcWrapper.getPlayer(mc));
+        Object itemHeld = EntityLivingBase.getHeldItem(mcWrapper.getPlayer(mc));
         if (itemHeld == null) return false;
-        return FrostCore.getInstance().getWrapperManager().getWrapper(WItemSword.class).isTarget(
-                FrostCore.getInstance().getWrapperManager().getWrapper(WItemStack.class).getItem(itemHeld).getClass()
+        return ItemSword.isTarget(
+                ItemStack.getItem(itemHeld).getClass()
         );
     }
 

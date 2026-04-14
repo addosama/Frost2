@@ -8,6 +8,7 @@ import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.base.event.impl.types.TickType;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.screen.impl.clickgui.ScreenClickGui;
 import pub.frost.wrappers.shared.client.WMinecraft;
@@ -16,11 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class ClientScreenManager {
+public class ClientScreenManager implements Wrappers {
     private static final Map<Class<? extends ClientScreen>, ClientScreen> clientScreenMap = new HashMap<>();
 
-    protected final Object mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
-    protected final WMinecraft mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
+    protected final Object mc = Minecraft.getInstance();
 
     private @Getter ClientScreen currentScreen = null;
     public void setCurrentScreen(ClientScreen screen) {
@@ -40,7 +40,7 @@ public class ClientScreenManager {
         if (this.currentScreen == null) return;
         this.currentScreen.onClose();
         this.currentScreen = null;
-        mcWrapper.grabMouse(mc);
+        Minecraft.grabMouse(mc);
     }
 
     @EventHandler
@@ -48,7 +48,7 @@ public class ClientScreenManager {
         if (event.getType() == TickType.POST) {
             if (currentScreen != null) {
                 if (!currentScreen.allowCursorGrabbing()) {
-                    mcWrapper.ungrabMouse(mc);
+                    Minecraft.ungrabMouse(mc);
                 }
             }
         }

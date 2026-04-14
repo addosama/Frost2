@@ -22,12 +22,24 @@ public enum EnumTextFormatting {
     RED("RED", 'c', 12),
     LIGHT_PURPLE("LIGHT_PURPLE", 'd', 13),
     YELLOW("YELLOW", 'e', 14),
-    WHITE("WHITE", 'f', 15);
+    WHITE("WHITE", 'f', 15),
+
+    OBFUSCATED("OBFUSCATED", 'k'),
+    BOLD("BOLD", 'l'),
+    STRIKETHROUGH("STRIKETHROUGH", 'm'),
+    UNDERLINE("UNDERLINE", 'n'),
+    ITALIC("ITALIC", 'o'),
+
+    RESET("RESET", 'r');
+
     static final int[] colors = new int[16];
 
     final char code;
     final int index;
 
+    EnumTextFormatting(String str, char code) {
+        this(code, -1);
+    }
     EnumTextFormatting(String str, char code, int index) {
         this(code, index);
     }
@@ -35,12 +47,19 @@ public enum EnumTextFormatting {
         this.code = code;
         this.index = index;
     }
+
     @Override public String toString() {
         return "§" + code;
     }
 
     public static final Pattern formattingCodePattern = Pattern.compile("(?i)" + '§' + "[0-9A-FK-OR]");
 
+    public static EnumTextFormatting getFormatByCode(char code) {
+        for (EnumTextFormatting formatting : EnumTextFormatting.values()) {
+            if (formatting.getCode() == code) return formatting;
+        }
+        return null;
+    }
     public static int getColorByCode(char code) {
         final String list = "0123456789abcdef";
         return getColorByIndex(list.indexOf(code));
@@ -57,6 +76,12 @@ public enum EnumTextFormatting {
         return ImColor.rgba(r, g, b, 255);
     }
 
+    public boolean isColor() {
+        return index != -1;
+    }
+    public int getColor() {
+        return getColorByIndex(index);
+    }
 
     public static String removeFormat(String string) {
         return string.replaceAll(formattingCodePattern.pattern(), "");

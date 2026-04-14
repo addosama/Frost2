@@ -1,5 +1,6 @@
 package pub.frost.utils.targeting;
 
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.wrappers.shared.entity.*;
@@ -7,12 +8,12 @@ import pub.frost.wrappers.shared.entity.*;
 import java.util.function.Predicate;
 
 public enum EnumEntityTarget implements Named {
-    PLAYERS(WEntityPlayer.class, "players"),
-    ANIMALS(WEntityAnimal.class, "animals"),
-    MOBS(WEntityMob.class, "mobs"),
-    VILLAGERS(WEntityVillager.class, "villagers"),
+    PLAYERS(Wrappers.EntityPlayer, "players"),
+    ANIMALS(Wrappers.EntityAnimal, "animals"),
+    MOBS(Wrappers.EntityMob, "mobs"),
+    VILLAGERS(Wrappers.EntityVillager, "villagers"),
     OTHER(
-            c -> !(PLAYERS.isTarget(c) || ANIMALS.isTarget(c) || MOBS.isTarget(c) || VILLAGERS.isTarget(c)),
+            (Predicate<Class<?>>) c -> !(PLAYERS.isTarget(c) || ANIMALS.isTarget(c) || MOBS.isTarget(c) || VILLAGERS.isTarget(c)),
             "other"
     ),;
 
@@ -23,8 +24,8 @@ public enum EnumEntityTarget implements Named {
         this.key = "targets.entities." + key;
         this.predicate = predicate;
     }
-    EnumEntityTarget(Class<? extends WEntity> entityWrapper, String key) {
-        this(c -> FrostCore.getInstance().getWrapperManager().getWrapper(entityWrapper).isTarget(c), key);
+    <T extends WEntity> EnumEntityTarget(T entityWrapper, String key) {
+        this((Predicate<Class<?>>) entityWrapper::isTarget, key);
     }
 
     public boolean isTarget(Class<?> clazz) {

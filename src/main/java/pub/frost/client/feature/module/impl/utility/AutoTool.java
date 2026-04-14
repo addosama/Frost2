@@ -2,6 +2,7 @@ package pub.frost.client.feature.module.impl.utility;
 
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -25,11 +26,11 @@ public class AutoTool extends AbstractModule {
     @Property("RequireMouseDown")
     public BooleanProperty requireMouseDown = new BooleanProperty(true);
 
-    private final WEntity entityWrapper = FrostCore.getWrapper(WEntityClientPlayer.class);
-    private final WEntityClientPlayer playerWrapper = FrostCore.getWrapper(WEntityClientPlayer.class);
-    private final WWorld worldWrapper = FrostCore.getWrapper(WWorld.class);
-    private final WInventoryPlayer inventoryWrapper = FrostCore.getWrapper(WInventoryPlayer.class);
-    private final WIBlockState blockStateWrapper = FrostCore.getWrapper(WIBlockState.class);
+    private final WEntity entityWrapper = Wrappers.Entity;
+    private final WEntityClientPlayer playerWrapper = Wrappers.EntityClientPlayer;
+    private final WWorld worldWrapper = Wrappers.World;
+    private final WInventoryPlayer inventoryWrapper = Wrappers.InventoryPlayer;
+    private final WIBlockState blockStateWrapper = Wrappers.IBlockState;
 
     @EventHandler
     public void onUpdate(EventPlayerUpdateTick e) {

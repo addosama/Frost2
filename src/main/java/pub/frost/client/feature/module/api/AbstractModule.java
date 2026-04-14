@@ -1,6 +1,7 @@
 package pub.frost.client.feature.module.api;
 
 import lombok.Getter;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.i18n.interfaces.Described;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class AbstractModule implements Named, Described {
+public class AbstractModule implements Wrappers, Named, Described {
     private final String key;
     private final ModuleCategory category;
 
@@ -22,7 +23,7 @@ public class AbstractModule implements Named, Described {
     public final BooleanProperty enabledProperty = new BooleanProperty(false);
 
     protected final Object mc;
-    protected final WMinecraft mcWrapper;
+    protected final WMinecraft mcWrapper = Minecraft;
 
     public AbstractModule() {
         Module annotation = this.getClass().getAnnotation(Module.class);
@@ -31,8 +32,7 @@ public class AbstractModule implements Named, Described {
         this.key = "modules." + annotation.key().toLowerCase();
         this.category = annotation.category();
 
-        this.mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
-        this.mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
+        this.mc = Minecraft.getInstance();
 
         enabledProperty.setValueChangeListener((old, current) -> {
             if (current) {

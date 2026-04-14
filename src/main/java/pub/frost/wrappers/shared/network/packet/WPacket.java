@@ -6,7 +6,7 @@ import pub.frost.base.wrapping.Wrapper;
 import pub.frost.wrappers.FakeInstanceWrapper;
 
 @SuppressWarnings("unchecked")
-public class WPacket extends Wrapper implements FakeInstanceWrapper<Packet> {
+public abstract class WPacket extends Wrapper implements FakeInstanceWrapper<Packet> {
     public WPacket(Class<?> clazz) {
         super(clazz);
     }

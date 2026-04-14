@@ -5,17 +5,15 @@ import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.TickType;
-import pub.frost.client.core.FrostCore;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
 
 @Getter
-public class PlayerListener {
+public class PlayerListener implements Wrappers {
     private boolean digging;
 
     private boolean startDiggingTick;
     private boolean stopDiggingTick;
-    
-    private WPlayerDiggingPacket c07Wrapper = FrostCore.getWrapper(WPlayerDiggingPacket.class);
 
     @EventHandler(priority = 0)
     public void preGameTick(EventGameTick event) {
@@ -29,13 +27,13 @@ public class PlayerListener {
     public void prePacket(EventPacket e) {
         if (e.isCancelled()) return;
         Object packet = e.getPacket();
-        if (c07Wrapper.isTarget(packet)) {
-            if (c07Wrapper.getStatus(packet) == WPlayerDiggingPacket.START_DESTROY_BLOCK) {
+        if (PlayerDiggingPacket.isTarget(packet)) {
+            if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.START_DESTROY_BLOCK) {
                 startDiggingTick = true;
                 digging = true;
             }
-            if (c07Wrapper.getStatus(packet) == WPlayerDiggingPacket.ABORT_DESTROY_BLOCK
-                    || c07Wrapper.getStatus(packet) == WPlayerDiggingPacket.STOP_DESTROY_BLOCK
+            if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.ABORT_DESTROY_BLOCK
+                    || PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.STOP_DESTROY_BLOCK
             ) {
                 stopDiggingTick = true;
                 digging = false;

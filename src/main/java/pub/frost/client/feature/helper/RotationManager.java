@@ -5,6 +5,7 @@ import lombok.Setter;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
@@ -13,9 +14,9 @@ import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 
 @Getter
 public class RotationManager {
-    protected final Object mc = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class).getInstance();
-    protected final WMinecraft mcWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WMinecraft.class);
-    protected final WEntityClientPlayer playerWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityClientPlayer.class);
+    protected final Object mc = Wrappers.Minecraft.getInstance();
+    protected final WMinecraft mcWrapper = Wrappers.Minecraft;
+    protected final WEntityClientPlayer playerWrapper = Wrappers.EntityClientPlayer;
 
     @Setter
     private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;

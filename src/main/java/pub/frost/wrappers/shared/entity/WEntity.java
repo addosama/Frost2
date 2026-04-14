@@ -3,6 +3,7 @@ package pub.frost.wrappers.shared.entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
 import pub.frost.base.wrapping.Wrapper;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
@@ -16,7 +17,7 @@ import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.List;
 
-public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity> {
+public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wrappers {
     public WEntity() {
         super(Entity.class);
     }
@@ -207,7 +208,7 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity> {
                 lookVec.y() * blockReachDistance,
                 lookVec.z() * blockReachDistance
         );
-        return FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class).raytraceBlocks(
+        return World.raytraceBlocks(
                 getWorld(instance),
                 eyePos, vec32, false, false, true
         );
@@ -241,7 +242,7 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity> {
         );
         Vector3d vec33 = null;
         float f = 1.0F;
-        List<Object> list = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class).getEntitiesInAABBExcluding(
+        List<Object> list = World.getEntitiesInAABBExcluding(
                 getWorld(instance),
                 instance,
                 this.getBoundingBox(instance).addCoord(

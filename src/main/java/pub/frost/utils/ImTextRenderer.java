@@ -8,16 +8,25 @@ import pub.frost.utils.data.EnumTextFormatting;
 import java.util.regex.Matcher;
 
 public class ImTextRenderer {
-    public static void drawText(ImDrawList list, String string, float x, float y, int color, int shadowColor) {
-        if (shadowColor != 0) list.addText(x + 1, y + 1, shadowColor, string);
+    public static void drawText(ImDrawList list, String string, float x, float y, int color, int shadowColor, boolean bold) {
+        if (shadowColor != 0) {
+            list.addText(x + 1, y + 1, shadowColor, string);
+            if (bold) list.addText(x + 2, y + 1, shadowColor, string);
+        }
         list.addText(x, y, color, string);
+        if (bold) list.addText(x + 1, y, color, string);
     }
+    public static void drawText(ImDrawList list, String string, float x, float y, int color, int shadowColor) {
+        drawText(list, string, x, y, color, shadowColor, false);
+    }
+
     public static void drawText(ImDrawList list, String string, float x, float y, int color, boolean shadow) {
         Matcher matcher = EnumTextFormatting.formattingCodePattern.matcher(string);
         int lastEnd = 0;
         float currentX = x;
         int currentColor = color;
         int currentShadowColor = shadow? (color & 16579836) >> 2 | color & -16777216 : 0;
+        boolean currentBold = false;
 
         while (matcher.find()) {
             // 1. 先画颜色代码之前的纯文本部分
@@ -28,7 +37,8 @@ public class ImTextRenderer {
                         content,
                         currentX, y,
                         currentColor,
-                        currentShadowColor
+                        currentShadowColor,
+                        currentBold
                 );
                 currentX += getTextWidth(content);
             }
@@ -36,10 +46,23 @@ public class ImTextRenderer {
             // 2. 根据匹配到的代码更新颜色 (例如 §c -> 红色)
             String code = matcher.group(); // 得到 "§c"
             char colorCode = code.charAt(1);
-            if (colorCode == 'r') {
-                currentColor = color;
-            } else currentColor = EnumTextFormatting.getColorByCode(colorCode);
-            if (shadow) currentShadowColor = (currentColor & 16579836) >> 2 | currentColor & -16777216;
+            EnumTextFormatting formatting = EnumTextFormatting.getFormatByCode(colorCode);
+            if (formatting != null) {
+                if (!formatting.isColor()) {
+                    switch (formatting) {
+                        case RESET: {
+                            currentColor = color;
+                            currentBold = false;
+                            break;
+                        }
+                        case BOLD: {
+                            currentBold = true;
+                            break;
+                        }
+                    }
+                } else currentColor = formatting.getColor();
+                if (shadow) currentShadowColor = (currentColor & 16579836) >> 2 | currentColor & -16777216;
+            }
 
             lastEnd = matcher.end();
         }
@@ -51,7 +74,8 @@ public class ImTextRenderer {
                    list,
                    remaining,
                    currentX, y,
-                   currentColor, currentShadowColor
+                   currentColor, currentShadowColor,
+                   currentBold
            );
         }
     }

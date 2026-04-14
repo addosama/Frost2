@@ -59,9 +59,9 @@ public class RightClicker extends AbstractModule {
     }
 
     private boolean isHoldingBlock() {
-        Object itemHeld = FrostCore.getWrapper(WEntityPlayer.class).getHeldItem(mcWrapper.getPlayer(mc));
+        Object itemHeld = EntityLivingBase.getHeldItem(mcWrapper.getPlayer(mc));
         if (itemHeld != null) {
-            return FrostCore.getWrapper(WItemBlock.class).isTarget(FrostCore.getWrapper(WItemStack.class).getItem(itemHeld));
+            return ItemBlock.isTarget(ItemStack.getItem(itemHeld));
         }
         return false;
     }

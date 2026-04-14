@@ -8,6 +8,7 @@ import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.base.rendering.FontManager;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -52,9 +53,9 @@ public class ESP extends AbstractModule {
     @Property("data")
     public final BooleanProperty renderData = new BooleanProperty(true);
 
-    private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
-    private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
-    private final WEntityLivingBase livingEntityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntityLivingBase.class);
+    private final WEntity entityWrapper = Wrappers.Entity;
+    private final WWorld worldWrapper = Wrappers.World;
+    private final WEntityLivingBase livingEntityWrapper = Wrappers.EntityLivingBase;
 
     private final List<EntityData> cachedData = new ArrayList<>();
     private Matrix4f cachedModelView;

@@ -30,8 +30,8 @@ public class Eagle extends AbstractModule {
     @Property("ModifyInput")
     public final BooleanProperty modifyInput = new BooleanProperty(true);
 
-    private final WEntity entityWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WEntity.class);
-    private final WWorld worldWrapper = FrostCore.getInstance().getWrapperManager().getWrapper(WWorld.class);
+    private final WEntity entityWrapper = Entity;
+    private final WWorld worldWrapper = World;
 
     private boolean onEdge;
 
@@ -57,9 +57,9 @@ public class Eagle extends AbstractModule {
     }
 
     private boolean isHoldingBlock() {
-        Object itemHeld = FrostCore.getWrapper(WEntityPlayer.class).getHeldItem(mcWrapper.getPlayer(mc));
+        Object itemHeld = EntityPlayer.getHeldItem(mcWrapper.getPlayer(mc));
         if (itemHeld != null) {
-            return FrostCore.getWrapper(WItemBlock.class).isTarget(FrostCore.getWrapper(WItemStack.class).getItem(itemHeld));
+            return ItemBlock.isTarget(ItemStack.getItem(itemHeld));
         }
         return false;
     }

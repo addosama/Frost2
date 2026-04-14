@@ -3,8 +3,6 @@ package pub.frost.client.core;
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
-import pub.frost.base.wrapping.Wrapper;
-import pub.frost.base.wrapping.WrapperManager;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.helper.PlayerListener;
 import pub.frost.client.feature.helper.RotationManager;
@@ -31,8 +29,6 @@ public final class FrostCore {
         return getInstance().getI18nHelper().getCurrentLocalizer();
     }
 
-    private WrapperManager wrapperManager;
-
     private I18n i18nHelper;
     private EventBus eventBus;
     private BindableManager bindableManager;
@@ -47,8 +43,6 @@ public final class FrostCore {
     }
 
     public void initClient() {
-        wrapperManager = new WrapperManager();
-
         i18nHelper = new I18n();
         i18nHelper.loadLanguages();
 
@@ -67,9 +61,5 @@ public final class FrostCore {
 
         moduleManager.registerModules();
         clientScreenManager.registerScreens();
-    }
-
-    public static  <T extends Wrapper> T getWrapper(Class<T> clazz) {
-        return getInstance().getWrapperManager().getWrapper(clazz);
     }
 }
