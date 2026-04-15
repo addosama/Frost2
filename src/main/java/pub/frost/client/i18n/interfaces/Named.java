@@ -4,6 +4,6 @@ import pub.frost.client.core.FrostCore;
 
 public interface Named {
     default String getName() {
-        return FrostCore.getLocalizer().get(this + ".name");
+        return FrostCore.getLocalizer().getName(this.toString());
     }
 }

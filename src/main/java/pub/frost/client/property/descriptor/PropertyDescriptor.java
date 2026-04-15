@@ -4,7 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import pub.frost.client.core.FrostCore;
+import pub.frost.client.i18n.interfaces.Described;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
@@ -18,7 +19,7 @@ import java.util.function.Supplier;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class PropertyDescriptor {
+public class PropertyDescriptor implements Named, Described {
     private final String key;
     private final AbstractProperty<?> property;
     private final List<PropertyDescriptor> childProperties;
@@ -33,13 +34,6 @@ public class PropertyDescriptor {
 
     public boolean isGroup() {
         return childProperties != null;
-    }
-
-    public String getName() {
-        return FrostCore.getLocalizer().get(this.getKey() + ".name");
-    }
-    public String getDescription() {
-        return FrostCore.getLocalizer().get(this.getKey() + ".description");
     }
 
     public boolean isVisible() {
@@ -124,5 +118,10 @@ public class PropertyDescriptor {
         }
 
         return listStack.pop();
+    }
+
+    @Override
+    public String toString() {
+        return this.getKey();
     }
 }

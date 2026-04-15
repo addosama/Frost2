@@ -15,4 +15,14 @@ public class Localizer {
     public String getOrDefault(String key, String defaultValue) {
         return properties.getProperty(key, defaultValue);
     }
+
+    public String getName(String key) {
+        return getOrDefault(key.toLowerCase() + ".name", get(key));
+    }
+    public String getDescription(String key) {
+        return getOrDefault(key.toLowerCase() + ".descriptions", "");
+    }
+    public String getNoDescriptionText() {
+        return get("strings.nodescriptions");
+    }
 }
