@@ -78,6 +78,19 @@ public class BoundingBox {
         );
     }
 
+    public BoundingBox move(double x, double y, double z) {
+        return new BoundingBox(
+                minX + x,
+                minY + y,
+                minZ + z,
+                maxX + x,
+                maxY + y,
+                maxZ + z
+        );
+    }
+    public BoundingBox move(Vector3d vec) {
+        return move(vec.x(), vec.y(), vec.z());
+    }
     public BoundingBox addCoord(double x, double y, double z) {
         double d = this.minX;
         double e = this.minY;

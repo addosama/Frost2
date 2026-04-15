@@ -66,4 +66,8 @@ public class WWorld extends Wrapper implements FakeInstanceWrapper<World> {
     public boolean isAirBlock(Object instance, BlockPosition pos) {
         return cast(instance).isAirBlock(new BlockPos(pos.x, pos.y, pos.z));
     }
+
+    public Object getEntityById(Object instance, int id) {
+        return cast(instance).getEntityByID(id);
+    }
 }

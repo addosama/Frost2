@@ -35,4 +35,8 @@ public class WMinecraft extends Wrapper implements FakeInstanceWrapper<Minecraft
     public void clickRMB(Object mc) {
         ((AccessorMinecraft) mc).callRightClickMouse();
     }
+
+    public Object getNetHandler(Object mc) {
+        return cast(mc).getNetHandler();
+    }
 }

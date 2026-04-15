@@ -30,7 +30,8 @@ public class ModuleManager {
                 new RightClicker(),
                 new Eagle(),
                 new Teams(),
-                new AutoTool()
+                new AutoTool(),
+                new BackTrack()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
