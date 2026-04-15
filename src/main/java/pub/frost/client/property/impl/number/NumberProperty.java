@@ -1,5 +1,6 @@
 package pub.frost.client.property.impl.number;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Getter;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.utils.MathUtils;
@@ -8,7 +9,8 @@ import java.math.BigDecimal;
 
 public abstract class NumberProperty<T extends Number & Comparable<T>> extends AbstractProperty<T> {
     @Getter
-    private final BigDecimal minValue, maxValue, increaseStep;
+    private transient final BigDecimal minValue, maxValue, increaseStep;
+    @JSONField(name = "value")
     private BigDecimal value;
 
     public NumberProperty(T min, T max, T increaseStep, T current) {

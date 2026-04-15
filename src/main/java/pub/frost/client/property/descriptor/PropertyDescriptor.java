@@ -1,5 +1,6 @@
 package pub.frost.client.property.descriptor;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,13 @@ import java.util.function.Supplier;
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class PropertyDescriptor implements Named, Described {
+    @JSONField(name = "key")
     private final String key;
+    @JSONField(name = "data")
     private final AbstractProperty<?> property;
+    @JSONField(name = "childList")
     private final List<PropertyDescriptor> childProperties;
-    private final Supplier<Boolean> visibilitySupplier;
+    private transient final Supplier<Boolean> visibilitySupplier;
 
     public PropertyDescriptor(String key, AbstractProperty<?> property) {
         this(key, property, null, property::isVisible);

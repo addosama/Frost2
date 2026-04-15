@@ -1,5 +1,6 @@
 package pub.frost.client.property.overriding.suppliers;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public abstract class OverrideSupplier implements Supplier<Boolean> {
     public void onUnregistered() {}
 
     @Getter(AccessLevel.PROTECTED)
-    private boolean state = false;
+    private transient boolean state = false;
     public void setState(boolean state) {
         if (this.state != state) {
             this.state = state;
@@ -28,4 +29,8 @@ public abstract class OverrideSupplier implements Supplier<Boolean> {
     public Boolean get() {
         return state;
     }
+
+    @JSONField(name = "type")
+    private final int type = getSupplierType();
+    protected abstract int getSupplierType();
 }

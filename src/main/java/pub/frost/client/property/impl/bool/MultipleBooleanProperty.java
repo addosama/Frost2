@@ -1,11 +1,13 @@
 package pub.frost.client.property.impl.bool;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import pub.frost.client.property.AbstractProperty;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class MultipleBooleanProperty<T extends Enum<T>> extends AbstractProperty<Map<T, Boolean>> {
+    @JSONField(name = "value")
     private final Map<T, Boolean> values;
 
     @SafeVarargs

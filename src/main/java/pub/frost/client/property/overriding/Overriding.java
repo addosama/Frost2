@@ -1,5 +1,6 @@
 package pub.frost.client.property.overriding;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,9 +9,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class Overriding<T> {
-    private @Getter boolean enabled;
-    private @Getter List<OverrideData<T>> dataList;
-    private @Setter Supplier<String> displayStringSupplier;
+    @Getter
+    private transient boolean enabled;
+    @Getter @JSONField(name = "data")
+    private List<OverrideData<T>> dataList;
+    @Setter
+    private transient Supplier<String> displayStringSupplier;
 
     public void enableOverriding() {
         if (!enabled) {

@@ -1,11 +1,10 @@
 package pub.frost.client.property;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
-import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.Overriding;
 
@@ -15,14 +14,13 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class AbstractProperty<T> {
     @Accessors(chain = true) @Setter
-    private BiConsumer<T, T> valueChangeListener = (o, n) -> {};
+    private transient BiConsumer<T, T> valueChangeListener = (o, n) -> {};
     @Accessors(chain = true) @Setter
-    private Supplier<Boolean> visibilitySupplier = () -> true;
+    private transient Supplier<Boolean> visibilitySupplier = () -> true;
     public final boolean isVisible() {
         return visibilitySupplier.get();
     }
@@ -30,6 +28,7 @@ public abstract class AbstractProperty<T> {
         return returnType.cast(setVisibilitySupplier(visibilitySupplier));
     }
 
+    @JSONField(name = "overriding")
     private final Overriding<T> overriding = new Overriding<>();
     public boolean isOverridingEnabled() {
         return overriding.isEnabled();
@@ -44,7 +43,7 @@ public abstract class AbstractProperty<T> {
         return overriding.getDataList();
     }
 
-    private final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
+    private transient final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
         data.getApplySupplier().setStateChangeConsumer(state -> {
             T value = getValue();
             T overrideValue = data.getValue();
@@ -54,7 +53,6 @@ public abstract class AbstractProperty<T> {
             } else valueChangeListener.accept(overrideValue, value);
         });
     };
-
     public void addOverrideData(OverrideData<T> data) {
         overrideDataProcessor.accept(data);
         overriding.register(data);
