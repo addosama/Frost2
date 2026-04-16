@@ -58,6 +58,7 @@ public class Config {
 
         for (AbstractModule m : FrostCore.getInstance().getModuleManager().getRegisteredModules()) {
             JSONArray propArray = moduleData.getJSONArray(m.getKey());
+            if (propArray == null) continue;
             for (JSONObject propJson : propArray.toJavaList(JSONObject.class)) {
                 analyzeDescriptorData(propJson, k -> m.getPropertyMap().get(k));
             }
