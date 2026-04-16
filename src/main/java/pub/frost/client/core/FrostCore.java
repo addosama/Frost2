@@ -5,6 +5,7 @@ import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.config.ConfigManager;
 import pub.frost.client.feature.bindable.BindableManager;
+import pub.frost.client.feature.helper.PacketManager;
 import pub.frost.client.feature.helper.PlayerListener;
 import pub.frost.client.feature.helper.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;
@@ -46,6 +47,7 @@ public final class FrostCore {
 
     private RotationManager rotationManager;
     private PlayerListener playerListener;
+    private PacketManager packetManager;
 
     public FrostCore() {
         instance = this;
@@ -69,6 +71,7 @@ public final class FrostCore {
         eventBus.register(rotationManager);
         playerListener = new PlayerListener();
         eventBus.register(playerListener);
+        packetManager = new PacketManager();
 
         FrostCore.getClientDir().toFile().mkdirs();
         moduleManager.registerModules();

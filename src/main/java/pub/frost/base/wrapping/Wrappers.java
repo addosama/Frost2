@@ -4,6 +4,7 @@ import pub.frost.wrappers.shared.block.*;
 import pub.frost.wrappers.shared.client.*;
 import pub.frost.wrappers.shared.entity.*;
 import pub.frost.wrappers.shared.item.*;
+import pub.frost.wrappers.shared.network.WNetHandlerPlayClient;
 import pub.frost.wrappers.shared.network.packet.WPacket;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.*;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityPacket;
@@ -33,6 +34,7 @@ public interface Wrappers {
     WItemTool ItemTool = new WItemTool();
 
     WPlayerDiggingPacket PlayerDiggingPacket = new WPlayerDiggingPacket();
+    WUseEntityPacket UseEntityPacket = new WUseEntityPacket();
 
     WEntityPacket EntityPacket = new WEntityPacket();
     WEntityPacket.WEntityLookPacket EntityLookPacket = new WEntityPacket.WEntityLookPacket();
@@ -41,6 +43,8 @@ public interface Wrappers {
     WEntityTeleportPacket EntityTeleportPacket = new WEntityTeleportPacket();
 
     WPacket Packet = new WPacket();
+
+    WNetHandlerPlayClient NetHandlerPlayClient = new WNetHandlerPlayClient();
 
     WInventoryPlayer InventoryPlayer = new WInventoryPlayer();
 

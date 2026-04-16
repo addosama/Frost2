@@ -23,9 +23,7 @@ public class MixinPacketThreadUtil {
     )
     private static <T extends INetHandler> ListenableFuture<Object> onProcess(IThreadListener instance, Runnable runnable, final Packet<T> packet, final T iNetHandler, IThreadListener iThreadListener) {
         return instance.addScheduledTask(() -> {
-            EventPacket event = new EventPacket(PacketType.IN, packet);
-            FrostCore.getInstance().getEventBus().call(event);
-            if (!event.isCancelled()) {
+            if (!FrostCore.getInstance().getPacketManager().processIncoming(packet)) {
                 packet.processPacket(iNetHandler);
             }
         });

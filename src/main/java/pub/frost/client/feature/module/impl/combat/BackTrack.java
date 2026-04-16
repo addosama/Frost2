@@ -8,6 +8,7 @@ import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -23,6 +24,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Module(
         key = "BackTrack",
@@ -36,14 +38,23 @@ public class BackTrack extends AbstractModule {
     @Property("RenderRealPos")
     public final BooleanProperty renderRealPos = new BooleanProperty(true);
 
+    private boolean usingLaggedEntity = false;
+    private long lagStart = -1;
+
+    private final Deque<Object> playerPacketDeque = new ConcurrentLinkedDeque<>();
     private final Map<Object, Vector3d> entityPositionMap = new ConcurrentHashMap<>();
     private final Map<Object, Deque<PacketData>> entityPacketMap = new ConcurrentHashMap<>();
 
     @EventHandler
-    private void onPlayerUpdate(EventGameTick event) {
+    private void onGameTick(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
             if (getPlayer() == null) return;
             Vector3d playerPos = getPlayerPos();
+            if (usingLaggedEntity && lagStart > 0) {
+                if (lagStart + latency.get() < System.currentTimeMillis()) {
+                    flushStoredPackets();
+                }
+            }
             for (Map.Entry<Object, Vector3d> entry : entityPositionMap.entrySet()) {
                 boolean unregister = Math.max(playerPos.distance(Entity.getPositionVector(entry.getKey())), playerPos.distance(entry.getValue())) > range.get();
                 unregister |= Entity.isDead(entry.getKey());
@@ -69,25 +80,38 @@ public class BackTrack extends AbstractModule {
     }
     @EventHandler
     private void onPacket(EventPacket event) {
-        if (event.getType() == PacketType.OUT) return;
-
         Object packet = event.getPacket();
         Object world = mcWrapper.getWorld(mc);
-
-        if (EntityPacket.isTarget(packet)) {
-            Object entity = EntityPacket.getEntity(packet, world);
-            if (entity == getPlayer()) return;
-
-            Vector3d entityPos = Entity.getPositionVector(entity);
-            if (entityPos.distance(getPlayerPos()) <= range.get()) {
-                updateEntity(entity, entityPos, packet);
+        if (event.getType() == PacketType.OUT) {
+            if (UseEntityPacket.isTarget(packet)) {
+                Object targetEntity = UseEntityPacket.getEntityFromWorld(packet, world);
+                if (entityPacketMap.containsKey(targetEntity)) {
+                    if (Entity.distanceTo(getPlayer(), Entity.getPositionVector(targetEntity)) > 3) {
+                        if (!usingLaggedEntity) lagStart = System.currentTimeMillis();
+                        usingLaggedEntity = true;
+                    }
+                }
+            }
+            if (usingLaggedEntity) {
+                playerPacketDeque.addLast(packet);
                 event.cancel();
             }
-        } else if (EntityTeleportPacket.isTarget(packet)) {
-            Object entity = World.getEntityById(world, EntityTeleportPacket.getEntityId(packet, world));
-            if (entity == getPlayer()) return;
+        } else {
+            if (EntityPacket.isTarget(packet)) {
+                Object entity = EntityPacket.getEntity(packet, world);
+                if (entity == getPlayer()) return;
 
-            if (Entity.getPositionVector(entity).distance(getPlayerPos()) <= range.get()) resetEntity(entity, packet);
+                Vector3d entityPos = Entity.getPositionVector(entity);
+                if (entityPos.distance(getPlayerPos()) <= range.get()) {
+                    updateEntity(entity, entityPos, packet);
+                    event.cancel();
+                }
+            } else if (EntityTeleportPacket.isTarget(packet)) {
+                Object entity = World.getEntityById(world, EntityTeleportPacket.getEntityId(packet, world));
+                if (entity == getPlayer()) return;
+
+                if (Entity.getPositionVector(entity).distance(getPlayerPos()) <= range.get()) resetEntity(entity, packet);
+            }
         }
     }
 
@@ -140,6 +164,7 @@ public class BackTrack extends AbstractModule {
         );
         if (getPlayerPos().distance(targetPos) > range.get()) unregisterEntity(entity);
         else {
+            flushStoredPackets();
             entityPositionMap.put(entity, new Vector3d(targetPos));
             entityPacketMap.computeIfPresent(entity, (en, deque) -> {
                 deque.clear();
@@ -149,12 +174,21 @@ public class BackTrack extends AbstractModule {
     }
 
     private void unregisterEntity(Object entity) {
+        flushStoredPackets();
         entityPositionMap.remove(entity);
         entityPacketMap.computeIfPresent(entity, (en, deque) -> {
             Object netHandler = mcWrapper.getNetHandler(mc);
             for (PacketData data : deque) data.release(netHandler);
             return null;
         });
+    }
+
+    private void flushStoredPackets() {
+        while (!playerPacketDeque.isEmpty()) {
+            FrostCore.getInstance().getPacketManager().sendPacket(playerPacketDeque.pollFirst(), false);
+        }
+        usingLaggedEntity = false;
+        lagStart = -1;
     }
 
     private Object getPlayer() {
@@ -166,6 +200,7 @@ public class BackTrack extends AbstractModule {
 
     @Override
     protected void onDisabled() {
+        flushStoredPackets();
         entityPacketMap.clear();
         entityPositionMap.clear();
     }
