@@ -3,6 +3,7 @@ package pub.frost.utils;
 import org.joml.Vector3d;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.utils.data.BoundingBox;
+import pub.frost.wrappers.shared.item.WItem;
 
 public class EntityUtils implements Wrappers {
     public static String tryGetDisplayName(Object entity) {
@@ -23,6 +24,13 @@ public class EntityUtils implements Wrappers {
                 x + width / 2,
                 y + height,
                 z + width / 2
+        );
+    }
+    public static boolean isHoldingItem(Object livingEntity, WItem targetItem) {
+        Object itemHeld = EntityLivingBase.getHeldItem(livingEntity);
+        if (itemHeld == null) return false;
+        return targetItem.isTarget(
+                ItemStack.getItem(itemHeld)
         );
     }
 }

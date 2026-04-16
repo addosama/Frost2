@@ -41,6 +41,13 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wra
         cast(instance, Entity.class).setSprinting(sprinting);
     }
 
+    public boolean isSneaking(Object instance) {
+        return cast(instance, Entity.class).isSneaking();
+    }
+    public void setSneaking(Object instance, boolean sneaking) {
+        cast(instance, Entity.class).setSneaking(sneaking);
+    }
+
     public float getEyesHeight(Object instance) {
         return cast(instance, Entity.class).getEyeHeight();
     }

@@ -31,7 +31,8 @@ public class ModuleManager {
                 new Eagle(),
                 new Teams(),
                 new AutoTool(),
-                new BackTrack()
+                new BackTrack(),
+                new SprintReset()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize

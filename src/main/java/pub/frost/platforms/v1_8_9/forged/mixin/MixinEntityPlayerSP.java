@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import pub.frost.base.event.impl.events.EventPrePlayerMotionUpdate;
 import pub.frost.base.event.impl.events.EventSprint;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.types.TickType;
@@ -29,6 +30,17 @@ public class MixinEntityPlayerSP {
     )
     private void postUpdateTick(CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(new EventPlayerUpdateTick(TickType.POST));
+    }
+
+    @Inject(
+            method = "onUpdate",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/entity/EntityPlayerSP;isRiding()Z"
+            )
+    )
+    private void preMotionUpdate(CallbackInfo ci) {
+        FrostCore.getInstance().getEventBus().call(EventPrePlayerMotionUpdate.INSTANCE);
     }
 
     @Redirect(
