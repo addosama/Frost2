@@ -3,6 +3,7 @@ package pub.frost.client.core;
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
+import pub.frost.client.config.ConfigManager;
 import pub.frost.client.feature.bindable.BindableManager;
 import pub.frost.client.feature.helper.PlayerListener;
 import pub.frost.client.feature.helper.RotationManager;
@@ -10,6 +11,9 @@ import pub.frost.client.feature.module.ModuleManager;
 import pub.frost.client.feature.screen.ClientScreenManager;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.i18n.Localizer;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Getter
 public final class FrostCore {
@@ -25,6 +29,9 @@ public final class FrostCore {
     public static final boolean DEBUG = true;
 
     private static @Getter FrostCore instance;
+    public static Path getClientDir() {
+        return Paths.get(System.getProperty("user.dir"), "frost");
+    }
     public static Localizer getLocalizer() {
         return getInstance().getI18nHelper().getCurrentLocalizer();
     }
@@ -33,6 +40,8 @@ public final class FrostCore {
     private EventBus eventBus;
     private BindableManager bindableManager;
     private ModuleManager moduleManager;
+    private ConfigManager configManager;
+
     private ClientScreenManager clientScreenManager;
 
     private RotationManager rotationManager;
@@ -51,6 +60,8 @@ public final class FrostCore {
         bindableManager = new BindableManager();
         eventBus.register(bindableManager);
         moduleManager = new ModuleManager();
+        configManager = new ConfigManager();
+
         clientScreenManager = new ClientScreenManager();
         eventBus.register(clientScreenManager);
 
@@ -59,7 +70,13 @@ public final class FrostCore {
         playerListener = new PlayerListener();
         eventBus.register(playerListener);
 
+        FrostCore.getClientDir().toFile().mkdirs();
         moduleManager.registerModules();
         clientScreenManager.registerScreens();
+        configManager.init();
+    }
+
+    public void shutdown() {
+        configManager.saveAndWriteAllConfig();
     }
 }

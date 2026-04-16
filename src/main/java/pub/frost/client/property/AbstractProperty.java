@@ -85,6 +85,9 @@ public abstract class AbstractProperty<T> {
         return overriding.isActive();
     }
 
+    public T deserializeValue(Object obj) {
+        return (T) obj;
+    }
     public abstract T getValue();
     protected abstract boolean setValue(T oldValue, T newValue);
 

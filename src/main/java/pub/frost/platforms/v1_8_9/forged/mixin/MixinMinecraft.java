@@ -87,4 +87,12 @@ public abstract class MixinMinecraft {
     private void preProcessInteract(CallbackInfo ci) {
         FrostCore.getInstance().getEventBus().call(new EventPreProcessInteract());
     }
+
+    @Inject(
+            method = "shutdownMinecraftApplet",
+            at = @At("HEAD")
+    )
+    private void onShutdown(CallbackInfo ci) {
+        FrostCore.getInstance().shutdown();
+    }
 }

@@ -17,7 +17,12 @@ public class MathUtils {
     }
 
     public static BigDecimal roundToStep(BigDecimal value, BigDecimal increasingStep) {
-        return BigDecimal.valueOf(value.divide(increasingStep, increasingStep.scale(), RoundingMode.DOWN).intValue()).multiply(increasingStep);
+        if (increasingStep.equals(BigDecimal.ZERO)) return value;
+        try {
+            return BigDecimal.valueOf(value.divide(increasingStep, increasingStep.scale(), RoundingMode.DOWN).intValue()).multiply(increasingStep);
+        } catch (ArithmeticException e) {
+            return value;
+        }
     }
 
     public static double lerp(double a, double b, float delta) {
