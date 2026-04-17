@@ -47,13 +47,9 @@ public class Eagle extends AbstractModule {
 
     @EventHandler
     private void onMoveInput(EventUpdateMovementInput event) {
-        boolean sneak = false;
-        if (onEdge) {
-            sneak = true;
-            if (pitchCheck.get() && entityWrapper.getPitch(mcWrapper.getPlayer(mc)) < 70) sneak = false;
-            if (blockCheck.get() && !isHoldingBlock()) sneak = false;
-        }
-        event.setSneak(modifyInput.get()? sneak : onEdge);
+        if (pitchCheck.get() && entityWrapper.getPitch(mcWrapper.getPlayer(mc)) < 70) return;
+        if (blockCheck.get() && !isHoldingBlock()) return;
+        event.setSneak(onEdge || !modifyInput.get() && event.isSneak());
     }
 
     private boolean isHoldingBlock() {
