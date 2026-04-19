@@ -121,6 +121,10 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wra
         cast(instance, Entity.class).rotationPitch = pitch;
     }
 
+    public boolean isOnGround(Object instance) {
+        return cast(instance, Entity.class).onGround;
+    }
+
     public Vector3d getLook(Object instance, float tickDelta) {
         Vec3 ret = cast(instance, Entity.class).getLook(tickDelta);
         return new Vector3d(

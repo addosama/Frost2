@@ -34,6 +34,10 @@ public interface Wrappers {
     WItemTool ItemTool = new WItemTool();
 
     WPlayerDiggingPacket PlayerDiggingPacket = new WPlayerDiggingPacket();
+    WPlayerPacket PlayerPacket = new WPlayerPacket();
+    WPlayerPacket.WPlayerLookPacket PlayerLookPacket = new WPlayerPacket.WPlayerLookPacket();
+    WPlayerPacket.WPlayerPositionPacket PlayerPositionPacket = new WPlayerPacket.WPlayerPositionPacket();
+    WPlayerPacket.WPlayerPosLookPacket PlayerPosLookPacket = new WPlayerPacket.WPlayerPosLookPacket();
     WUseEntityPacket UseEntityPacket = new WUseEntityPacket();
 
     WEntityPacket EntityPacket = new WEntityPacket();

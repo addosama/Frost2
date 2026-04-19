@@ -99,11 +99,12 @@ public class RotationManager {
         e.setMoveStrafe(strafe);
     }
 
-    @EventHandler(priority = 100)
+    @EventHandler(priority = -100)
     private void onPreGameTick(EventGameTick e) {
-        Object player = mcWrapper.getPlayer(mc);
-        if (player == null) return;
         if (e.getType() == TickType.PRE) {
+            Object player = mcWrapper.getPlayer(mc);
+            if (player == null) return;
+            
             setPrevPlayerYaw(playerWrapper.getPrevYaw(player));
             setPrevPlayerPitch(playerWrapper.getPrevPitch(player));
             setPlayerYaw(playerWrapper.getYaw(player));
@@ -129,8 +130,15 @@ public class RotationManager {
             }
 
             applied = true;
-        } else {
+        }
+    }
+
+    @EventHandler(priority = 100)
+    private void onPostGameTick(EventGameTick e) {
+        if (e.getType() == TickType.POST) {
             if (!applied) return;
+            Object player = mcWrapper.getPlayer(mc);
+            if (player == null) return;
 
             playerWrapper.setPrevYaw(player, getPrevPlayerYaw());
             playerWrapper.setPrevPitch(player, getPrevPlayerPitch());
