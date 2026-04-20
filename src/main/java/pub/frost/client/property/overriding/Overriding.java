@@ -4,8 +4,8 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 public class Overriding<T> {
@@ -19,7 +19,7 @@ public class Overriding<T> {
     public void enableOverriding() {
         if (!enabled) {
             enabled = true;
-            dataList = new ArrayList<>();
+            dataList = new CopyOnWriteArrayList<>();
             displayStringSupplier = () -> "";
         }
     }
@@ -42,11 +42,17 @@ public class Overriding<T> {
     }
 
     public void register(OverrideData<T> data) {
+        if (!isEnabled()) return;
         dataList.add(data);
         data.onRegistered();
     }
     public void unregister(OverrideData<T> data) {
+        if (!isEnabled()) return;
         dataList.remove(data);
         data.onUnregistered();
+    }
+    public void unregisterAll() {
+        if (!isEnabled()) return;
+        dataList.forEach(this::unregister);
     }
 }

@@ -69,7 +69,7 @@ public class ConfigManager {
     }
     public void writeConfig(Config config) {
         try {
-            FileUtils.writeStringToFile(config.getFile(), config.getJson().toJSONString(JSONWriter.Feature.PrettyFormat, JSONWriter.Feature.WriteEnumUsingToString, JSONWriter.Feature.FieldBased), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(config.getFile(), config.getJson().toString(JSONWriter.Feature.PrettyFormat), StandardCharsets.UTF_8);
         } catch (IOException e) {}
     }
     public Config getConfigByFile(File file) {
@@ -78,6 +78,21 @@ public class ConfigManager {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public boolean switchConfig(Config config) {
+        if (config != null) {
+            Config lastConfig = this.currentConfig;
+            try {
+                this.currentConfig = config;
+                config.load();
+                return true;
+            } catch (IllegalArgumentException ex) {
+                this.currentConfig = lastConfig;
+                lastConfig.load();
+            }
+        }
+        return false;
     }
 
     private void checkConfigPath() {

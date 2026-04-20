@@ -49,7 +49,7 @@ public class Config {
             jsonObject.put("modules", modules);
         }
 
-        this.json = jsonObject;
+        this.json = JSON.parseObject(jsonObject.toJSONString(JSONWriter.Feature.PrettyFormat, JSONWriter.Feature.WriteEnumUsingToString, JSONWriter.Feature.FieldBased));
     }
 
     public void load() {
@@ -90,6 +90,7 @@ public class Config {
             }
             // read override
             {
+                prop.clearOverridingData();
                 JSONObject overridingJson = dataJson.getJSONObject("overriding");
                 if (overridingJson == null) return false;
                 JSONArray overridingDataArray = overridingJson.getJSONArray("data");
@@ -105,6 +106,7 @@ public class Config {
                         Object value; {
                             value = data.get("value");
                             if (value == null) continue;
+                            value = prop.deserializeValue(value);
                         }
                         prop.addOverrideData(new OverrideData(supplier, value));
                     }

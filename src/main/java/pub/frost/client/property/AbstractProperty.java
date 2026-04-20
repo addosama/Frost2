@@ -42,6 +42,9 @@ public abstract class AbstractProperty<T> {
     public List<OverrideData<T>> getOverrideData() {
         return overriding.getDataList();
     }
+    public void clearOverridingData() {
+        overriding.unregisterAll();
+    }
 
     private transient final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
         data.getApplySupplier().setStateChangeConsumer(state -> {
