@@ -16,6 +16,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.NumberProperty;
+import pub.frost.utils.ImTextRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,13 @@ public class ModulePanel extends PanelComponent {
             ImGui.pushFont(FontManager.INSTANCE.puHui10);
             ImGui.dummy(10, 0);
             ImGui.sameLine();
-            ImGui.textColored(gui.getTheme().getSecondaryColor(), module.getName());
+            ImTextRenderer.drawText(
+                    ImGui.getWindowDrawList(),
+                    module.getName(),
+                    ImGui.getCursorScreenPosX(), ImGui.getCursorScreenPosY(),
+                    gui.getTheme().getSecondaryColor()
+            );
+            ImGui.textColored(0, module.getName());
             ImGui.popFont();
         }
         // props

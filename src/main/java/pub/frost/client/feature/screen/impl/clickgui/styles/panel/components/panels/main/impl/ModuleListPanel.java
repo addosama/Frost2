@@ -45,34 +45,40 @@ public class ModuleListPanel extends MainPanel {
     private float targetScroll = 0;
 
     @Override
-    public void render(boolean dummy, float tickDelta) {
-        ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 12);
-        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 12, 8);
-        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 8, 8);
-        ImGui.pushStyleColor(ImGuiCol.ChildBg, gui.getTheme().getMainPanelBgColor());
+    public void renderPanelContent(boolean dummy, float tickDelta) {
+        renderModules(dummy, tickDelta);
+        renderScrollBar(dummy, tickDelta, ImGui.getItemRectSize());
+    }
+
+    private void renderModules(boolean dummy, float tickDelta) {
+        ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 0);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 0);
+
         ImGui.beginChild(
-                this.toString(),
+                this + ".modules",
                 0f, 0f,
-                ImGuiChildFlags.AlwaysUseWindowPadding,
+                ImGuiChildFlags.AlwaysUseWindowPadding | ImGuiChildFlags.AutoResizeY,
                 ImGuiWindowFlags.NoScrollbar
         );
-        ImVec2 size = ImGui.getContentRegionAvail();
+        {
+            ImVec2 size = ImGui.getContentRegionAvail();
+            panelWidth = (size.x - 8) / 2;
 
-        panelWidth = (size.x - 8) / 2;
-        float leftHeight, rightHeight;
+            ImGui.beginGroup();
+            for (ModulePanel panel : leftPanels) panel.render(dummy, tickDelta);
+            ImGui.endGroup();
 
-        ImGui.beginGroup();
-        for (ModulePanel panel : leftPanels) panel.render(dummy, tickDelta);
-        ImGui.endGroup();
-        leftHeight = ImGui.getCursorPosY();
+            ImGui.sameLine();
 
-        ImGui.sameLine();
+            ImGui.beginGroup();
+            for (ModulePanel panel : rightPanels) panel.render(dummy, tickDelta);
+            ImGui.endGroup();
+        }
+        ImGui.endChild();
 
-        ImGui.beginGroup();
-        for (ModulePanel panel : rightPanels) panel.render(dummy, tickDelta);
-        ImGui.endGroup();
-        rightHeight = ImGui.getCursorPosY();
-
+        ImGui.popStyleVar(2);
+    }
+    private void renderScrollBar(boolean dummy, float tickDelta, ImVec2 contentSize) {
         float scrollMaxY = ImGui.getScrollMaxY();
         if (scrollMaxY > 0f) {
             if (ImGui.isWindowHovered(
@@ -99,7 +105,7 @@ public class ModuleListPanel extends MainPanel {
             float trackMaxY = windowPos.y + windowSize.y - 8f;
             float trackHeight = trackMaxY - trackMinY;
 
-            float visibleRatio = Math.min(1f, size.y / (size.y + scrollMaxY));
+            float visibleRatio = Math.min(1f, contentSize.y / (contentSize.y + scrollMaxY));
             float thumbHeight = Math.max(24f, trackHeight * visibleRatio);
             float thumbTravel = Math.max(0f, trackHeight - thumbHeight);
             float thumbOffset = thumbTravel * (scrollY / scrollMaxY);
@@ -144,20 +150,12 @@ public class ModuleListPanel extends MainPanel {
                 );
             }
         }
-//        float scrollSize = Math.max(leftHeight, rightHeight) - size.y;
-//        if (scrollSize < scrollMaxY) {
-//            scrollMaxY += scrollSize;
-//        }
         targetScroll = MathUtils.clamp(targetScroll, 0f, scrollMaxY);
         ImGui.setScrollY((float) MathUtils.lerp(
                 ImGui.getScrollY(), targetScroll,
                 tickDelta
         ));
         wheelInput = 0;
-
-        ImGui.endChild();
-        ImGui.popStyleColor();
-        ImGui.popStyleVar(3);
     }
 
     @Override

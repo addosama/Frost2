@@ -6,6 +6,7 @@ import lombok.Getter;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.utils.ImTextRenderer;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -27,7 +28,13 @@ public class CategoryButtonGroup extends PanelComponent {
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
         ImGui.dummy(9, 0);
         ImGui.sameLine();
-        ImGui.textColored(gui.getTheme().getSecondaryColor(), titleSupplier.get());
+        ImTextRenderer.drawText(
+                ImGui.getWindowDrawList(),
+                titleSupplier.get(),
+                ImGui.getCursorScreenPosX(), ImGui.getCursorScreenPosY(),
+                gui.getTheme().getSecondaryColor()
+        );
+        ImGui.textColored(0, titleSupplier.get());
         ImGui.popFont();
 
         for (CategoryButton button : buttonList) button.render(dummy, tickDelta);

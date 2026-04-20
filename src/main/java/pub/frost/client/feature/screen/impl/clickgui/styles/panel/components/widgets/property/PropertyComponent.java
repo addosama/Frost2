@@ -38,7 +38,13 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         float lineHeight = ImGui.getTextLineHeight();
         float y = ImGui.getCursorPosY();
         ImGui.setCursorPosY(y + (30 - lineHeight) / 2);
-        ImGui.textColored(gui.getTheme().getMainColor(), descriptor.getName());
+        ImTextRenderer.drawText(
+                ImGui.getWindowDrawList(),
+                descriptor.getName(),
+                ImGui.getCursorScreenPosX(), ImGui.getCursorScreenPosY(),
+                gui.getTheme().getMainColor()
+        );
+        ImGui.textColored(0, descriptor.getName());
         ImGui.setCursorPosY(y);
         ImGui.popFont();
     }
