@@ -14,12 +14,16 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.screen.components.InputListener;
 import pub.frost.client.feature.screen.components.RenderableComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category.CategoryPanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.MainPanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ConfigManagementPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButton;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButtonGroup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class PanelClickGui implements RenderableComponent, InputListener {
     @Getter
@@ -40,6 +44,12 @@ public class PanelClickGui implements RenderableComponent, InputListener {
             0xFFFFFFFF,
             0xFFE5E5E5,
             0xFFE5E5E5,
+            0xFFE5E5E5,
+            ImColor.rgba("#6699FFFF"),
+            ImColor.rgba("#6699FFFF"),
+            ImColor.rgba("#6699FFFF"),
+            0xFFFFFFFF,
+            0xFFE5E5E5,
             ImColor.rgba("#6699FFFF"),
             ImColor.rgba("#6699FFFF"),
             0xFFE5E5E5,
@@ -57,6 +67,18 @@ public class PanelClickGui implements RenderableComponent, InputListener {
                 this,
                 () -> FrostCore.getLocalizer().get("strings.features").toUpperCase(),
                 getModuleCategoryButtons(catePanel)
+        ));
+        catePanel.addGroup(new CategoryButtonGroup(
+                this,
+                () -> FrostCore.getLocalizer().get("strings.client").toUpperCase(),
+                Arrays.asList(
+                        createCategoryButton(
+                                catePanel,
+                                new ConfigManagementPanel(this),
+                                "\ue868",
+                                () -> FrostCore.getLocalizer().get("strings.config")
+                        )
+                )
         ));
 
         this.categoryPanel = catePanel;
@@ -82,11 +104,19 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         ImGui.popStyleVar(4);
     }
 
+    private CategoryButton createCategoryButton(CategoryPanel panel, MainPanel boundPanel, String icon, Supplier<String> nameSupplier) {
+        return new CategoryButton(
+                this,
+                panel,
+                boundPanel,
+                icon,
+                nameSupplier
+        );
+    }
     private List<CategoryButton> getModuleCategoryButtons(CategoryPanel panel) {
         List<CategoryButton> list = new ArrayList<>();
         for (ModuleCategory category : ModuleCategory.values()) {
-            list.add(new CategoryButton(
-                    this,
+            list.add(createCategoryButton(
                     panel,
                     new ModuleListPanel(this, category),
                     category.getIcon(),
@@ -124,6 +154,12 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         SwitchEnabledBgColor,
         SwitchIndicatorColor,
         ButtonBgColor,
+        ButtonHoveredBgColor,
+        ButtonActiveBgColor,
+        HighlightButtonBgColor,
+        HighlightButtonHoveredBgColor,
+        HighlightButtonActiveBgColor,
+        HighlightButtonTextColor,
         SliderBgColor,
         SliderHighlightBgColor,
         SliderIndicatorColor,
