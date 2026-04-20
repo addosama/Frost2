@@ -9,6 +9,7 @@ import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
+import pub.frost.utils.data.Rotation;
 import pub.frost.wrappers.shared.client.WMinecraft;
 import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 
@@ -66,6 +67,12 @@ public class RotationManager {
         this.silentPitch = silentPitch;
     }
 
+    public Rotation getCurrentSilentRotation() {
+        return new Rotation(silentYaw, silentPitch);
+    }
+    public Rotation getCurrentPlayerRotation() {
+        return new Rotation(playerYaw, playerPitch);
+    }
 
     @EventHandler(priority = 100)
     private void onTickMoveInput(EventUpdateMovementInput e) {

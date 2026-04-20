@@ -36,6 +36,20 @@ public class RotationUtils {
         return rotationYaw;
     }
 
+    private static float[] getRotation(Vector3d eyePos, Vector3d targetPoint) {
+        double yaw, pitch;
+        {
+            double xDiff = eyePos.x() - targetPoint.x();
+            double yDiff = eyePos.y() - targetPoint.y();
+            double zDiff = eyePos.z() - targetPoint.z();
+            double xyDist = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(zDiff, 2));
+
+            yaw = Math.toDegrees(Math.atan2(zDiff, xDiff)) + 90;
+            pitch = 90 - Math.toDegrees(Math.atan2(xyDist, yDiff));
+        }
+        return new float[]{(float) yaw, (float) pitch};
+    }
+
     public static Rotation getRotationAimingPoint(Vector3d eyePos, Vector3d targetPoint) {
         double yaw, pitch;
 
@@ -50,6 +64,13 @@ public class RotationUtils {
         }
 
         return new Rotation((float) yaw, (float) pitch);
+    }
+    public static Rotation getRotationDeltaAimingPoint(Vector3d eyePos, Rotation rotation, Vector3d targetPoint) {
+        float[] rotAimingPoint = getRotation(eyePos, targetPoint);
+        return new Rotation(
+                wrapYawTo180(rotAimingPoint[0]) - wrapYawTo180(rotation.getYaw()),
+                rotation.getPitch() - rotAimingPoint[1]
+        );
     }
 
     public static Rotation searchRotationHittingBoundingBox(Vector3d eyePos, BoundingBox target, Predicate<Rotation> predicate, int maxStep) {

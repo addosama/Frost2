@@ -1,11 +1,11 @@
 package pub.frost.client.feature.module.impl.combat;
 
 import lombok.RequiredArgsConstructor;
+import org.joml.Vector3d;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
-import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -20,17 +20,12 @@ import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.impl.number.PercentProperty;
 import pub.frost.utils.RotationUtils;
+import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
-import pub.frost.wrappers.shared.entity.WEntity;
-import pub.frost.wrappers.shared.entity.WEntityLivingBase;
-import pub.frost.wrappers.shared.entity.WEntityPlayer;
-import pub.frost.wrappers.shared.item.WItemStack;
-import pub.frost.wrappers.shared.item.WItemSword;
-import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,10 +35,11 @@ import java.util.List;
         key = "KillAura",
         category = ModuleCategory.COMBAT
 )
-// todo FOV
 public class KillAura extends AbstractModule {
     @Property("mode")
     public final ModeProperty<Mode> mode = new ModeProperty<>(Mode.SINGLE);
+    @Property("fov")
+    public final IntegerProperty fov = new IntegerProperty(1, 180, 1, 180);
 
     @Property("targets")
     public final MultipleBooleanProperty<EnumEntityTarget> targets = new MultipleBooleanProperty<>(EnumEntityTarget.class, EnumEntityTarget.PLAYERS);
@@ -76,10 +72,6 @@ public class KillAura extends AbstractModule {
     public final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
     @Property("LockView")
     public final BooleanProperty lockView = new BooleanProperty(false);
-
-    private final WWorld worldWrapper = World;
-    private final WEntity entityWrapper = Entity;
-    private final WEntityLivingBase livingEntityWrapper = EntityLivingBase;
 
     private Object target = null;
     private void resetTarget() {
@@ -133,16 +125,16 @@ public class KillAura extends AbstractModule {
 
     @EventHandler
     private void onProcessInteract(EventPreProcessInteract e) {
-        if (target != null) {
+        if (target != null && rotationProvided) {
             while (attackCount > 0) {
                 mcWrapper.clickLMB(mc);
                 attackCount --;
             }
             if (blockHit.get() && isHoldingSword()) {
-                if (notWhileHurt.get() && livingEntityWrapper.getHurtTime(mcWrapper.getPlayer(mc)) > 0) return;
-                double distance = entityWrapper.distanceTo(
+                if (notWhileHurt.get() && EntityLivingBase.getHurtTime(mcWrapper.getPlayer(mc)) > 0) return;
+                double distance = Entity.distanceTo(
                         target,
-                        entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))
+                        Entity.getPositionVector(mcWrapper.getPlayer(mc))
                 );
                 double range = blockRange.get();
                 if (range == 0) return;
@@ -158,23 +150,34 @@ public class KillAura extends AbstractModule {
 
     private List<Object> provideValidTargetList() {
         List<Object> list = new ArrayList<>();
-        for (Object entity : worldWrapper.getLoadedEntityList(mcWrapper.getWorld(mc))) {
-            if (entityWrapper.isDead(entity)) continue;
-            if (!livingEntityWrapper.isTarget(entity.getClass())) continue;
+        int fovValue = fov.get();
+        Vector3d eyePos = Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1);
+        for (Object entity : World.getLoadedEntityList(mcWrapper.getWorld(mc))) {
+            if (Entity.isDead(entity)) continue;
+            if (!EntityLivingBase.isTarget(entity.getClass())) continue;
             if (entity == mcWrapper.getPlayer(mc)) continue;
 
-            if (livingEntityWrapper.getHealth(entity) <= 0) continue;
-            if (livingEntityWrapper.distanceTo(entity, entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))) > targetRange.getValue()) continue;
+            if (EntityLivingBase.getHealth(entity) <= 0) continue;
+            if (EntityLivingBase.distanceTo(entity, Entity.getPositionVector(mcWrapper.getPlayer(mc))) > targetRange.getValue()) continue;
 
             if (teamCheck.get() && Teams.isTeammate(entity)) continue;
 
-            for (EnumEntityTarget target : targets.getEnabled()) {
-                if (target.isTarget(entity.getClass())) {
-                    if (targetInvisible.get() || !entityWrapper.isInvisible(entity)) {
-                        list.add(entity);
+            for (EnumEntityTarget targetEnum : targets.getEnabled()) {
+                if (!targetEnum.isTarget(entity.getClass())) continue;
+                if (!targetInvisible.get() && Entity.isInvisible(entity)) continue;
+                if (fovValue != 180) {
+                    Rotation rotDelta = RotationUtils.getRotationDeltaAimingPoint(
+                            eyePos,
+                            FrostCore.getInstance().getRotationManager().getCurrentPlayerRotation(),
+                            Entity.getBoundingBox(entity).getCenter()
+                    );
+                    if (Math.abs(rotDelta.getYaw()) > fovValue || Math.abs(rotDelta.getPitch()) > fovValue / 2f) {
                         break;
                     }
                 }
+
+                list.add(entity);
+                break;
             }
         }
         return list;
@@ -189,18 +192,33 @@ public class KillAura extends AbstractModule {
         list.sort(comparator);
     }
     private Rotation getRotation() {
+        BoundingBox box = Entity.getBoundingBox(target);
+        Vector3d eyePos = Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1);
+        // return current rotation if our eyePos inside targetBoundingBox
+        if (box.isVecInside(eyePos)) {
+            return FrostCore.getInstance().getRotationManager().getCurrentSilentRotation();
+        }
+        // can we hit target directly when aiming eyePos of target?
+        {
+            Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
+                    eyePos,
+                    Entity.getPositionEyes(target, 1)
+            );
+            if (rayTraceTarget(rotationAimingEyePos)) return rotationAimingEyePos;
+        }
+        // search rotation that available to hit target
         return RotationUtils.searchRotationHittingBoundingBox(
-                entityWrapper.getPositionEyes(mcWrapper.getPlayer(mc), 1),
-                entityWrapper.getBoundingBox(target),
+                eyePos,
+                box,
                 r ->
-                        entityWrapper.getPositionVector(mcWrapper.getPlayer(mc)).distance(entityWrapper.getPositionVector(target)) > attackRange.get()
+                        Entity.getPositionVector(mcWrapper.getPlayer(mc)).distance(Entity.getPositionVector(target)) > attackRange.get()
                                 || rayTraceTarget(r),
                 2
         );
     }
 
     private boolean rayTraceTarget(Rotation r) {
-        HitResult result = entityWrapper.rayTrace(
+        HitResult result = Entity.rayTrace(
                 mcWrapper.getPlayer(mc),
                 RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
                 attackRange.get(), 1
