@@ -1,20 +1,17 @@
 package pub.frost.client.feature.module.impl.visual;
 
 import imgui.*;
-import imgui.flag.ImGuiChildFlags;
-import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
-import imgui.flag.ImGuiWindowFlags;
 import pub.frost.base.event.api.annotations.EventHandler;
+import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
+import pub.frost.client.feature.overlay.impl.WatermarkOverlay;
 import pub.frost.utils.ImTextRenderer;
-
-import java.util.stream.Collectors;
 
 @Module(
         key = "hud",
@@ -22,12 +19,15 @@ import java.util.stream.Collectors;
         defaultState = true
 )
 public class HUD extends AbstractModule {
-    @EventHandler
+    private final WatermarkOverlay watermark = new WatermarkOverlay();
+
+    @EventHandler(priority = 50)
     public void onRender(EventRender2D e) {
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 2, 2);
+        watermark.render(false, isInChatHud(), e.getTickDelta());
+        ImGui.popStyleVar();
+
         ImGui.pushFont(FontManager.INSTANCE.puHui18);
-
-        drawWatermark();
-
         float yIndex = 44;
         for (
                 AbstractModule m :
@@ -42,36 +42,12 @@ public class HUD extends AbstractModule {
         ImGui.popFont();
     }
 
-    private void drawWatermark() {
-        float x = 8, y = 8;
-        int bgColor = ImColor.rgba(20, 25, 51, 204);
-        int textColor = ImColor.rgba("#E5EAFFFF");
-        ImDrawList draws = ImGui.getBackgroundDrawList();
-        {
-            ImGui.pushFont(FontManager.INSTANCE.icon14);
-            draws.addRectFilled(
-                    x, y, x + 30, y + 30,
-                    bgColor, 12f
-            );
-            draws.addText(
-                    x + 8, y + 7,
-                    textColor, "\ue601"
-            );
-            ImGui.popFont();
-            x += 30;
-        }
-        x += 5;
-        {
-            String text = "Frost";
-            float width = ImGui.calcTextSizeX(text) + 18f;
-            draws.addRectFilled(
-                    x, y, x + width, y + 30,
-                    bgColor, 12f
-            );
-            draws.addText(
-                    x + 9, y + 2,
-                    textColor, text
-            );
-        }
+    @EventHandler(priority = 50)
+    public void onPostRender(EventPostRender e) {
+        watermark.render(true, isInChatHud(), e.getTickDelta());
+    }
+
+    private boolean isInChatHud() {
+        return false;
     }
 }

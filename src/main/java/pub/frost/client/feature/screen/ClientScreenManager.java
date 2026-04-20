@@ -54,13 +54,13 @@ public class ClientScreenManager implements Wrappers {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = 100)
     private void onRender2D(EventRender2D event) {
         if (currentScreen != null) {
             currentScreen.render(true, event.getTickDelta());
         }
     }
-    @EventHandler
+    @EventHandler(priority = 100)
     private void onPostRender(EventPostRender event) {
         if (currentScreen != null) {
             currentScreen.render(false, event.getTickDelta());

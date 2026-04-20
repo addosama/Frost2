@@ -6,6 +6,7 @@ import imgui.extension.implot.ImPlot;
 import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
 import loutre.imgui.lwjgl2.ImGuiLWJGL2;
+import pub.frost.client.core.FrostCore;
 
 public class ImGuiContext {
     @Getter
@@ -22,7 +23,7 @@ public class ImGuiContext {
         ImPlot.createContext();
 
         final ImGuiIO io = ImGui.getIO();
-        io.setIniFilename(null);
+        io.setIniFilename(FrostCore.getClientDir().resolve("imgui.ini").toAbsolutePath().toString());
         io.getFonts().setFreeTypeRenderer(true);
 
         imGuiDisplay.init();
