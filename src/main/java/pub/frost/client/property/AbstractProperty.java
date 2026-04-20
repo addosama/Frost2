@@ -47,6 +47,7 @@ public abstract class AbstractProperty<T> {
     }
 
     private transient final Consumer<OverrideData<T>> overrideDataProcessor = data -> {
+        data.getApplySupplier().setDisplayNameSupplier(overriding.getDisplayStringSupplier());
         data.getApplySupplier().setStateChangeConsumer(state -> {
             T value = getValue();
             T overrideValue = data.getValue();

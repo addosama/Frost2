@@ -13,7 +13,7 @@ public class Overriding<T> {
     private transient boolean enabled;
     @Getter @JSONField(name = "data")
     private List<OverrideData<T>> dataList;
-    @Setter
+    @Setter @Getter
     private transient Supplier<String> displayStringSupplier;
 
     public void enableOverriding() {
@@ -24,9 +24,6 @@ public class Overriding<T> {
         }
     }
 
-    public String getDisplayString() {
-        return displayStringSupplier.get();
-    }
     public T getOverrideValue(T fallback) {
         if (!isEnabled()) return fallback;
         T value = fallback;

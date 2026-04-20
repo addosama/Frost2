@@ -6,6 +6,8 @@ import lombok.Setter;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.bindable.api.IBindable;
 
+import java.util.function.Supplier;
+
 public class OverrideOnKey extends OverrideSupplier implements IBindable {
     @Getter @Setter
     @JSONField(name = "keycode")
@@ -52,5 +54,10 @@ public class OverrideOnKey extends OverrideSupplier implements IBindable {
     @Override
     protected int getSupplierType() {
         return 0;
+    }
+
+    @Override
+    public boolean isActive() {
+        return isState();
     }
 }

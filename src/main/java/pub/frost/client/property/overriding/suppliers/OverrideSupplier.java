@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 public abstract class OverrideSupplier implements Supplier<Boolean> {
     @Setter
     private Consumer<Boolean> stateChangeConsumer;
+    @Setter @Getter
+    private Supplier<String> displayNameSupplier = null;
 
     public void onRegistered() {}
     public void onUnregistered() {}
