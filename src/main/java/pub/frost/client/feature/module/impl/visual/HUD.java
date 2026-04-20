@@ -30,12 +30,11 @@ public class HUD extends AbstractModule {
 
         float yIndex = 44;
         for (
-                AbstractModule m
-                : FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled).stream()
-                .sorted((m1, m2) -> {
+                AbstractModule m :
+                FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
                     float diff = ImTextRenderer.getTextWidth(m2.getName()) - ImTextRenderer.getTextWidth(m1.getName());
                     return diff < 0? -1 : diff == 0? 0 : 1;
-                }).collect(Collectors.toList())
+                })
         ) {
             ImTextRenderer.drawShadowedText(ImGui.getBackgroundDrawList(), m.getName(), 8, yIndex, -1);
             yIndex += ImTextRenderer.getTextHeight() + 2;

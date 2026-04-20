@@ -61,8 +61,11 @@ public class ModuleManager {
     }
 
     public List<AbstractModule> getModules(Predicate<AbstractModule> filter) {
+        return getModules(filter, Comparator.comparing(AbstractModule::getKey));
+    }
+    public List<AbstractModule> getModules(Predicate<AbstractModule> filter, Comparator<AbstractModule> comparator) {
         return moduleMap.values().stream().filter(filter)
-                .sorted(Comparator.comparing(AbstractModule::getName))
+                .sorted(comparator)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 }
