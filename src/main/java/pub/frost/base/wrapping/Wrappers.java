@@ -2,6 +2,7 @@ package pub.frost.base.wrapping;
 
 import pub.frost.wrappers.shared.block.*;
 import pub.frost.wrappers.shared.client.*;
+import pub.frost.wrappers.shared.client.screen.WGuiChat;
 import pub.frost.wrappers.shared.entity.*;
 import pub.frost.wrappers.shared.item.*;
 import pub.frost.wrappers.shared.network.WNetHandlerPlayClient;
@@ -16,6 +17,7 @@ public interface Wrappers {
     WBlock Block = new WBlock();
     WIBlockState IBlockState = new WIBlockState();
 
+    WGuiChat GuiChat = new WGuiChat();
     WMinecraft Minecraft = new WMinecraft();
 
     WEntity Entity = new WEntity();

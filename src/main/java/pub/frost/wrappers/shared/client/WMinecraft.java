@@ -39,4 +39,8 @@ public class WMinecraft extends Wrapper implements FakeInstanceWrapper<Minecraft
     public Object getNetHandler(Object mc) {
         return cast(mc).getNetHandler();
     }
+
+    public Object getCurrentScreen(Object mc) {
+        return cast(mc).currentScreen;
+    }
 }

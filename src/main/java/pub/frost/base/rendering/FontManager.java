@@ -45,6 +45,7 @@ public class FontManager {
 
     public final ImFont
             puHui18 = getPuhui(25),
+            puhui14 = getPuhui(19),
             puHui12 = getPuhui(16),
             puHui10 = getPuhui(14);
 

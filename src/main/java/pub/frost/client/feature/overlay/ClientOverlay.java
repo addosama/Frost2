@@ -19,12 +19,14 @@ public abstract class ClientOverlay {
     }
 
     protected void preRender(boolean dummy) {
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 2, 2);
         if (dummy) ImGui.pushStyleVar(ImGuiStyleVar.Alpha, 0.01f);
     }
     protected void update(boolean dummy, boolean input, float tickDelta) {}
     protected abstract void doRender(boolean dummy, boolean input, float tickDelta);
     protected void postRender(boolean dummy) {
         if (dummy) ImGui.popStyleVar();
+        ImGui.popStyleVar();
     }
 
     @Override
