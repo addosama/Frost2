@@ -45,7 +45,7 @@ public class RotationManager {
             nextSilentPitch = targetPitch;
         }
 
-        final float[] rotation = new float[2];
+        final float[] rotation = new float[] { nextSilentYaw, nextSilentPitch };
         final BiConsumer<Float, Float> rotationAcceptor = (yaw, pitch) -> {
             if (yaw != null) rotation[0] = yaw;
             if (pitch != null) rotation[1] = pitch;
@@ -55,7 +55,7 @@ public class RotationManager {
             if (processor.isEnabled(processors)) {
                 processor.process(
                         silentYaw, silentPitch,
-                        nextSilentYaw, nextSilentPitch,
+                        rotation[0], rotation[1],
                         rotationAcceptor
                 );
             }
