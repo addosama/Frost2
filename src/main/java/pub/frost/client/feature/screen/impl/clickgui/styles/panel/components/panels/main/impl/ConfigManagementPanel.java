@@ -96,7 +96,7 @@ public class ConfigManagementPanel extends MainPanel {
             ImGui.getWindowDrawList().addRect(
                     ImGui.getItemRectMin(), ImGui.getItemRectMax(),
                     gui.getTheme().getSplitColor(), 6f,
-                    1.8f
+                    1f
             );
 
             float centerX = ImGui.getItemRectMinX() + 15f, centerY = ImGui.getItemRectMinY() + 15f;
@@ -118,7 +118,7 @@ public class ConfigManagementPanel extends MainPanel {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 12, 8);
         ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 8);
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
-        ImGui.pushStyleVar(ImGuiStyleVar.ChildBorderSize, 1.95f);
+        ImGui.pushStyleVar(ImGuiStyleVar.ChildBorderSize, 1f);
 
         ImGui.pushStyleColor(ImGuiCol.ChildBg, gui.getTheme().getModulePanelBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border,  gui.getTheme().getSplitColor());

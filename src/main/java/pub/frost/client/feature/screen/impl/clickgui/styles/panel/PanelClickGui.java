@@ -90,7 +90,7 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 16);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 4, 4);
-        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.9f);
+        ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 1f);
         ImGui.pushStyleColor(ImGuiCol.WindowBg, theme.getWindowBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, theme.getWindowBorderColor());
 

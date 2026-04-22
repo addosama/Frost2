@@ -6,6 +6,7 @@ import imgui.extension.implot.ImPlot;
 import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
 import loutre.imgui.lwjgl2.ImGuiLWJGL2;
+import org.lwjgl.opengl.GL11;
 import pub.frost.client.core.FrostCore;
 
 public class ImGuiContext {
@@ -44,7 +45,11 @@ public class ImGuiContext {
     }
     public void endFrame() {
         ImGui.render();
+
+        boolean alphaState = GL11.glGetBoolean(GL11.GL_ALPHA_TEST);
+        if (alphaState) GL11.glDisable(GL11.GL_ALPHA_TEST);
         imGuiImplGl2.renderDrawData(ImGui.getDrawData());
+        if (alphaState) GL11.glEnable(GL11.GL_ALPHA_TEST);
     }
 
     public static void draw(Runnable runnable) {

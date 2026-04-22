@@ -49,7 +49,7 @@ public class GroupedPropElement extends PropertyComponent<Object> {
         float width = ImGui.getWindowWidth();
 
         ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 12);
-        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1.5f);
+        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 12, 4);
         ImGui.pushStyleColor(ImGuiCol.PopupBg, gui.getTheme().getModulePanelBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());

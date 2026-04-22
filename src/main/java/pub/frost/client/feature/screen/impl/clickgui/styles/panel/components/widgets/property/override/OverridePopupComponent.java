@@ -36,7 +36,7 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
     @Override
     public void render(boolean dummy, float tickDelta) {
         ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 12);
-        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1.5f);
+        ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
         ImGui.pushStyleColor(ImGuiCol.PopupBg, gui.getTheme().getModulePanelBgColor());
         ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());

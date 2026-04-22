@@ -90,7 +90,7 @@ public class ModulePanel extends PanelComponent {
         {
             ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 12, 4);
             ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 8);
-            ImGui.pushStyleVar(ImGuiStyleVar.ChildBorderSize, 1.9f);
+            ImGui.pushStyleVar(ImGuiStyleVar.ChildBorderSize, 1f);
             ImGui.pushStyleColor(ImGuiCol.ChildBg, gui.getTheme().getModulePanelBgColor());
             ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getSplitColor());
             ImGui.beginChild(

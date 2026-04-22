@@ -70,7 +70,7 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
             PT newValue = value;
             ImGui.setNextWindowPos(itemMin.x, itemMax.y + 4);
             ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 12);
-            ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1.5f);
+            ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
             ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 4, 4);
             ImGui.pushStyleColor(ImGuiCol.PopupBg, gui.getTheme().getModulePanelBgColor());
             ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());
