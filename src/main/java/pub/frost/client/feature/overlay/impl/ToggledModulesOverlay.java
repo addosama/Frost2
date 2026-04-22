@@ -23,7 +23,14 @@ public class ToggledModulesOverlay extends ClientOverlay {
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
     @Property("SidebarGradient")
-    public final BooleanProperty sidebarGradient = new BooleanProperty(true);
+    public final BooleanProperty sidebarGradient = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, sidebar::get);
+    @Property("SidebarShadow")
+    public final BooleanProperty sidebarShadow = new BooleanProperty(false).setVisibilitySupplier(BooleanProperty.class, sidebar::get);
+
+    @Property("Background")
+    public final BooleanProperty background = new BooleanProperty(true);
+    @Property("TextShadow")
+    public final BooleanProperty textShadow = new BooleanProperty(false);
 
     @Override
     protected void doRender(boolean dummy, boolean input, float tickDelta) {
@@ -53,16 +60,16 @@ public class ToggledModulesOverlay extends ClientOverlay {
 
     private void renderModule(boolean dummy, boolean input, float tickDelta, AbstractModule module) {
         ImGui.beginGroup();
-        ImVec2 dummyPosMin;
+        ImVec2 sidebarPosMin;
         ImVec2 textPos;
         ImVec2 panelPosMin, panelPosMax;
         String moduleName = module.getName();
 
         if (sidebar.get()) {
             ImGui.dummy(2, 0);
-            dummyPosMin = ImGui.getItemRectMin();
+            sidebarPosMin = ImGui.getItemRectMin();
             ImGui.sameLine();
-        } else dummyPosMin = ImGui.getCursorScreenPos();
+        } else sidebarPosMin = ImGui.getCursorScreenPos();
 
         {
             ImGui.beginGroup();
@@ -80,32 +87,54 @@ public class ToggledModulesOverlay extends ClientOverlay {
         }
 
         if (!dummy) {
+            final int
+                    bgColor = ImColor.rgba("#141933CC"),
+                    sidebarColor = ImColor.rgba("#E5EAFFFF"),
+                    textColor = ImColor.rgba("#E5EAFFFF")
+            ;
             ImDrawList draws = ImGui.getWindowDrawList();
+            if (background.get()) {
+                draws.addRectFilled(
+                        panelPosMin, panelPosMax,
+                        bgColor
+                );
+            }
             if (sidebar.get()) {
                 float panelHeight = panelPosMax.y - panelPosMin.y;
-                draws.addRectFilled(
-                        dummyPosMin, dummyPosMin.plus(2, panelHeight),
-                        ImColor.rgba("#E5EAFFFF")
-                );
+                // draw sidebar
+                {
+                    ImVec2 sideBarPosMax = sidebarPosMin.plus(2, panelHeight);
+                    if (sidebarShadow.get()) {
+                        draws.addRectFilled(
+                                sidebarPosMin.plus(1, 0),
+                                sideBarPosMax.plus(1, 0),
+                                (sidebarColor & 16579836) >> 2 | sidebarColor & -16777216
+                        );
+                    }
+                    draws.addRectFilled(
+                            sidebarPosMin, sideBarPosMax,
+                            sidebarColor
+                    );
+                }
                 if (sidebarGradient.get()) {
+                    ImVec2 gradientPosMin = sidebarPosMin.plus(2, 0), gradientPosMax = gradientPosMin.plus(8, panelHeight);
+                    final int gradientStartColor = ImGui.getColorU32i(sidebarColor, 0.2f),
+                            gradientEndColor = ImGui.getColorU32i(sidebarColor, 0);
                     draws.addRectFilledMultiColor(
-                            dummyPosMin, dummyPosMin.plus(8, panelHeight),
-                            ImColor.rgba("#E5EAFFB2"),
-                            ImColor.rgba("#E5EAFF00"),
-                            ImColor.rgba("#E5EAFF00"),
-                            ImColor.rgba("#E5EAFFB2")
+                            gradientPosMin, gradientPosMax,
+                            gradientStartColor,
+                            gradientEndColor,
+                            gradientEndColor,
+                            gradientStartColor
                     );
                 }
             }
-            draws.addRectFilled(
-                    panelPosMin, panelPosMax,
-                    ImColor.rgba("#141933CC")
-            );
             ImTextRenderer.drawText(
                     draws,
                     moduleName,
                     textPos.x, textPos.y,
-                    ImColor.rgba("#E5EAFFFF")
+                    textColor,
+                    textShadow.get()
             );
         }
 
