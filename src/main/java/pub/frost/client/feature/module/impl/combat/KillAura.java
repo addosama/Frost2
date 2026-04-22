@@ -210,9 +210,7 @@ public class KillAura extends AbstractModule {
         return RotationUtils.searchRotationHittingBoundingBox(
                 eyePos,
                 box,
-                r ->
-                        Entity.getPositionVector(mcWrapper.getPlayer(mc)).distance(Entity.getPositionVector(target)) > attackRange.get()
-                                || rayTraceTarget(r),
+                this::rayTraceTarget,
                 2
         );
     }

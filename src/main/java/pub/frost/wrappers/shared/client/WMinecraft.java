@@ -43,4 +43,7 @@ public class WMinecraft extends Wrapper implements FakeInstanceWrapper<Minecraft
     public Object getCurrentScreen(Object mc) {
         return cast(mc).currentScreen;
     }
+    public Object getGameSettings(Object mc) {
+        return cast(mc).gameSettings;
+    }
 }

@@ -40,6 +40,30 @@ public class RotationManager {
             nextSilentYaw = targetYaw;
             nextSilentPitch = targetPitch;
         }
+
+        // GCD Fix
+        if (true) {
+            final float currentYaw = silentYaw, currentPitch = silentPitch;
+            final float mouseSensitivity = (float) (Wrappers.GameSettings.getMouseSensitivity(mcWrapper.getGameSettings(mc)) * (1 + Math.random() / 10000000) * 0.6F + 0.2F);
+            final double multiplier = mouseSensitivity * mouseSensitivity * mouseSensitivity * 8.0F * 0.15D;
+            final float yaw = currentYaw + (float) (Math.round((nextSilentYaw - currentYaw) / multiplier) * multiplier);
+            final float pitch = currentPitch + (float) (Math.round((nextSilentPitch - currentPitch) / multiplier) * multiplier);
+
+            nextSilentYaw = yaw;
+            nextSilentPitch = pitch;
+        }
+
+        // Pitch Fix
+        if (true) {
+            final float currentYaw = silentYaw, currentPitch = silentPitch;
+            final float deltaYaw = RotationUtils.wrapYawTo180(Math.abs(nextSilentYaw - currentYaw));
+            final float deltaPitch = Math.abs(nextSilentPitch - currentPitch);
+
+            if (deltaPitch < deltaYaw / 100) {
+                nextSilentPitch += (float) (Math.random());
+            }
+        }
+
         nextSilentPitch = MathUtils.clamp(nextSilentPitch, -90f, 90f);
 
         setSilentYaw(nextSilentYaw);
