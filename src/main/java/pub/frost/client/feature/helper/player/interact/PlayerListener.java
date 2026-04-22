@@ -1,4 +1,4 @@
-package pub.frost.client.feature.helper;
+package pub.frost.client.feature.helper.player.interact;
 
 import lombok.Getter;
 import pub.frost.base.event.api.annotations.EventHandler;

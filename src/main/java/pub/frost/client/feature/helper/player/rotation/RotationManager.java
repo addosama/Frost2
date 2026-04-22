@@ -1,4 +1,4 @@
-package pub.frost.client.feature.helper;
+package pub.frost.client.feature.helper.player.rotation;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,11 +7,14 @@ import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.helper.player.rotation.processors.EnumRotationProcessor;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.wrappers.shared.client.WMinecraft;
 import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
+
+import java.util.function.BiConsumer;
 
 @Getter
 public class RotationManager {
@@ -27,6 +30,7 @@ public class RotationManager {
     private float targetYaw, targetPitch;
     private float speed;
     private boolean lockView;
+    private int processors;
 
     private void processSilentRotation() {
         float nextSilentYaw = getSilentYaw(), nextSilentPitch = getSilentPitch();
@@ -41,30 +45,24 @@ public class RotationManager {
             nextSilentPitch = targetPitch;
         }
 
-        // GCD Fix
-        if (true) {
-            final float currentYaw = silentYaw, currentPitch = silentPitch;
-            final float mouseSensitivity = (float) (Wrappers.GameSettings.getMouseSensitivity(mcWrapper.getGameSettings(mc)) * (1 + Math.random() / 10000000) * 0.6F + 0.2F);
-            final double multiplier = mouseSensitivity * mouseSensitivity * mouseSensitivity * 8.0F * 0.15D;
-            final float yaw = currentYaw + (float) (Math.round((nextSilentYaw - currentYaw) / multiplier) * multiplier);
-            final float pitch = currentPitch + (float) (Math.round((nextSilentPitch - currentPitch) / multiplier) * multiplier);
+        final float[] rotation = new float[2];
+        final BiConsumer<Float, Float> rotationAcceptor = (yaw, pitch) -> {
+            if (yaw != null) rotation[0] = yaw;
+            if (pitch != null) rotation[1] = pitch;
+        };
 
-            nextSilentYaw = yaw;
-            nextSilentPitch = pitch;
-        }
-
-        // Pitch Fix
-        if (true) {
-            final float currentYaw = silentYaw, currentPitch = silentPitch;
-            final float deltaYaw = RotationUtils.wrapYawTo180(Math.abs(nextSilentYaw - currentYaw));
-            final float deltaPitch = Math.abs(nextSilentPitch - currentPitch);
-
-            if (deltaPitch < deltaYaw / 100) {
-                nextSilentPitch += (float) (Math.random());
+        for (EnumRotationProcessor processor : EnumRotationProcessor.values()) {
+            if (processor.isEnabled(processors)) {
+                processor.process(
+                        silentYaw, silentPitch,
+                        nextSilentYaw, nextSilentPitch,
+                        rotationAcceptor
+                );
             }
         }
 
-        nextSilentPitch = MathUtils.clamp(nextSilentPitch, -90f, 90f);
+        nextSilentYaw = rotation[0];
+        nextSilentPitch = MathUtils.clamp(rotation[1], -90f, 90f);
 
         setSilentYaw(nextSilentYaw);
         setSilentPitch(nextSilentPitch);
@@ -72,12 +70,13 @@ public class RotationManager {
 
     private boolean postRotationEvent() {
         Object player = mcWrapper.getPlayer(mc);
-        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false);
+        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false, 0);
         FrostCore.getInstance().getEventBus().call(event);
         targetYaw = event.getYaw();
         targetPitch = event.getPitch();
         speed = MathUtils.clamp(event.getSpeed(), 0f, 180f);
         lockView = event.isLockView();
+        processors = event.getProcessors();
 
         return targetYaw != silentYaw || targetPitch != silentPitch;
     }
