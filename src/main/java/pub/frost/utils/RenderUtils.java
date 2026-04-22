@@ -11,6 +11,8 @@ import org.joml.Vector4f;
 import pub.frost.utils.data.BoundingBox;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RenderUtils {
     public static ImVec2 worldToScreen(
@@ -139,5 +141,34 @@ public class RenderUtils {
                     windowWidth, windowHeight
             );
         }
+    }
+
+    public static void drawBoundingBox2DOutline(
+            ImDrawList list, BoundingBox boundingBox, float thickness, int color,
+            Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
+            int windowWidth, int windowHeight
+    ) {
+        Vector3d[] vertices = boundingBox.getVertices();
+        List<ImVec2> pts =  new ArrayList<>();
+        Matrix4f modelView = getModelViewMatrix(), projection = getProjectionMatrix();
+        for (Vector3d vec3 : vertices) {
+            ImVec2 vec2 = worldToScreen(
+                    vec3,
+                    modelViewMatrix, projectionMatrix,
+                    windowWidth, windowHeight
+            );
+            if (vec2 != null) pts.add(vec2);
+        }
+
+        pts = VecUtils.convexHull(pts);
+        if (!pts.isEmpty()) pts.add(pts.get(0));
+        ImVec2[] array = pts.toArray(new ImVec2[0]);
+
+        list.addPolyline(
+                array, array.length,
+                color,
+                0,
+                thickness
+        );
     }
 }
