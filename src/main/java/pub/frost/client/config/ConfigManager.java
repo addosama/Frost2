@@ -44,26 +44,11 @@ public class ConfigManager {
         refreshConfigList();
         currentConfig = getConfigByFile(defaultFile);
         currentConfig.load();
-        //        File lastDataFile = FrostCore.getClientDir().resolve("client.json").toFile();
-//        boolean useDefault = false;
-//        if (lastDataFile.exists()) {
-//            try {
-//                byte[] fileByteArray = FileUtils.readFileToByteArray(lastDataFile);
-//                if (!JSON.isValid(fileByteArray)) useDefault = true;
-//                else {
-//                    JSONObject dataJson = JSON.parseObject(fileByteArray);
-//                    String lastConfig = dataJson.getString("lastConfig");
-//                    if (lastConfig == null) useDefault = true;
-//                }
-//            } catch (IOException e) {
-//                useDefault = true;
-//            }
-//        } else useDefault = true;
     }
 
     public void saveAndWriteAllConfig() {
+        currentConfig.save();
         for (Config config : configMap.values()) {
-            config.save();
             writeConfig(config);
         }
     }
