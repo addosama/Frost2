@@ -16,11 +16,14 @@ public class PlayerListener implements Wrappers {
     private boolean startDiggingTick;
     private boolean stopDiggingTick;
 
-    @EventHandler(priority = 0)
+    private int ticksSinceHeldItemChange;
+
+    @EventHandler(priority = -1)
     public void preGameTick(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
             startDiggingTick = false;
             stopDiggingTick = false;
+            ticksSinceHeldItemChange++;
         }
     }
 
@@ -40,6 +43,9 @@ public class PlayerListener implements Wrappers {
                     stopDiggingTick = true;
                     digging = false;
                 }
+            }
+            else if (HeldItemChangePacket.isTarget(packet)) {
+                ticksSinceHeldItemChange = 0;
             }
         }
     }

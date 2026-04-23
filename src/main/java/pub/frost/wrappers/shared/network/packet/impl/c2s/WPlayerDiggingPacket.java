@@ -1,6 +1,10 @@
 package pub.frost.wrappers.shared.network.packet.impl.c2s;
 
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import pub.frost.utils.data.BlockPosition;
+import pub.frost.utils.data.EnumDirection;
 import pub.frost.wrappers.shared.network.packet.WPacket;
 
 public class WPlayerDiggingPacket extends WPacket {
@@ -18,6 +22,14 @@ public class WPlayerDiggingPacket extends WPacket {
             case RELEASE_USE_ITEM: return RELEASE_USE_ITEM;
         }
         return -1;
+    }
+
+    public Object build(int action, BlockPosition blockPos, EnumDirection enumFacing) {
+        return new C07PacketPlayerDigging(
+                C07PacketPlayerDigging.Action.values()[action],
+                new BlockPos(blockPos.x, blockPos.y, blockPos.z),
+                EnumFacing.VALUES[enumFacing.getIndex()]
+        );
     }
 
     public static final int

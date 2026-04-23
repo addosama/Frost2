@@ -46,4 +46,8 @@ public class WMinecraft extends Wrapper implements FakeInstanceWrapper<Minecraft
     public Object getGameSettings(Object mc) {
         return cast(mc).gameSettings;
     }
+
+    public int getFPS() {
+        return Minecraft.getDebugFPS();
+    }
 }

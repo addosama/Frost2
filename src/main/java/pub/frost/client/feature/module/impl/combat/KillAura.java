@@ -6,6 +6,7 @@ import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
+import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -20,12 +21,15 @@ import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.impl.number.PercentProperty;
 import pub.frost.utils.RotationUtils;
+import pub.frost.utils.data.BlockPosition;
 import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.data.EnumDirection;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
+import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,21 +56,32 @@ public class KillAura extends AbstractModule {
 
     @Property("targetRange")
     public final FloatProperty targetRange = new FloatProperty(0, 8, 0.01f, 3.2f);
+
+    // @Property("AttackMode")
+    public final ModeProperty<InteractMode> attackMode = new ModeProperty<>(InteractMode.LEGIT);
     @Property("attackRange")
-    public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f);
+    public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> attackMode.is(InteractMode.PACKET));
 
     @Property("cps")
     public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
     @Property("BlockHit")
     public final BooleanProperty blockHit = new BooleanProperty(true);
+    // @Property("BlockMode")
+    public final ModeProperty<InteractMode> blockMode = new ModeProperty<>(InteractMode.LEGIT).setVisibilitySupplier(blockHit::get).setValueChangeListener(
+            (o, n) -> {
+                if (o == InteractMode.PACKET) packetUnblock();
+            }
+    );
+    // @Property("SwitchItemUnblock")
+    public final BooleanProperty switchItemUnblock = new BooleanProperty(false).setVisibilitySupplier(() -> blockHit.get() && blockMode.is(InteractMode.PACKET));
     @Property("NotWhileHurt")
-    public final BooleanProperty notWhileHurt = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, blockHit::get);
+    public final BooleanProperty notWhileHurt = new BooleanProperty(true).setVisibilitySupplier(blockHit::get);
     @Property("BlockRange")
-    public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(FloatProperty.class, blockHit::get);
+    public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(blockHit::get);
     @Property("BlockChance")
-    public final PercentProperty blockChance = new PercentProperty(0, 1, 1).setVisibilitySupplier(PercentProperty.class, blockHit::get);
+    public final PercentProperty blockChance = new PercentProperty(0, 1, 1).setVisibilitySupplier(blockHit::get);
     @Property("DistanceBasedChance")
-    public final BooleanProperty distanceBasedChance = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, blockHit::get);
+    public final BooleanProperty distanceBasedChance = new BooleanProperty(true).setVisibilitySupplier(blockHit::get);
 
     @Property("RotationSpeed")
     public final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
@@ -125,10 +140,10 @@ public class KillAura extends AbstractModule {
 
     @EventHandler
     private void onProcessInteract(EventPreProcessInteract e) {
+        stopBlocking();
         if (target != null && rotationProvided) {
             while (attackCount > 0) {
-                mcWrapper.clickLMB(mc);
-                attackCount --;
+                attack();
             }
             if (blockHit.get() && isHoldingSword()) {
                 if (notWhileHurt.get() && EntityLivingBase.getHurtTime(mcWrapper.getPlayer(mc)) > 0) return;
@@ -143,9 +158,10 @@ public class KillAura extends AbstractModule {
                 if (distanceBasedChance.get()) {
                     chance *= (float) ((range - distance) / range);
                 }
-                if (Math.random() <= chance) mcWrapper.clickRMB(mc);
+                if (Math.random() <= chance) makeBlocking();
             }
-        } else attackCount = 0;
+        }
+        attackCount = 0;
     }
 
     private List<Object> provideValidTargetList() {
@@ -219,7 +235,7 @@ public class KillAura extends AbstractModule {
         HitResult result = Entity.rayTrace(
                 mcWrapper.getPlayer(mc),
                 RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
-                attackRange.get(), 1
+                getAttackRange(), 1
         );
         if (result == null) return false;
         if (result.getType() == HitResult.EnumHitType.ENTITY) {
@@ -229,12 +245,81 @@ public class KillAura extends AbstractModule {
         return false;
     }
 
+    private void attack() {
+        mcWrapper.clickLMB(mc);
+        attackCount --;
+    }
+    private void makeBlocking() {
+        if (blockMode.is(InteractMode.LEGIT)) mcWrapper.clickRMB(mc);
+        else packetBlock();
+    }
+    private void stopBlocking() {
+        if (blockMode.is(InteractMode.PACKET)) packetUnblock();
+    }
+
+    private boolean packetBlockState;
+    private int switchedFromSlot;
+    private void packetBlock() {
+        if (!packetBlockState) {
+            EntityPlayer.setItemInUse(getPlayer(), getPlayerHeldItem(), 72000);
+            FrostCore.getInstance().getPacketManager().sendPacket(
+                    Wrappers.PlayerBlockPlacementPacket.build(
+                            getPlayerHeldItem()
+                    ), true
+            );
+            packetBlockState = true;
+        }
+    }
+    private void packetUnblock() {
+        if (packetBlockState) {
+            if (switchItemUnblock.get()) {
+                if (FrostCore.getInstance().getPlayerListener().getTicksSinceHeldItemChange() >= 1) {
+                    if (switchedFromSlot != -1) {
+                        InventoryPlayer.setCurrentItem(
+                                EntityPlayer.getInventory(getPlayer()),
+                                switchedFromSlot
+                        );
+                        switchedFromSlot = -1;
+                    } else {
+                        switchedFromSlot = getCurrentItemIndex();
+                        int switchSlot = switchedFromSlot + 1;
+                        InventoryPlayer.setCurrentItem(
+                                EntityPlayer.getInventory(getPlayer()),
+                                switchSlot > 8? 0 : switchSlot
+                        );
+                    }
+                }
+            } else {
+                FrostCore.getInstance().getPacketManager().sendPacket(PlayerDiggingPacket.build(
+                        WPlayerDiggingPacket.RELEASE_USE_ITEM,
+                        new BlockPosition(-1, -1, -1),
+                        EnumDirection.DOWN
+                ), true);
+            }
+            EntityPlayer.stopUsingItem(getPlayer());
+            packetBlockState = false;
+        }
+    }
+
     private boolean isHoldingSword() {
-        Object itemHeld = EntityLivingBase.getHeldItem(mcWrapper.getPlayer(mc));
+        Object itemHeld = getPlayerHeldItem();
         if (itemHeld == null) return false;
         return ItemSword.isTarget(
                 ItemStack.getItem(itemHeld).getClass()
         );
+    }
+    private double getAttackRange() {
+        if (attackMode.is(InteractMode.LEGIT)) return 3;
+        return attackRange.get();
+    }
+    private Object getPlayer() {
+        return mcWrapper.getPlayer(mc);
+    }
+    private Object getPlayerHeldItem() {
+        return EntityLivingBase.getHeldItem(getPlayer());
+    }
+    private int getCurrentItemIndex() {
+        return InventoryPlayer.getCurrentItem(EntityPlayer.getInventory(getPlayer()));
     }
 
     @Override
@@ -242,6 +327,13 @@ public class KillAura extends AbstractModule {
         resetTarget();
         attackCount = 0;
         lastAttack = 0;
+        packetBlockState = false;
+        switchedFromSlot = -1;
+    }
+
+    @Override
+    protected void onDisabled() {
+        if (packetBlockState) stopBlocking();
     }
 
     @RequiredArgsConstructor
@@ -257,6 +349,22 @@ public class KillAura extends AbstractModule {
         @Override
         public String getName() {
             return FrostCore.getLocalizer().get("strings.killaura.modes." + key + ".name");
+        }
+    }
+
+    @RequiredArgsConstructor
+    public enum InteractMode implements Named {
+        LEGIT("legit"),
+        PACKET("packet"),;
+
+        final String key;
+        @Override
+        public String toString() {
+            return key;
+        }
+        @Override
+        public String getName() {
+            return FrostCore.getLocalizer().get("strings.killaura.interactmodes." + key + ".name");
         }
     }
 }

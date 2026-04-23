@@ -18,6 +18,8 @@ public interface Wrappers {
     WBlock Block = new WBlock();
     WIBlockState IBlockState = new WIBlockState();
 
+    WITileEntityProvider ITileEntityProvider = new WITileEntityProvider();
+
     WGuiChat GuiChat = new WGuiChat();
     WGameSettings GameSettings = new WGameSettings();
     WMinecraft Minecraft = new WMinecraft();
@@ -37,6 +39,8 @@ public interface Wrappers {
     WItemSword ItemSword = new WItemSword();
     WItemTool ItemTool = new WItemTool();
 
+    WHeldItemChangePacket HeldItemChangePacket = new WHeldItemChangePacket();
+    WPlayerBlockPlacementPacket PlayerBlockPlacementPacket = new WPlayerBlockPlacementPacket();
     WPlayerDiggingPacket PlayerDiggingPacket = new WPlayerDiggingPacket();
     WPlayerPacket PlayerPacket = new WPlayerPacket();
     WPlayerPacket.WPlayerLookPacket PlayerLookPacket = new WPlayerPacket.WPlayerLookPacket();
