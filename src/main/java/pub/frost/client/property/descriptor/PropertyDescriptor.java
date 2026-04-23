@@ -27,12 +27,12 @@ public class PropertyDescriptor implements Named, Described {
     @JSONField(name = "key")
     private final String key;
     @JSONField(name = "data")
-    private final AbstractProperty<?> property;
+    private final AbstractProperty property;
     @JSONField(name = "childList")
     private final List<PropertyDescriptor> childProperties;
     private transient final Supplier<Boolean> visibilitySupplier;
 
-    public PropertyDescriptor(String key, AbstractProperty<?> property) {
+    public PropertyDescriptor(String key, AbstractProperty property) {
         this(key, property, null, property::isVisible);
     }
     public PropertyDescriptor(String key, List<PropertyDescriptor> childProperties, Supplier<Boolean> visibilitySupplier) {
@@ -124,7 +124,7 @@ public class PropertyDescriptor implements Named, Described {
                 }
 
                 if (propField) {
-                    AbstractProperty<?> currentProp = (AbstractProperty<?>) field.get(object);
+                    AbstractProperty currentProp = (AbstractProperty) field.get(object);
                     if (anno.allowOverriding()) currentProp.enableOverriding();
 
                     String propKey = anno.value(); {

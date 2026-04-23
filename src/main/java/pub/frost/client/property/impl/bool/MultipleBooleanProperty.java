@@ -7,7 +7,7 @@ import pub.frost.utils.EnumUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MultipleBooleanProperty<T extends Enum<T>> extends AbstractProperty<Map<T, Boolean>> {
+public class MultipleBooleanProperty<T extends Enum<T>> extends AbstractProperty<Map<T, Boolean>, MultipleBooleanProperty<T>> {
     private final transient Class<T> typeClass;
     @JSONField(name = "value")
     private final Map<T, Boolean> values;

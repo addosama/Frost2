@@ -6,7 +6,7 @@ import pub.frost.client.property.AbstractProperty;
 import pub.frost.utils.EnumUtils;
 
 @AllArgsConstructor
-public class ModeProperty<T extends Enum<T>> extends AbstractProperty<T> {
+public class ModeProperty<T extends Enum<T>> extends AbstractProperty<T, ModeProperty<T>> {
     @JSONField(name = "value")
     private T value;
 

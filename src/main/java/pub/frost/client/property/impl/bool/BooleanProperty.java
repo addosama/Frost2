@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import pub.frost.client.property.AbstractProperty;
 
 @AllArgsConstructor
-public class BooleanProperty extends AbstractProperty<Boolean> {
+public class BooleanProperty extends AbstractProperty<Boolean, BooleanProperty> {
     @JSONField(name = "value")
     private boolean value;
 

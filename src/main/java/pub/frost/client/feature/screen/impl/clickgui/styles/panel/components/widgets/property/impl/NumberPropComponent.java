@@ -8,16 +8,17 @@ import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
+import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.number.NumberProperty;
 
 import java.math.BigDecimal;
 
 public class NumberPropComponent<T extends Number & Comparable<T>> extends PropertyComponent<T> {
-    private final NumberProperty<T> prop;
+    private final NumberProperty<T, ? extends NumberProperty> prop;
     private boolean dragging = false;
 
-    public NumberPropComponent(PanelClickGui gui, PropertyDescriptor descriptor, NumberProperty<T> prop) {
+    public NumberPropComponent(PanelClickGui gui, PropertyDescriptor descriptor, NumberProperty<T, ? extends NumberProperty> prop) {
         super(gui, descriptor);
         this.prop = prop;
     }

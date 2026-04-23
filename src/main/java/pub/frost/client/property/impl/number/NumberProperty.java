@@ -7,7 +7,7 @@ import pub.frost.utils.MathUtils;
 
 import java.math.BigDecimal;
 
-public abstract class NumberProperty<T extends Number & Comparable<T>> extends AbstractProperty<T> {
+public abstract class NumberProperty<T extends Number & Comparable<T>, SELF extends NumberProperty<T, SELF>> extends AbstractProperty<T, SELF> {
     @Getter
     private transient final BigDecimal minValue, maxValue, increaseStep;
     @JSONField(name = "value")

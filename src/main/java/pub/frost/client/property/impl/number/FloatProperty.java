@@ -2,7 +2,7 @@ package pub.frost.client.property.impl.number;
 
 import java.math.BigDecimal;
 
-public class FloatProperty extends NumberProperty<Float> {
+public class FloatProperty extends NumberProperty<Float, FloatProperty> {
     public FloatProperty(float min, float max, float increaseStep, float current) {
         super(min, max, increaseStep, current);
     }

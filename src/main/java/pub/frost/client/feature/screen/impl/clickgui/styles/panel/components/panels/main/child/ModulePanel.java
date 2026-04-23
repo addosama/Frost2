@@ -38,7 +38,7 @@ public class ModulePanel extends PanelComponent {
     }
 
     private PanelComponent getPropertyComponent(PropertyDescriptor descriptor) {
-        AbstractProperty<?> abstractProp = descriptor.getProperty();
+        AbstractProperty abstractProp = descriptor.getProperty();
         PropertyComponent<?> component = null;
         if (abstractProp != null) {
             if (abstractProp instanceof BooleanProperty) {

@@ -22,12 +22,12 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
         String getID();
     }
 
-    private final AbstractProperty<T> prop;
+    private final AbstractProperty<T, ? extends AbstractProperty> prop;
     private final ElementRenderer<T> elementRenderer;
 
     private InputConsumer inputConsumer = null;
 
-    public OverridePopupComponent(PanelClickGui gui, AbstractProperty<T> prop, ElementRenderer<T> elementRenderer) {
+    public OverridePopupComponent(PanelClickGui gui, AbstractProperty<T, ? extends AbstractProperty> prop, ElementRenderer<T> elementRenderer) {
         super(gui);
         this.prop = prop;
         this.elementRenderer = elementRenderer;

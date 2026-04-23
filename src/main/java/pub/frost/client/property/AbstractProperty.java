@@ -16,16 +16,27 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class AbstractProperty<T> {
-    @Accessors(chain = true) @Setter
+@SuppressWarnings("unchecked")
+public abstract class AbstractProperty<T, SELF extends AbstractProperty<T, SELF>> {
+    @Accessors(chain = true)
     private transient BiConsumer<T, T> valueChangeListener = (o, n) -> {};
-    @Accessors(chain = true) @Setter
+    @Accessors(chain = true)
     private transient Supplier<Boolean> visibilitySupplier = () -> true;
     public final boolean isVisible() {
         return visibilitySupplier.get();
     }
-    public final <P extends AbstractProperty<T>> P setVisibilitySupplier(Class<P> returnType, Supplier<Boolean> visibilitySupplier) {
-        return returnType.cast(setVisibilitySupplier(visibilitySupplier));
+    public final SELF setValueChangeListener(BiConsumer<T, T> valueChangeListener) {
+        this.valueChangeListener = valueChangeListener;
+        return (SELF) this;
+    }
+    public final SELF setVisibilitySupplier(Supplier<Boolean> visibilitySupplier) {
+        this.visibilitySupplier = visibilitySupplier;
+        return (SELF) this;
+    }
+
+    @Deprecated
+    public final SELF setVisibilitySupplier(Class<SELF> returnType, Supplier<Boolean> visibilitySupplier) {
+        return setVisibilitySupplier(visibilitySupplier);
     }
 
     @JSONField(name = "overriding")
