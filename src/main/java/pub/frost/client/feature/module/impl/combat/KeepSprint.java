@@ -13,6 +13,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.mode.ModeProperty;
 
@@ -84,6 +85,7 @@ public class KeepSprint extends AbstractModule {
         lagging = false;
     }
 
+    @TranslationKey("strings.keepsprint.modes.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         VANILLA("vanilla"),
@@ -92,10 +94,6 @@ public class KeepSprint extends AbstractModule {
         @Override
         public String toString() {
             return key;
-        }
-        @Override
-        public String getName() {
-            return FrostCore.getLocalizer().getName("strings.keepsprint.modes." + this);
         }
     }
 }

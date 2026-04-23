@@ -2,12 +2,13 @@ package pub.frost.client.feature.helper.player.rotation.processors;
 
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.wrapping.Wrappers;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.utils.RotationUtils;
 
 import java.util.function.BiConsumer;
 
+@TranslationKey("strings.enum.rotation.processors.~")
 @RequiredArgsConstructor
 public enum EnumRotationProcessor implements Named, RotationProcessor, Wrappers {
     GCD_FIX(
@@ -48,11 +49,6 @@ public enum EnumRotationProcessor implements Named, RotationProcessor, Wrappers 
     @Override
     public void process(float currentYaw, float currentPitch, float nextYaw, float nextPitch, BiConsumer<Float, Float> rotationAcceptor) {
         impl.process(currentYaw, currentPitch, nextYaw, nextPitch, rotationAcceptor);
-    }
-
-    @Override
-    public String getName() {
-        return FrostCore.getLocalizer().getName("strings.enum.rotation.processors." + this.toString());
     }
 
     @Override

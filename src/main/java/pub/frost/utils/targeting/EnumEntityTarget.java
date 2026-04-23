@@ -1,12 +1,13 @@
 package pub.frost.utils.targeting;
 
 import pub.frost.base.wrapping.Wrappers;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.wrappers.shared.entity.*;
 
 import java.util.function.Predicate;
 
+@TranslationKey("strings.~")
 public enum EnumEntityTarget implements Named {
     PLAYERS(Wrappers.EntityPlayer, "players"),
     ANIMALS(Wrappers.EntityAnimal, "animals"),
@@ -35,10 +36,5 @@ public enum EnumEntityTarget implements Named {
     @Override
     public String toString() {
         return key;
-    }
-
-    @Override
-    public String getName() {
-        return FrostCore.getLocalizer().get("strings." + this + ".name");
     }
 }

@@ -5,6 +5,7 @@ import org.joml.Vector3d;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.utils.RotationUtils;
 import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
@@ -12,6 +13,7 @@ import java.util.Comparator;
 import java.util.function.Function;
 
 @Getter
+@TranslationKey("strings.~")
 public enum EnumEntityTargetPriority implements Named {
     ANGLE("angle", player -> {
         WEntityLivingBase wrapper = Wrappers.EntityLivingBase;
@@ -37,9 +39,5 @@ public enum EnumEntityTargetPriority implements Named {
     @Override
     public String toString() {
         return key;
-    }
-    @Override
-    public String getName() {
-        return FrostCore.getLocalizer().get("strings." + this + ".name");
     }
 }

@@ -13,6 +13,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
@@ -336,6 +337,7 @@ public class KillAura extends AbstractModule {
         if (packetBlockState) stopBlocking();
     }
 
+    @TranslationKey("strings.killaura.modes.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         SINGLE("single"),
@@ -346,12 +348,9 @@ public class KillAura extends AbstractModule {
         public String toString() {
             return key;
         }
-        @Override
-        public String getName() {
-            return FrostCore.getLocalizer().get("strings.killaura.modes." + key + ".name");
-        }
     }
 
+    @TranslationKey("strings.killaura.interactmodes.~")
     @RequiredArgsConstructor
     public enum InteractMode implements Named {
         LEGIT("legit"),
@@ -361,10 +360,6 @@ public class KillAura extends AbstractModule {
         @Override
         public String toString() {
             return key;
-        }
-        @Override
-        public String getName() {
-            return FrostCore.getLocalizer().get("strings.killaura.interactmodes." + key + ".name");
         }
     }
 }

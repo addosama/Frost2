@@ -1,8 +1,9 @@
 package pub.frost.utils.interacting;
 
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 
+@TranslationKey("strings.~")
 public enum EnumInteractType implements Named {
     LEGIT("legit"),
     PACKET("packet"),;
@@ -15,10 +16,5 @@ public enum EnumInteractType implements Named {
     @Override
     public String toString() {
         return key;
-    }
-
-    @Override
-    public String getName() {
-        return FrostCore.getLocalizer().get("strings." + key);
     }
 }

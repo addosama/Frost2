@@ -7,11 +7,11 @@ import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventPrePlayerMotionUpdate;
 import pub.frost.base.event.impl.events.EventUpdateMovementInput;
 import pub.frost.base.event.impl.types.TickType;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
@@ -64,6 +64,7 @@ public class SprintReset extends AbstractModule {
         ticksSinceReset = 0;
     }
 
+    @TranslationKey("strings.")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         NO_STOP("nostop"),
@@ -73,11 +74,6 @@ public class SprintReset extends AbstractModule {
         @Override
         public String toString() {
             return "sprintreset.modes." + key;
-        }
-
-        @Override
-        public String getName() {
-            return FrostCore.getLocalizer().getName("strings." + this.toString());
         }
     }
 }
