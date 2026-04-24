@@ -25,6 +25,10 @@ public class MathUtils {
         }
     }
 
+    public static boolean same(double a, double b) {
+        return Math.abs(a - b) < 1e-9;
+    }
+
     public static double lerp(double a, double b, float delta) {
         return a + (b - a) * delta;
     }

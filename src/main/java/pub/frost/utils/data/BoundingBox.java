@@ -4,6 +4,8 @@ import org.joml.Vector3d;
 import pub.frost.utils.VecUtils;
 import pub.frost.utils.data.raytrace.HitResult;
 
+import static pub.frost.utils.MathUtils.same;
+
 public class BoundingBox {
     public final double minX, minY, minZ, maxX, maxY, maxZ;
 
@@ -40,23 +42,6 @@ public class BoundingBox {
                 new Vector3d(minX, maxY, maxZ),
                 new Vector3d(maxX, maxY, maxZ),
                 new Vector3d(maxX, maxY, minZ)
-        };
-    }
-
-    public Vector3d[] getTopVertices() {
-        return new Vector3d[] {
-                new Vector3d(minX, maxY, minZ),
-                new Vector3d(minX, maxY, maxZ),
-                new Vector3d(maxX, maxY, maxZ),
-                new Vector3d(maxX, maxY, minZ)
-        };
-    }
-    public Vector3d[] getBottomVertices() {
-        return new Vector3d[] {
-                new Vector3d(minX, minY, minZ),
-                new Vector3d(minX, minY, maxZ),
-                new Vector3d(maxX, minY, maxZ),
-                new Vector3d(maxX, minY, minZ)
         };
     }
 
@@ -196,6 +181,109 @@ public class BoundingBox {
         }
     }
 
+    public boolean isVecInside(Vector3d vec) {
+        if (!(vec.x <= this.minX) && !(vec.x >= this.maxX)) {
+            if (!(vec.y <= this.minY) && !(vec.y >= this.maxY)) {
+                return !(vec.z <= this.minZ) && !(vec.z >= this.maxZ);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    public boolean intersectsWith(BoundingBox other) {
+        if (!(other.maxX <= this.minX) && !(other.minX >= this.maxX)) {
+            if (!(other.maxY <= this.minY) && !(other.minY >= this.maxY)) {
+                return !(other.maxZ <= this.minZ) && !(other.minZ >= this.maxZ);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public Vector3d negDistanceEscape(BoundingBox box) {
+        if (!intersectsWith(box)) return new Vector3d();
+
+        return new Vector3d(
+                box.minX - this.maxX,
+                box.minY - this.maxY,
+                box.minZ - this.maxZ
+        );
+    }
+    public Vector3d posDistanceEscape(BoundingBox box) {
+        if (!intersectsWith(box)) return new Vector3d();
+
+        return new Vector3d(
+                box.maxX - this.minX,
+                box.maxY - this.minY,
+                box.maxZ - this.minZ
+        );
+    }
+    public Vector3d minDistanceEscape(BoundingBox box) {
+        if (!intersectsWith(box)) return new Vector3d();
+
+        Vector3d pos = posDistanceEscape(box);
+        Vector3d neg = negDistanceEscape(box);
+
+        return new Vector3d(
+                Math.abs(neg.x) < Math.abs(pos.x) ? neg.x : pos.x,
+                Math.abs(neg.y) < Math.abs(pos.y) ? neg.y : pos.y,
+                Math.abs(neg.z) < Math.abs(pos.z) ? neg.z : pos.z
+        );
+    }
+
+    public BoundingBox tryMerge(BoundingBox other) {
+        // merge on X
+        if (same(this.minY, other.minY) && same(this.maxY, other.maxY) &&
+                same(this.minZ, other.minZ) && same(this.maxZ, other.maxZ) &&
+                this.maxX >= other.minX && other.maxX >= this.minX) {
+
+            return new BoundingBox(
+                    Math.min(this.minX, other.minX),
+                    this.minY,
+                    this.minZ,
+                    Math.max(this.maxX, other.maxX),
+                    this.maxY,
+                    this.maxZ
+            );
+        }
+
+        // merge on Y
+        if (same(this.minX, other.minX) && same(this.maxX, other.maxX) &&
+                same(this.minZ, other.minZ) && same(this.maxZ, other.maxZ) &&
+                this.maxY >= other.minY && other.maxY >= this.minY) {
+
+            return new BoundingBox(
+                    this.minX,
+                    Math.min(this.minY, other.minY),
+                    this.minZ,
+                    this.maxX,
+                    Math.max(this.maxY, other.maxY),
+                    this.maxZ
+            );
+        }
+
+        // merge on Z
+        if (same(this.minX, other.minX) && same(this.maxX, other.maxX) &&
+                same(this.minY, other.minY) && same(this.maxY, other.maxY) &&
+                this.maxZ >= other.minZ && other.maxZ >= this.minZ) {
+
+            return new BoundingBox(
+                    this.minX,
+                    this.minY,
+                    Math.min(this.minZ, other.minZ),
+                    this.maxX,
+                    this.maxY,
+                    Math.max(this.maxZ, other.maxZ)
+            );
+        }
+
+        return null;
+    }
+
     private boolean isVecInYZ(Vector3d vec) {
         if (vec == null) {
             return false;
@@ -215,18 +303,6 @@ public class BoundingBox {
             return false;
         } else {
             return vec.x >= this.minX && vec.x <= this.maxX && vec.y >= this.minY && vec.y <= this.maxY;
-        }
-    }
-
-    public boolean isVecInside(Vector3d vec) {
-        if (!(vec.x <= this.minX) && !(vec.x >= this.maxX)) {
-            if (!(vec.y <= this.minY) && !(vec.y >= this.maxY)) {
-                return !(vec.z <= this.minZ) && !(vec.z >= this.maxZ);
-            } else {
-                return false;
-            }
-        } else {
-            return false;
         }
     }
 }

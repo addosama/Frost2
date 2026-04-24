@@ -35,6 +35,29 @@ public class WWorld extends Wrapper implements FakeInstanceWrapper<World> {
         ));
     }
 
+    public List<BoundingBox> getBlockCollisionBoxes(Object instance, BoundingBox box) {
+        return cast(instance).getCollisionBoxes(
+                new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
+        ).stream().collect(
+                ArrayList::new,
+                (list, aabb) -> list.add(new BoundingBox(
+                        aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ
+                )),
+                ArrayList::addAll
+        );
+    }
+    public List<BoundingBox> getCollidingBoundingBoxes(Object instance, Object entityToCollide, BoundingBox box) {
+        return cast(instance).getCollidingBoundingBoxes(
+                (Entity) entityToCollide, new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
+        ).stream().collect(
+                ArrayList::new,
+                (list, aabb) -> list.add(new BoundingBox(
+                        aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ
+                )),
+                ArrayList::addAll
+        );
+    }
+
     public HitResult raytraceBlocks(Object instance, Vector3d start, Vector3d end, boolean stopOnLiquid, boolean ignoreBlockWithoutBoundingBox, boolean returnLast) {
         MovingObjectPosition result = cast(instance).rayTraceBlocks(
                 new Vec3(start.x, start.y, start.z),

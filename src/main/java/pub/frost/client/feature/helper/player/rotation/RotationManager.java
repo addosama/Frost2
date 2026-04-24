@@ -129,7 +129,7 @@ public class RotationManager {
         e.setMoveStrafe(strafe);
     }
 
-    @EventHandler(priority = -100)
+    @EventHandler(priority = 100)
     private void onPreGameTick(EventGameTick e) {
         if (e.getType() == TickType.PRE) {
             Object player = mcWrapper.getPlayer(mc);

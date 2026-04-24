@@ -18,7 +18,8 @@ public class BlockPosition extends Vector3i {
     }
 
     public BlockPosition offset(EnumDirection direction, int value) {
-        return new BlockPosition(this.add(direction.getNormalizedVec().mul(value)));
+        this.add(direction.getNormalizedVec().mul(value));
+        return this;
     }
     public BlockPosition offset(EnumDirection direction) {
         return this.offset(direction, 1);
