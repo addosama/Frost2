@@ -40,9 +40,9 @@ public class AbstractModule implements Wrappers, Named, Described {
         enabledProperty.setValueChangeListener((old, current) -> {
             if (current) {
                 onEnabled();
-                FrostCore.getInstance().getEventBus().register(AbstractModule.this);
+                registerToEventBus();
             } else {
-                FrostCore.getInstance().getEventBus().unregister(AbstractModule.this);
+                unregisterFromEventBus();
                 onDisabled();
             }
         });
@@ -60,6 +60,13 @@ public class AbstractModule implements Wrappers, Named, Described {
 
     protected void onEnabled() {}
     protected void onDisabled() {}
+
+    protected void registerToEventBus() {
+        FrostCore.getInstance().getEventBus().register(AbstractModule.this);
+    }
+    protected void unregisterFromEventBus() {
+        FrostCore.getInstance().getEventBus().unregister(AbstractModule.this);
+    }
 
     public final void initialize() {
         registerProperties();

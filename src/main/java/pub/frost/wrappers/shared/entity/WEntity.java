@@ -314,4 +314,18 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wra
     public boolean canRiderInteract(Object instance) {
         return cast(instance, Entity.class).canRiderInteract();
     }
+
+    public double getMotionX(Object instance) {
+        return cast(instance).motionX;
+    }
+    public double getMotionY(Object instance) {
+        return cast(instance).motionY;
+    }
+    public double getMotionZ(Object instance) {
+        return cast(instance).motionZ;
+    }
+
+    public void setVelocity(Object instance, double x, double y, double z) {
+        cast(instance).setVelocity(x, y, z);
+    }
 }

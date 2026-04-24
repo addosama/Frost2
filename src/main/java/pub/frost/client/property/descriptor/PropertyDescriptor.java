@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
@@ -47,6 +48,7 @@ public class PropertyDescriptor implements Named, Described {
         return visibilitySupplier.get();
     }
 
+    // todo factory
     public static List<PropertyDescriptor> buildDescriptorListForObject(
             Object object,
             String keyPrefix, Function<String, String> keyProcessor
@@ -57,6 +59,9 @@ public class PropertyDescriptor implements Named, Described {
         final Stack<String> keyPrefixStack = new Stack<>();
         final Stack<Supplier<Boolean>> visibilityStack = new Stack<>();
         final Stack<List<PropertyDescriptor>> listStack = new Stack<>();
+
+        final Stack<String> groupTranslationKeyStack = new Stack<>();
+        final Stack<String> propTranslationKeyStack = new Stack<>();
 
         keyPrefixStack.push("");
         listStack.push(new ArrayList<>());
@@ -102,20 +107,33 @@ public class PropertyDescriptor implements Named, Described {
                         {
                             groupKey = key;
                             // set visibility
-                            Type type = field.getGenericType();
-                            if (type instanceof ParameterizedType) {
-                                ParameterizedType parameterizedType = (ParameterizedType) type;
-                                if (parameterizedType.getRawType() == Supplier.class) {
-                                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                                    if (actualTypeArguments.length == 1 && actualTypeArguments[0] == Boolean.class) {
-                                        groupVisibility = (Supplier<Boolean>) field.get(object);
+                            {
+                                Object instance = field.get(object);
+                                Type[] typeArray = instance.getClass().getGenericInterfaces();
+                                for (Type type : typeArray) {
+                                    if (type instanceof ParameterizedType) {
+                                        ParameterizedType parameterizedType = (ParameterizedType) type;
+                                        if (parameterizedType.getRawType() == Supplier.class) {
+                                            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                                            if (actualTypeArguments.length == 1 && actualTypeArguments[0] == Boolean.class) {
+                                                groupVisibility = (Supplier<Boolean>) instance;
+                                            }
+                                        }
                                     }
                                 }
+                                if (groupVisibility == null) groupVisibility = () -> true;
                             }
-                            if (groupVisibility == null) groupVisibility = () -> true;
                         }
                     }
                 }
+
+                {
+                    TranslationKey translationKey = field.getAnnotation(TranslationKey.class);
+                    String key = translationKey == null? "~" : translationKey.value();
+                    if (startGroup) groupTranslationKeyStack.push(key);
+                    if (propField) propTranslationKeyStack.push(key);
+                }
+
 
                 if (startGroup) {
                     keyPrefixStack.push(groupKey.toLowerCase());
@@ -138,7 +156,14 @@ public class PropertyDescriptor implements Named, Described {
                         }
                         propKey = keyProcessor.apply(keyPrefix + propKey).toLowerCase();
                     }
-                    listStack.peek().add(new PropertyDescriptor(propKey, currentProp));
+
+                    listStack.peek().add(new PropertyDescriptor(propKey, currentProp) {
+                        transient final String translationKey = propTranslationKeyStack.pop();
+                        @Override
+                        public String getTranslationKey() {
+                            return format(translationKey);
+                        }
+                    });
                 }
                 else if (insertObject) {
                     Object insertedObj = field.get(object);
@@ -167,7 +192,13 @@ public class PropertyDescriptor implements Named, Described {
                             keyProcessor.apply(keyPrefix + keyPrefixStack.pop()),
                             poppedList,
                             visibilityStack.pop()
-                    ));
+                    ) {
+                        final transient String translationKey = groupTranslationKeyStack.pop();
+                        @Override
+                        public String getTranslationKey() {
+                            return format(translationKey);
+                        }
+                    });
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);

@@ -64,7 +64,7 @@ public class SprintReset extends AbstractModule {
         ticksSinceReset = 0;
     }
 
-    @TranslationKey("strings.")
+    @TranslationKey("strings.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         NO_STOP("nostop"),
