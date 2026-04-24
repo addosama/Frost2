@@ -211,16 +211,22 @@ public class KillAura extends AbstractModule {
     private Rotation getRotation() {
         BoundingBox box = Entity.getBoundingBox(target);
         Vector3d eyePos = Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1);
+        Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
+                eyePos,
+                Entity.getPositionEyes(target, 1)
+        );
+
+        // aim eyePos when the target out of attackRange
+        if (eyePos.distance(Entity.getPositionVector(target)) > attackRange.get()) {
+            return rotationAimingEyePos;
+        }
+
         // return current rotation if our eyePos inside targetBoundingBox
         if (box.isVecInside(eyePos)) {
             return FrostCore.getInstance().getRotationManager().getCurrentSilentRotation();
         }
         // can we hit target directly when aiming eyePos of target?
         {
-            Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
-                    eyePos,
-                    Entity.getPositionEyes(target, 1)
-            );
             if (rayTraceTarget(rotationAimingEyePos)) return rotationAimingEyePos;
         }
         // search rotation that available to hit target
