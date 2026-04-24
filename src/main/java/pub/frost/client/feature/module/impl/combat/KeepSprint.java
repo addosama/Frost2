@@ -85,7 +85,7 @@ public class KeepSprint extends AbstractModule {
         lagging = false;
     }
 
-    @TranslationKey("strings.keepsprint.modes.~")
+    @TranslationKey("strings.enum.keepsprint.modes.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         VANILLA("vanilla"),

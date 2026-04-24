@@ -64,7 +64,7 @@ public class SprintReset extends AbstractModule {
         ticksSinceReset = 0;
     }
 
-    @TranslationKey("strings.~")
+    @TranslationKey("strings.enum.sprintreset.modes.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         NO_STOP("nostop"),
@@ -73,7 +73,7 @@ public class SprintReset extends AbstractModule {
 
         @Override
         public String toString() {
-            return "sprintreset.modes." + key;
+            return key;
         }
     }
 }

@@ -1,5 +1,6 @@
 package pub.frost.utils.targeting;
 
+import lombok.RequiredArgsConstructor;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
@@ -7,7 +8,8 @@ import pub.frost.wrappers.shared.entity.*;
 
 import java.util.function.Predicate;
 
-@TranslationKey("strings.~")
+@RequiredArgsConstructor
+@TranslationKey("strings.enum.targeting.targets.entities.~")
 public enum EnumEntityTarget implements Named {
     PLAYERS(Wrappers.EntityPlayer, "players"),
     ANIMALS(Wrappers.EntityAnimal, "animals"),
@@ -18,13 +20,9 @@ public enum EnumEntityTarget implements Named {
             "other"
     ),;
 
-    final String key;
     final Predicate<Class<?>> predicate;
+    final String key;
 
-    EnumEntityTarget(Predicate<Class<?>> predicate, String key) {
-        this.key = "targets.entities." + key;
-        this.predicate = predicate;
-    }
     <T extends WEntity> EnumEntityTarget(T entityWrapper, String key) {
         this((Predicate<Class<?>>) entityWrapper::isTarget, key);
     }

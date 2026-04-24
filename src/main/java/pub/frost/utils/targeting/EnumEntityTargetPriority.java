@@ -1,6 +1,7 @@
 package pub.frost.utils.targeting;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.joml.Vector3d;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
@@ -13,7 +14,8 @@ import java.util.Comparator;
 import java.util.function.Function;
 
 @Getter
-@TranslationKey("strings.~")
+@TranslationKey("strings.enum.targeting.priority.entity.~")
+@RequiredArgsConstructor
 public enum EnumEntityTargetPriority implements Named {
     ANGLE("angle", player -> {
         WEntityLivingBase wrapper = Wrappers.EntityLivingBase;
@@ -30,11 +32,6 @@ public enum EnumEntityTargetPriority implements Named {
 
     final String key;
     final Function<Object, Comparator<Object>> comparator;
-
-    EnumEntityTargetPriority(String key, Function<Object, Comparator<Object>> comparator) {
-        this.key = "targeting.priority.entity." + key;
-        this.comparator = comparator;
-    }
 
     @Override
     public String toString() {

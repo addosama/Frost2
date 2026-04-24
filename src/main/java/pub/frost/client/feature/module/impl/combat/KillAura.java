@@ -28,6 +28,7 @@ import pub.frost.utils.data.EnumDirection;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
+import pub.frost.utils.interacting.EnumInteractType;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
@@ -59,22 +60,22 @@ public class KillAura extends AbstractModule {
     public final FloatProperty targetRange = new FloatProperty(0, 8, 0.01f, 3.2f);
 
     // @Property("AttackMode")
-    public final ModeProperty<InteractMode> attackMode = new ModeProperty<>(InteractMode.LEGIT);
+    public final ModeProperty<EnumInteractType> attackMode = new ModeProperty<>(EnumInteractType.LEGIT);
     @Property("attackRange")
-    public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> attackMode.is(InteractMode.PACKET));
+    public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> attackMode.is(EnumInteractType.PACKET));
 
     @Property("cps")
     public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
     @Property("BlockHit")
     public final BooleanProperty blockHit = new BooleanProperty(true);
     // @Property("BlockMode")
-    public final ModeProperty<InteractMode> blockMode = new ModeProperty<>(InteractMode.LEGIT).setVisibilitySupplier(blockHit::get).setValueChangeListener(
+    public final ModeProperty<EnumInteractType> blockMode = new ModeProperty<>(EnumInteractType.LEGIT).setVisibilitySupplier(blockHit::get).setValueChangeListener(
             (o, n) -> {
-                if (o == InteractMode.PACKET) packetUnblock();
+                if (o == EnumInteractType.PACKET) packetUnblock();
             }
     );
     // @Property("SwitchItemUnblock")
-    public final BooleanProperty switchItemUnblock = new BooleanProperty(false).setVisibilitySupplier(() -> blockHit.get() && blockMode.is(InteractMode.PACKET));
+    public final BooleanProperty switchItemUnblock = new BooleanProperty(false).setVisibilitySupplier(() -> blockHit.get() && blockMode.is(EnumInteractType.PACKET));
     @Property("NotWhileHurt")
     public final BooleanProperty notWhileHurt = new BooleanProperty(true).setVisibilitySupplier(blockHit::get);
     @Property("BlockRange")
@@ -257,11 +258,11 @@ public class KillAura extends AbstractModule {
         attackCount --;
     }
     private void makeBlocking() {
-        if (blockMode.is(InteractMode.LEGIT)) mcWrapper.clickRMB(mc);
+        if (blockMode.is(EnumInteractType.LEGIT)) mcWrapper.clickRMB(mc);
         else packetBlock();
     }
     private void stopBlocking() {
-        if (blockMode.is(InteractMode.PACKET)) packetUnblock();
+        if (blockMode.is(EnumInteractType.PACKET)) packetUnblock();
     }
 
     private boolean packetBlockState;
@@ -316,7 +317,7 @@ public class KillAura extends AbstractModule {
         );
     }
     private double getAttackRange() {
-        if (attackMode.is(InteractMode.LEGIT)) return 3;
+        if (attackMode.is(EnumInteractType.LEGIT)) return 3;
         return attackRange.get();
     }
     private Object getPlayer() {
@@ -343,26 +344,13 @@ public class KillAura extends AbstractModule {
         if (packetBlockState) stopBlocking();
     }
 
-    @TranslationKey("strings.killaura.modes.~")
+    @TranslationKey("strings.enum.killaura.modes.~")
     @RequiredArgsConstructor
     public enum Mode implements Named {
         SINGLE("single"),
         SWITCH("switch"),;
         final String key;
 
-        @Override
-        public String toString() {
-            return key;
-        }
-    }
-
-    @TranslationKey("strings.killaura.interactmodes.~")
-    @RequiredArgsConstructor
-    public enum InteractMode implements Named {
-        LEGIT("legit"),
-        PACKET("packet"),;
-
-        final String key;
         @Override
         public String toString() {
             return key;
