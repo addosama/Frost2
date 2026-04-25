@@ -157,8 +157,8 @@ public class PropertyDescriptor implements Named, Described {
                         propKey = keyProcessor.apply(keyPrefix + propKey).toLowerCase();
                     }
 
+                    final String translationKey = propTranslationKeyStack.pop();
                     listStack.peek().add(new PropertyDescriptor(propKey, currentProp) {
-                        transient final String translationKey = propTranslationKeyStack.pop();
                         @Override
                         public String getTranslationKey() {
                             return format(translationKey);
@@ -188,12 +188,12 @@ public class PropertyDescriptor implements Named, Described {
 
                 if (endGroup) {
                     List<PropertyDescriptor> poppedList = listStack.pop();
+                    final String translationKey = groupTranslationKeyStack.pop();
                     listStack.peek().add(new PropertyDescriptor(
                             keyProcessor.apply(keyPrefix + keyPrefixStack.pop()),
                             poppedList,
                             visibilityStack.pop()
                     ) {
-                        final transient String translationKey = groupTranslationKeyStack.pop();
                         @Override
                         public String getTranslationKey() {
                             return format(translationKey);

@@ -150,7 +150,7 @@ tasks.shadowJar {
     // If you want to include other dependencies and shadow them, you can relocate them in here
     fun relocate(name: String) = relocate(name, "pub.frost.deps.$name")
 
-    relocate("org.apache")
+    relocate("org.apache.commons.lang3")
     relocate("org.joml")
     relocate("loutre.imgui")
 }
