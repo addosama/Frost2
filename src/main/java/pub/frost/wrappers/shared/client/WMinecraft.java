@@ -17,9 +17,11 @@ public class WMinecraft extends Wrapper implements FakeInstanceWrapper<Minecraft
     public Object getPlayer(Object mc) {
         return cast(mc).thePlayer;
     }
-
     public Object getWorld(Object mc) {
         return cast(mc).theWorld;
+    }
+    public Object getPlayerController(Object mc) {
+        return cast(mc).playerController;
     }
 
     public void grabMouse(Object mc) {

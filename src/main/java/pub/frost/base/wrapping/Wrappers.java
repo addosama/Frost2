@@ -2,6 +2,7 @@ package pub.frost.base.wrapping;
 
 import pub.frost.wrappers.shared.block.*;
 import pub.frost.wrappers.shared.client.*;
+import pub.frost.wrappers.shared.client.controller.WPlayerControllerMP;
 import pub.frost.wrappers.shared.client.screen.WGuiChat;
 import pub.frost.wrappers.shared.client.settings.WGameSettings;
 import pub.frost.wrappers.shared.entity.*;
@@ -20,6 +21,7 @@ public interface Wrappers {
 
     WITileEntityProvider ITileEntityProvider = new WITileEntityProvider();
 
+    WPlayerControllerMP PlayerControllerMP = new WPlayerControllerMP();
     WGuiChat GuiChat = new WGuiChat();
     WGameSettings GameSettings = new WGameSettings();
     WMinecraft Minecraft = new WMinecraft();

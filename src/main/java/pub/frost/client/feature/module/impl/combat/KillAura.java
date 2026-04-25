@@ -29,6 +29,8 @@ import pub.frost.utils.data.Rotation;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.interacting.EnumInteractType;
+import pub.frost.utils.raycast.EnumRaycastType;
+import pub.frost.utils.raycast.RaycastUtils;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
@@ -59,11 +61,13 @@ public class KillAura extends AbstractModule {
     @Property("targetRange")
     public final FloatProperty targetRange = new FloatProperty(0, 8, 0.01f, 3.2f);
 
-    // @Property("AttackMode")
+    @Property("AttackMode")
     public final ModeProperty<EnumInteractType> attackMode = new ModeProperty<>(EnumInteractType.LEGIT);
     @Property("attackRange")
     public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> attackMode.is(EnumInteractType.PACKET));
 
+    @Property("RayCast")
+    public final ModeProperty<EnumRaycastType> raycast = new ModeProperty<>(EnumRaycastType.DEFAULT).setVisibilitySupplier(() -> attackMode.is(EnumInteractType.PACKET));
     @Property("cps")
     public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
     @Property("BlockHit")
@@ -240,21 +244,63 @@ public class KillAura extends AbstractModule {
     }
 
     private boolean rayTraceTarget(Rotation r) {
-        HitResult result = Entity.rayTrace(
-                mcWrapper.getPlayer(mc),
-                RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
-                getAttackRange(), 1
-        );
-        if (result == null) return false;
-        if (result.getType() == HitResult.EnumHitType.ENTITY) {
-            EntityHitResult entityHit = (EntityHitResult) result;
-            return entityHit.getHitEntity() == target;
-        }
+        if (attackMode.is(EnumInteractType.LEGIT) || raycast.is(EnumRaycastType.LEGIT)) {
+            HitResult result = Entity.rayTrace(
+                    mcWrapper.getPlayer(mc),
+                    RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
+                    getAttackRange(), 1
+            );
+            if (result == null) return false;
+            if (result.getType() == HitResult.EnumHitType.ENTITY) {
+                EntityHitResult entityHit = (EntityHitResult) result;
+                return entityHit.getHitEntity() == target;
+            }
+        } else if (raycast.is(EnumRaycastType.DEFAULT)) {
+            return RaycastUtils.raycast(
+                    Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1),
+                    r.getYaw(), r.getPitch(),
+                    Entity.getBoundingBox(target)
+            ).getKey();
+        } else if (raycast.is(EnumRaycastType.DISABLED)) return true;
         return false;
     }
 
     private void attack() {
-        mcWrapper.clickLMB(mc);
+        if (attackMode.is(EnumInteractType.LEGIT)) mcWrapper.clickLMB(mc);
+        else {
+            Object player = mcWrapper.getPlayer(mc);
+            EntityLivingBase.swingItem(player);
+
+            boolean raycastResult = raycast.is(EnumRaycastType.DISABLED);
+            if (!raycastResult) {
+                Vector3d eyePos = Entity.getPositionEyes(player, 1);
+                float yaw = Entity.getYaw(player), pitch = Entity.getPitch(player);
+                BoundingBox targetBB = Entity.getBoundingBox(target);
+                if (raycast.is(EnumRaycastType.DEFAULT)) {
+                    raycastResult = RaycastUtils.raycast(
+                            eyePos,
+                            yaw, pitch,
+                            targetBB
+                    ).getKey();
+                } else {
+                    raycastResult = targetBB.isVecInside(
+                            Entity.raytraceBlocks(
+                                    player,
+                                    eyePos,
+                                    RotationUtils.getVectorForRotation(pitch, yaw),
+                                    attackRange.get()
+                            ).getHitVec()
+                    );
+                }
+            }
+
+            if (raycastResult) {
+                PlayerControllerMP.attackEntity(
+                        Minecraft.getPlayerController(mc),
+                        player, target
+                );
+            }
+        }
         attackCount --;
     }
     private void makeBlocking() {

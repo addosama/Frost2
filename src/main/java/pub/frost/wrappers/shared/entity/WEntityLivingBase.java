@@ -23,4 +23,8 @@ public class WEntityLivingBase extends WEntity {
     public Object getHeldItem(Object instance) {
         return cast(instance, EntityLivingBase.class).getHeldItem();
     }
+
+    public void swingItem(Object instance) {
+        cast(instance, EntityLivingBase.class).swingItem();
+    }
 }
