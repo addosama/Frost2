@@ -228,7 +228,7 @@ public class KillAura extends AbstractModule {
 
         // return current rotation if our eyePos inside targetBoundingBox
         if (box.isVecInside(eyePos)) {
-            return FrostCore.getInstance().getRotationManager().getCurrentSilentRotation();
+            return new Rotation(rotationAimingEyePos.getYaw(), FrostCore.getInstance().getRotationManager().getSilentPitch());
         }
         // can we hit target directly when aiming eyePos of target?
         {

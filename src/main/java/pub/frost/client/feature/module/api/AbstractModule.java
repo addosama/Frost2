@@ -6,15 +6,11 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
-import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class AbstractModule implements Wrappers, Named, Described {
@@ -22,6 +18,7 @@ public class AbstractModule implements Wrappers, Named, Described {
     private final ModuleCategory category;
 
     private final Map<String, PropertyDescriptor> propertyMap = new LinkedHashMap<>();
+    private final Map<String, PropertyDescriptor> flattenedPropertyMap = new HashMap<>();
 
     public final BooleanProperty enabledProperty = new BooleanProperty(false);
 
@@ -108,5 +105,17 @@ public class AbstractModule implements Wrappers, Named, Described {
     }
     private void regProperty(PropertyDescriptor descriptor) {
         propertyMap.put(descriptor.getKey(), descriptor);
+        recordProperty(descriptor);
+    }
+
+    private void recordProperty(PropertyDescriptor descriptor) {
+        flattenedPropertyMap.put(descriptor.getKey(), descriptor);
+        if (descriptor.isGroup()) {
+            descriptor.getChildProperties().forEach(this::recordProperty);
+        }
+    }
+
+    public PropertyDescriptor getDescriptor(String key) {
+        return flattenedPropertyMap.get(key);
     }
 }

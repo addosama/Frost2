@@ -60,7 +60,7 @@ public class Config {
             JSONArray propArray = moduleData.getJSONArray(m.getKey());
             if (propArray == null) continue;
             for (JSONObject propJson : propArray.toJavaList(JSONObject.class)) {
-                analyzeDescriptorData(propJson, k -> m.getPropertyMap().get(k));
+                analyzeDescriptorData(propJson, m::getDescriptor);
             }
         }
     }
