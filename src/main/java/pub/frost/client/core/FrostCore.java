@@ -5,7 +5,7 @@ import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.config.ConfigManager;
 import pub.frost.client.feature.bindable.BindableManager;
-import pub.frost.client.feature.helper.packet.PacketManager;
+import pub.frost.client.feature.helper.network.PacketManager;
 import pub.frost.client.feature.helper.player.interact.PlayerListener;
 import pub.frost.client.feature.helper.player.rotation.RotationManager;
 import pub.frost.client.feature.module.ModuleManager;

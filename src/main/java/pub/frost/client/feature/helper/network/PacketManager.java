@@ -1,4 +1,4 @@
-package pub.frost.client.feature.helper.packet;
+package pub.frost.client.feature.helper.network;
 
 import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.PacketType;
