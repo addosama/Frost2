@@ -42,6 +42,7 @@ public interface Wrappers {
     WItemSword ItemSword = new WItemSword();
     WItemTool ItemTool = new WItemTool();
 
+    WConfirmTransactionPacket ConfirmTransactionPacket = new WConfirmTransactionPacket();
     WHeldItemChangePacket HeldItemChangePacket = new WHeldItemChangePacket();
     WPlayerBlockPlacementPacket PlayerBlockPlacementPacket = new WPlayerBlockPlacementPacket();
     WPlayerDiggingPacket PlayerDiggingPacket = new WPlayerDiggingPacket();
