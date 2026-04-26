@@ -12,6 +12,7 @@ import pub.frost.wrappers.shared.network.packet.WPacket;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.*;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityPacket;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityTeleportPacket;
+import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityVelocityPacket;
 import pub.frost.wrappers.shared.player.*;
 import pub.frost.wrappers.shared.world.*;
 
@@ -55,6 +56,7 @@ public interface Wrappers {
     WEntityPacket.WEntityLookMovePacket EntityLookMovePacket = new WEntityPacket.WEntityLookMovePacket();
     WEntityPacket.WEntityRelativeMovePacket EntityRelativeMovePacket = new WEntityPacket.WEntityRelativeMovePacket();
     WEntityTeleportPacket EntityTeleportPacket = new WEntityTeleportPacket();
+    WEntityVelocityPacket EntityVelocityPacket = new WEntityVelocityPacket();
 
     WPacket Packet = new WPacket();
 

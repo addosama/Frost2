@@ -28,11 +28,9 @@ public class BasicVelocity extends SubModule<Velocity> implements Supplier<Boole
 
 
     public void processVelocity(EventPlayerVelocity event) {
-        if (enabled.get()) {
-            event.setXMultiplier(motionX.getValue());
-            event.setYMultiplier(motionY.getValue());
-            event.setZMultiplier(motionZ.getValue());
-        }
+        event.setXMultiplier(motionX.getValue());
+        event.setYMultiplier(motionY.getValue());
+        event.setZMultiplier(motionZ.getValue());
     }
 
     @Override

@@ -23,9 +23,7 @@ public class JumpResetVelocity extends SubModule<Velocity> implements Supplier<B
     public final PercentProperty jumpChance = new PercentProperty(0f, 1f, 1f).setVisibilitySupplier(enabled::get);
 
     public void tryJump(EventUpdateMovementInput event) {
-        if (enabled.get()) {
-            if (Math.random() <= jumpChance.get()) event.setJump(true);
-        }
+        if (Math.random() <= jumpChance.get()) event.setJump(true);
     }
 
     @Override

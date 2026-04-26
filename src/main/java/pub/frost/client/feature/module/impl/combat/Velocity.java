@@ -1,9 +1,11 @@
 package pub.frost.client.feature.module.impl.combat;
 
 import pub.frost.base.event.api.annotations.EventHandler;
+import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventPlayerVelocity;
 import pub.frost.base.event.impl.events.EventUpdateMovementInput;
+import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -29,14 +31,26 @@ public class Velocity extends AbstractModule {
     public final BasicVelocity basic = new BasicVelocity(this);
     @InsertProperty("JumpReset")
     public final JumpResetVelocity jumpReset = new JumpResetVelocity(this);
-//    @InsertProperty("Delay")
+    @InsertProperty("Delay")
     public final DelayVelocity delay = new DelayVelocity(this);
 
     private boolean hasVelocity;
 
     @EventHandler
-    public void onPostUpdate(EventPlayerUpdateTick event) {
-        if (event.getType() == TickType.POST) hasVelocity = false;
+    public void onUpdate(EventPlayerUpdateTick event) {
+        if (event.getType() == TickType.POST) {
+            hasVelocity = false;
+            if (delay.enabled.get()) delay.update();
+        }
+        else {
+        }
+    }
+
+    @EventHandler
+    public void onPacket(EventPacket event) {
+        if (event.getType() == PacketType.IN) {
+            if (delay.enabled.get()) delay.processIncomingPacket(event);
+        }
     }
 
     @EventHandler
@@ -46,15 +60,20 @@ public class Velocity extends AbstractModule {
             this.hasVelocity = !motionCheck.get() || hasMotion(event);
             if (!hasVelocity) return;
 
-            basic.processVelocity(event);
+            if (basic.enabled.get()) basic.processVelocity(event);
         }
     }
 
     @EventHandler
     public void onMovementInput(EventUpdateMovementInput event) {
         if (hasVelocity) {
-            jumpReset.tryJump(event);
+            if (jumpReset.enabled.get()) jumpReset.tryJump(event);
         }
+    }
+
+    @Override
+    protected void onDisabled() {
+        if (delay.enabled.get()) delay.flush();
     }
 
     private boolean hasMotion(EventPlayerVelocity event) {

@@ -328,4 +328,8 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wra
     public void setVelocity(Object instance, double x, double y, double z) {
         cast(instance).setVelocity(x, y, z);
     }
+
+    public int getEntityId(Object instance) {
+        return cast(instance).getEntityId();
+    }
 }
