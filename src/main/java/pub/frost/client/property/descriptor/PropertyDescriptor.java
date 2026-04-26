@@ -101,7 +101,6 @@ public class PropertyDescriptor implements Named, Described {
                         {
                             startGroup = true;
                             endGroup = true;
-                            insertObject = true;
                         }
                         // set group data
                         {
@@ -125,6 +124,7 @@ public class PropertyDescriptor implements Named, Described {
                             }
                         }
                     }
+                    insertObject = true;
                 }
 
                 {
