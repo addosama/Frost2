@@ -78,7 +78,7 @@ public class RenderUtils {
     private static void drawClippedLine(
             ImDrawList list,
             Vector3d a, Vector3d b,
-            int color,
+            int color, float thickness,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
     ) {
@@ -115,11 +115,11 @@ public class RenderUtils {
 
         ImVec2 p1 = projectViewSpace(va, projectionMatrix, windowWidth, windowHeight);
         ImVec2 p2 = projectViewSpace(vb, projectionMatrix, windowWidth, windowHeight);
-        list.addLine(p1, p2, color);
+        list.addLine(p1, p2, color, thickness);
     }
 
     public static void drawBoundingBox(
-            ImDrawList list, BoundingBox boundingBox, int color,
+            ImDrawList list, BoundingBox boundingBox, float thickness, int color,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
     ) {
@@ -136,7 +136,7 @@ public class RenderUtils {
             drawClippedLine(
                     list,
                     v[edge[0]], v[edge[1]],
-                    color,
+                    color, thickness,
                     modelViewMatrix, projectionMatrix,
                     windowWidth, windowHeight
             );

@@ -131,7 +131,7 @@ public class BackTrack extends AbstractModule {
             );
             RenderUtils.drawBoundingBox(
                     ImGui.getBackgroundDrawList(),
-                    box,
+                    box, 1f,
                     0xFF00FF00,
                     cachedModelView, cachedProjection,
                     (int) ImGui.getIO().getDisplaySizeX(),
