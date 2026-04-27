@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventGameTick;
-import pub.frost.base.event.impl.events.EventKeyInput;
+import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
@@ -42,7 +42,7 @@ public abstract class MixinMinecraft {
     private boolean handleMouse() {
         if (Mouse.next()) {
             int eventButton = Mouse.getEventButton();
-            EventKeyInput event = new EventKeyInput(
+            EventInput event = new EventInput(
                     InputDevice.MOUSE,
                     -1 - eventButton,
                     Mouse.getEventButtonState()? 1 : 0
@@ -63,9 +63,8 @@ public abstract class MixinMinecraft {
     private boolean handleKeyboard() {
         if (Keyboard.next()) {
             int eventKey = Keyboard.getEventKey();
-            if (eventKey == 0) return true;
 
-            EventKeyInput event = new EventKeyInput(
+            EventInput event = new EventInput(
                     InputDevice.KEYBOARD,
                     eventKey,
                     Keyboard.getEventKeyState()? 1 : Keyboard.isRepeatEvent()? 2 : 0

@@ -1,7 +1,7 @@
 package pub.frost.client.feature.bindable;
 
 import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventKeyInput;
+import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.client.feature.bindable.api.IBindable;
 
 import java.util.Comparator;
@@ -22,7 +22,7 @@ public class BindableManager {
     }
 
     @EventHandler(priority = 5)
-    private void handleKeyInput(EventKeyInput event) {
+    private void handleKeyInput(EventInput event) {
         if (event.getKey() == 0) return;
         if (event.isCancelled()) return;
         for (IBindable bindable : bindableMap.values()) {

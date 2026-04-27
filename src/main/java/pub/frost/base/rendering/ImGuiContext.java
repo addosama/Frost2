@@ -7,6 +7,9 @@ import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
 import loutre.imgui.lwjgl2.ImGuiLWJGL2;
 import org.lwjgl.opengl.GL11;
+import pub.frost.base.event.api.annotations.EventHandler;
+import pub.frost.base.event.impl.events.EventInput;
+import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 
 public class ImGuiContext {
@@ -56,5 +59,12 @@ public class ImGuiContext {
         instance.startFrame();
         runnable.run();
         instance.endFrame();
+    }
+
+    @EventHandler(priority = -100)
+    private void onInput(EventInput event) {
+        if (event.getType() == InputDevice.KEYBOARD) {
+            imGuiDisplay.onKey();
+        }
     }
 }

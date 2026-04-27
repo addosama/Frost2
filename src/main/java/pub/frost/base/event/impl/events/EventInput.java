@@ -7,7 +7,7 @@ import pub.frost.base.event.api.interfaces.Typed;
 import pub.frost.base.event.impl.types.InputDevice;
 
 @Getter @RequiredArgsConstructor
-public class EventKeyInput extends CancellableEvent implements Typed<InputDevice> {
+public class EventInput extends CancellableEvent implements Typed<InputDevice> {
     private final InputDevice type;
     private final int key, action;
 

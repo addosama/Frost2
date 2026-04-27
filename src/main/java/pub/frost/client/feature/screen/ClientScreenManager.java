@@ -3,15 +3,13 @@ package pub.frost.client.feature.screen;
 import lombok.Getter;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
-import pub.frost.base.event.impl.events.EventKeyInput;
+import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.screen.impl.clickgui.ScreenClickGui;
-import pub.frost.wrappers.shared.client.WMinecraft;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +66,7 @@ public class ClientScreenManager implements Wrappers {
     }
 
     @EventHandler(priority = 3)
-    private void onInput(EventKeyInput event) {
+    private void onInput(EventInput event) {
         if (currentScreen != null) {
             if ((currentScreen.shouldBlockMouseInput() && event.getType() == InputDevice.MOUSE)) event.setCancelled(true);
             else if (currentScreen.shouldBlockKeyboardInput() && event.getType() == InputDevice.KEYBOARD) {
