@@ -5,6 +5,7 @@ import pub.frost.base.event.api.EventBus;
 import pub.frost.base.rendering.ImGuiContext;
 import pub.frost.client.config.ConfigManager;
 import pub.frost.client.feature.bindable.BindableManager;
+import pub.frost.client.feature.helper.network.LagManager;
 import pub.frost.client.feature.helper.network.PacketManager;
 import pub.frost.client.feature.helper.player.interact.PlayerListener;
 import pub.frost.client.feature.helper.player.rotation.RotationManager;
@@ -47,6 +48,7 @@ public final class FrostCore {
 
     private RotationManager rotationManager;
     private PlayerListener playerListener;
+    private LagManager lagManager;
     private PacketManager packetManager;
 
     public FrostCore() {
@@ -71,6 +73,8 @@ public final class FrostCore {
         eventBus.register(rotationManager);
         playerListener = new PlayerListener();
         eventBus.register(playerListener);
+        lagManager = new LagManager();
+        eventBus.register(lagManager);
         packetManager = new PacketManager();
 
         FrostCore.getClientDir().toFile().mkdirs();

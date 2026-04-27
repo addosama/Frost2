@@ -14,7 +14,9 @@ public class PacketManager implements Wrappers {
     public boolean processIncoming(Object packet) {
         EventPacket event = new EventPacket(PacketType.IN, packet);
         FrostCore.getInstance().getEventBus().call(event);
-        return event.isCancelled();
+        if (event.isCancelled()) return true;
+
+        return FrostCore.getInstance().getLagManager().processIncoming(packet);
     }
 
     public boolean processOutgoing(Object packet) {
@@ -22,9 +24,12 @@ public class PacketManager implements Wrappers {
             noEventPackets.remove(packet);
             return false;
         }
+
         EventPacket event = new EventPacket(PacketType.OUT, packet);
         FrostCore.getInstance().getEventBus().call(event);
-        return event.isCancelled();
+        if (event.isCancelled()) return true;
+
+        return FrostCore.getInstance().getLagManager().processOutgoing(packet);
     }
 
     public void sendPacket(Object packet, boolean event) {

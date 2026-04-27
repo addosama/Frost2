@@ -10,6 +10,11 @@ import pub.frost.wrappers.shared.item.*;
 import pub.frost.wrappers.shared.network.WNetHandlerPlayClient;
 import pub.frost.wrappers.shared.network.packet.WPacket;
 import pub.frost.wrappers.shared.network.packet.impl.c2s.*;
+import pub.frost.wrappers.shared.network.packet.impl.handshake.WC2SHandshakePacket;
+import pub.frost.wrappers.shared.network.packet.impl.handshake.WC2SPingPacket;
+import pub.frost.wrappers.shared.network.packet.impl.handshake.WC2SServerQueryPacket;
+import pub.frost.wrappers.shared.network.packet.impl.login.WC2SEncryptionResponsePacket;
+import pub.frost.wrappers.shared.network.packet.impl.login.WC2SLoginStartPacket;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityPacket;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityTeleportPacket;
 import pub.frost.wrappers.shared.network.packet.impl.s2c.WEntityVelocityPacket;
@@ -41,6 +46,12 @@ public interface Wrappers {
     WItemStack ItemStack = new WItemStack();
     WItemSword ItemSword = new WItemSword();
     WItemTool ItemTool = new WItemTool();
+
+    WC2SHandshakePacket C2SHandShakePacket = new WC2SHandshakePacket();
+    WC2SPingPacket C2SPingPacket = new WC2SPingPacket();
+    WC2SServerQueryPacket C2SServerQueryPacket = new WC2SServerQueryPacket();
+    WC2SEncryptionResponsePacket C2SEncryptionResponsePacket = new WC2SEncryptionResponsePacket();
+    WC2SLoginStartPacket C2SLoginStartPacket = new WC2SLoginStartPacket();
 
     WConfirmTransactionPacket ConfirmTransactionPacket = new WConfirmTransactionPacket();
     WHeldItemChangePacket HeldItemChangePacket = new WHeldItemChangePacket();
