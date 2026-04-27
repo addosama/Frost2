@@ -178,4 +178,8 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
     protected abstract boolean hasAnyActive(PT propValue);
 
     @Override public final void render(boolean dummy, float tickDelta) {}
+    @Override
+    public float getElementWidth(PT value) {
+        return 100;
+    }
 }

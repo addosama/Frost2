@@ -78,4 +78,9 @@ public class GroupedPropElement extends PropertyComponent<Object> {
     public boolean isVisible() {
         return super.isVisible();
     }
+
+    @Override
+    public float getElementWidth(Object value) {
+        return 20;
+    }
 }

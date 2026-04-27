@@ -76,4 +76,9 @@ public class MultipleBooleanPropComponent<T extends Enum<T>> extends PropertyCom
     public Map<T, Boolean> renderElement(boolean dummy, float tickDelta, String id, Map<T, Boolean> value) {
         return selector.renderElement(dummy, tickDelta, id, value);
     }
+
+    @Override
+    public float getElementWidth(Map<T, Boolean> value) {
+        return selector.getElementWidth(value);
+    }
 }

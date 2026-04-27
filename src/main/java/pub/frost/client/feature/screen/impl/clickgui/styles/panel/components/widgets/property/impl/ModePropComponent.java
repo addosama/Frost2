@@ -1,21 +1,16 @@
 package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl;
 
-import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiStyleVar;
-import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SelectorElement;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.mode.ModeProperty;
-import pub.frost.utils.ImTextRenderer;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 public class ModePropComponent<T extends Enum<T>> extends PropertyComponent<T> {
     private final ModeProperty<T> prop;
@@ -67,5 +62,10 @@ public class ModePropComponent<T extends Enum<T>> extends PropertyComponent<T> {
     @Override
     public T renderElement(boolean dummy, float tickDelta, String id, T value) {
         return selector.renderElement(dummy, tickDelta, id, value);
+    }
+
+    @Override
+    public float getElementWidth(T value) {
+        return selector.getElementWidth(value);
     }
 }

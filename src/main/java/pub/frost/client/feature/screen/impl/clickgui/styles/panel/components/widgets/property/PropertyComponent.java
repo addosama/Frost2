@@ -7,14 +7,29 @@ import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.override.OverridePopupComponent;
+import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.utils.ImTextRenderer;
 
 public abstract class PropertyComponent<T> extends PanelComponent implements ElementRenderer<T> {
     protected final PropertyDescriptor descriptor;
+    protected final OverridePopupComponent<T> overridePopup;
+
     public PropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
         super(gui);
         this.descriptor = descriptor;
+
+        OverridePopupComponent<T> tmp = null;
+        AbstractProperty prop = descriptor.getProperty();
+        if (prop != null && prop.isOverridingEnabled()) {
+            tmp = new OverridePopupComponent<>(
+                    gui,
+                    prop,
+                    this
+            );
+        }
+        overridePopup = tmp;
     }
 
     @Override
@@ -26,8 +41,12 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
                 0f, 30f,
                 0
         );
+
         renderText(dummy, tickDelta);
+        ImVec2 cursor = ImGui.getCursorPos();
         renderWidgets(dummy, tickDelta);
+        renderOverride(dummy, tickDelta, cursor);
+
         ImGui.endChild();
         ImGui.popStyleColor();
         ImGui.popStyleVar();
@@ -49,6 +68,15 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         ImGui.popFont();
     }
     protected abstract void renderWidgets(boolean dummy, float tickDelta);
+    protected void renderOverride(boolean dummy, float tickDelta, ImVec2 pos) {
+        if (overridePopup != null) {
+            boolean overrideClicked = false;
+            boolean overrideActive = descriptor.getProperty().isOverrideActive();
+            overrideClicked = renderOverrideButton(dummy, setupOverrideButtonPosition(pos, getElementWidth((T) descriptor.getProperty().getValue())), overrideActive);
+            if (overrideClicked) ImGui.openPopup(overridePopup.toString());
+            overridePopup.render(dummy, tickDelta);
+        }
+    }
 
     protected ImVec2 setupOverrideButtonPosition(ImVec2 cursor, float elementWidth) {
         ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - elementWidth - 20);
