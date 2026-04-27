@@ -1,7 +1,6 @@
 package pub.frost.base.rendering;
 
 import imgui.ImGui;
-import imgui.ImGuiIO;
 import imgui.extension.implot.ImPlot;
 import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
@@ -12,9 +11,9 @@ import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 
-public class ImGuiContext {
+public class ClientRenderContext {
     @Getter
-    private static final ImGuiContext instance = new ImGuiContext();
+    private static final ClientRenderContext instance = new ClientRenderContext();
 
     private final ImGuiDisplay imGuiDisplay = new ImGuiDisplay();
     private final ImGuiLWJGL2 imGuiImplGl2 = new ImGuiLWJGL2();
@@ -24,15 +23,14 @@ public class ImGuiContext {
         if (initialized) return;
 
         ImGui.createContext();
-        ImPlot.createContext();
+        ImGui.getIO().getFonts().setFreeTypeRenderer(true);
+        ImGui.getIO().setIniFilename(FrostCore.getClientDir().resolve("imgui.ini").toAbsolutePath().toString());
+        new FontManager();
 
-        final ImGuiIO io = ImGui.getIO();
-        io.setIniFilename(FrostCore.getClientDir().resolve("imgui.ini").toAbsolutePath().toString());
-        io.getFonts().setFreeTypeRenderer(true);
+        ImPlot.createContext();
 
         imGuiDisplay.init();
         imGuiImplGl2.init();
-        new FontManager();
 
         initialized = true;
     }

@@ -12,7 +12,7 @@ import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventPreRender;
 import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.base.event.impl.events.EventUpdateLightMap;
-import pub.frost.base.rendering.ImGuiContext;
+import pub.frost.base.rendering.ClientRenderContext;
 import pub.frost.client.core.FrostCore;
 
 @Mixin(EntityRenderer.class)
@@ -34,7 +34,7 @@ public class MixinEntityRenderer {
             at = @At("TAIL")
     )
     private void postRender(float partialTicks, long nanoTime, CallbackInfo ci) {
-        ImGuiContext.draw(
+        ClientRenderContext.draw(
                 () -> FrostCore.getInstance().getEventBus().call(new EventPostRender(partialTicks))
         );
     }
