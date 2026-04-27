@@ -33,7 +33,7 @@ import pub.frost.utils.raycast.EnumRaycastType;
 import pub.frost.utils.raycast.RaycastUtils;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
-import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
+import pub.frost.wrappers.shared.network.packet.impl.play.c2s.WPlayerDiggingPacket;
 
 import java.util.ArrayList;
 import java.util.Comparator;

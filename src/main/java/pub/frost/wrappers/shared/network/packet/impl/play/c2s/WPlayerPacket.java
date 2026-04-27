@@ -1,4 +1,4 @@
-package pub.frost.wrappers.shared.network.packet.impl.c2s;
+package pub.frost.wrappers.shared.network.packet.impl.play.c2s;
 
 import net.minecraft.network.play.client.C03PacketPlayer;
 import pub.frost.wrappers.shared.network.packet.WPacket;

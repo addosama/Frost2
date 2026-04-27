@@ -7,7 +7,7 @@ import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
-import pub.frost.wrappers.shared.network.packet.impl.c2s.WPlayerDiggingPacket;
+import pub.frost.wrappers.shared.network.packet.impl.play.c2s.WPlayerDiggingPacket;
 
 @Getter
 public class PlayerListener implements Wrappers {
