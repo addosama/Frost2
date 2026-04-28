@@ -32,33 +32,9 @@ public class ModulePanel extends PanelComponent {
         this.widthSupplier = widthSupplier;
         this.components = new ArrayList<>();
         module.getPropertyList().forEach(d -> {
-            PanelComponent component = getPropertyComponent(d);
+            PanelComponent component = PropertyComponent.buildForDescriptor(gui, d);
             if (component != null) components.add(component);
         });
-    }
-
-    private PanelComponent getPropertyComponent(PropertyDescriptor descriptor) {
-        AbstractProperty abstractProp = descriptor.getProperty();
-        PropertyComponent<?> component = null;
-        if (abstractProp != null) {
-            if (abstractProp instanceof BooleanProperty) {
-                component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
-            } else if (abstractProp instanceof NumberProperty) {
-                component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
-            } else if (abstractProp instanceof ModeProperty) {
-                component = new ModePropComponent(gui, descriptor, (ModeProperty) abstractProp);
-            } else if (abstractProp instanceof MultipleBooleanProperty) {
-                component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
-            }
-        } else if (descriptor.isGroup()) {
-            List<PanelComponent> groupComponents = new ArrayList<>();
-            descriptor.getChildProperties().forEach(d -> {
-                PanelComponent child = getPropertyComponent(d);
-                if (child != null) groupComponents.add(child);
-            });
-            component = new GroupedPropElement(gui, descriptor, groupComponents);
-        }
-        return component;
     }
 
     @Override
