@@ -50,5 +50,6 @@ public class FontManager {
             puHui10 = getPuhui(14);
 
     public final ImFont
-            icon14 = getIcon(14);
+            icon14 = getIcon(14),
+            icon16 = getIcon(16);
 }
