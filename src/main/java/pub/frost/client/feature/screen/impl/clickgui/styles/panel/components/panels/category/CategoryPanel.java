@@ -1,10 +1,10 @@
 package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category;
 
+import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiStyleVar;
-import lombok.Getter;
 import lombok.Setter;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.core.FrostCore;
@@ -52,6 +52,10 @@ public class CategoryPanel extends PanelComponent {
             buttonGroup.render(dummy, tickDelta);
         }
 
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + ImGui.getContentRegionAvailY() - 45);
+        splitLine(dummy, tickDelta);
+        renderUserInfo(dummy, tickDelta);
+
         ImGui.endChild();
         ImGui.popStyleVar(3);
     }
@@ -71,7 +75,7 @@ public class CategoryPanel extends PanelComponent {
                 ImGui.pushFont(FontManager.INSTANCE.icon16);
                 ImGui.getWindowDrawList().addText(
                         min.plus(10, 10),
-                        0xFFFFFFFF,
+                        0xFFFFEAE5,
                         "\ue601"
                 );
                 ImGui.popFont();
@@ -102,6 +106,57 @@ public class CategoryPanel extends PanelComponent {
         }
 
         ImGui.endGroup();
+    }
+
+    private void renderUserInfo(boolean dummy, float tickDelta) {
+        ImGui.invisibleButton(this + ".userinfo", ImGui.getContentRegionAvailX(), 36);
+        if (!dummy) {
+            ImVec2 minVec = ImGui.getItemRectMin(), maxVec = ImGui.getItemRectMax();
+            ImDrawList draws = ImGui.getWindowDrawList();
+
+            // draw user avatar
+            {
+                ImVec2 avatarMaxVec = minVec.plus(36, 36);
+                draws.addRectFilled(
+                        minVec, avatarMaxVec,
+                        0xFFBF9060, 12f
+                );
+                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                draws.addText(
+                        ImTextRenderer.centerText(
+                                "OvO",
+                                minVec.x + 18,
+                                minVec.y + 18,
+                                true, true
+                        ),
+                        0xFFFFFFFF,
+                        "OvO"
+                );
+                ImGui.popFont();
+            }
+            // draw user info
+            {
+                ImVec2 centerVec = minVec.plus(46, 18);
+
+                // username
+                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                draws.addText(
+                        centerVec.minus(0, ImGui.getFont().getAscent() + 1),
+                        0xFF331A15,
+                        "Beta User"
+                );
+                ImGui.popFont();
+
+                // license info
+                ImGui.pushFont(FontManager.INSTANCE.puHui10);
+                draws.addText(
+                        centerVec.plus(0, 1),
+                        0xFF665552,
+                        "Nightly Beta License"
+                );
+                ImGui.popFont();
+            }
+        }
     }
 
     private void splitLine(boolean dummy, float tickDelta) {
