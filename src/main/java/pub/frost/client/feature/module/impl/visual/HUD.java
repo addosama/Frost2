@@ -21,6 +21,7 @@ import java.util.List;
         defaultState = true
 )
 public class HUD extends AbstractModule {
+    @InsertProperty("Watermark")
     private final WatermarkOverlay watermark = new WatermarkOverlay();
     @InsertProperty("ToggledModules")
     private final ToggledModulesOverlay toggledModules = new ToggledModulesOverlay();

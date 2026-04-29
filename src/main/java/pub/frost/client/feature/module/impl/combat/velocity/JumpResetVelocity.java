@@ -5,6 +5,7 @@ import pub.frost.client.feature.module.api.SubModule;
 import pub.frost.client.feature.module.impl.combat.Velocity;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.PercentProperty;
 
@@ -15,12 +16,13 @@ public class JumpResetVelocity extends SubModule<Velocity> implements Supplier<B
         super(velocity);
     }
 
+    @PropertyGroupMain
     @TranslationKey("strings.enabled")
     @Property("enabled")
     public final BooleanProperty enabled = new BooleanProperty(false);
 
     @Property("jumpChance")
-    public final PercentProperty jumpChance = new PercentProperty(0f, 1f, 1f).setVisibilitySupplier(enabled::get);
+    public final PercentProperty jumpChance = new PercentProperty(0f, 1f, 1f);
 
     public void tryJump(EventUpdateMovementInput event) {
         if (Math.random() <= jumpChance.get()) event.setJump(true);

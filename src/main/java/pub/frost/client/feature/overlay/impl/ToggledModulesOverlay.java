@@ -10,7 +10,9 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.overlay.ClientOverlay;
+import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.data.EnumTextFormatting;
@@ -19,6 +21,11 @@ public class ToggledModulesOverlay extends ClientOverlay {
     public ToggledModulesOverlay() {
         super("overlays.toggledmodules");
     }
+
+    @PropertyGroupMain
+    @TranslationKey("strings.enabled")
+    @Property("enabled")
+    public final BooleanProperty enabled = new BooleanProperty(true);
 
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
@@ -34,6 +41,7 @@ public class ToggledModulesOverlay extends ClientOverlay {
 
     @Override
     protected void doRender(boolean dummy, boolean input, float tickDelta) {
+        if (!enabled.get()) return;
         int windowFlags = DEFAULT_WINDOW_FLAGS;
         if (!input) windowFlags |= ImGuiWindowFlags.NoInputs;
         ImGui.begin(this.toString(), windowFlags);

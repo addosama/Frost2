@@ -5,6 +5,7 @@ import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
+import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.utils.targeting.EnumEntityTarget;
@@ -16,6 +17,7 @@ public class TargetSetting {
     @PropertyGroupHead("targets")
     private final Supplier<Boolean> visibility;
 
+    @PropertyGroupMain
     @TranslationKey("strings.target.targets")
     @Property(value = "Targets")
     public final MultipleBooleanProperty<EnumEntityTarget> targets = new MultipleBooleanProperty<>(EnumEntityTarget.class);

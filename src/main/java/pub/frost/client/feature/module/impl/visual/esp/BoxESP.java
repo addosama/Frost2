@@ -7,6 +7,7 @@ import pub.frost.client.feature.module.api.SubModule;
 import pub.frost.client.feature.module.impl.visual.ESP;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
@@ -19,6 +20,7 @@ public class BoxESP extends SubModule<ESP> {
         super(esp);
     }
 
+    @PropertyGroupMain
     @TranslationKey("strings.enabled")
     @Property("enabled")
     public final BooleanProperty enabled = new BooleanProperty(true);

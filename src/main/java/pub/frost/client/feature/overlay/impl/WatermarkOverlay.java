@@ -6,11 +6,20 @@ import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.overlay.ClientOverlay;
+import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.annotations.PropertyGroupMain;
+import pub.frost.client.property.impl.bool.BooleanProperty;
 
 public class WatermarkOverlay extends ClientOverlay {
     public WatermarkOverlay() {
         super("overlays.watermark");
     }
+
+    @PropertyGroupMain
+    @TranslationKey("strings.enabled")
+    @Property("enabled")
+    public final BooleanProperty enabled = new BooleanProperty(true);
 
     private final String text = "Frost";
 
@@ -27,6 +36,7 @@ public class WatermarkOverlay extends ClientOverlay {
 
     @Override
     protected void doRender(boolean dummy, boolean input, float tickDelta) {
+        if (!enabled.get()) return;
         int windowFlags = DEFAULT_WINDOW_FLAGS;
         if (!input) windowFlags |= ImGuiWindowFlags.NoInputs;
 

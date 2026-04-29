@@ -5,6 +5,7 @@ import pub.frost.client.feature.module.api.SubModule;
 import pub.frost.client.feature.module.impl.combat.Velocity;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.PercentProperty;
 
@@ -15,6 +16,7 @@ public class BasicVelocity extends SubModule<Velocity> implements Supplier<Boole
         super(velocity);
     }
 
+    @PropertyGroupMain
     @TranslationKey("strings.enabled")
     @Property("enabled")
     public final BooleanProperty enabled = new BooleanProperty(false);
