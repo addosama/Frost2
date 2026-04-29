@@ -11,6 +11,9 @@ public interface Localizable {
     }
 
     default String format(String key) {
-        return key.replaceAll("~", this.toString());
+        return format(this, key);
+    }
+    static String format(Object obj, String key) {
+        return key.replaceAll("~", obj.toString());
     }
 }

@@ -7,6 +7,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
+import pub.frost.client.property.descriptor.PropertyDescriptorFactory;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
@@ -77,17 +78,15 @@ public class AbstractModule implements Wrappers, Named, Described {
         {
             enabledProperty.enableOverriding();
             enabledProperty.setOverrideDisplayString(this::getName);
-            regProperty(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty) {
-                @Override
-                public String getName() {
-                    return FrostCore.getLocalizer().get("strings.enabled");
-                }
-            });
+            regProperty(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty, "strings.enabled"));
         }
 
-        regProperty(PropertyDescriptor.buildDescriptorListForObject(
-                this, propKeyPrefix, null
-        ));
+        PropertyDescriptorFactory factory = PropertyDescriptorFactory
+                .create(this)
+                .setKeyPrefix(propKeyPrefix)
+                .build();
+        propertyMap.putAll(factory.getDescriptorMap());
+        flattenedPropertyMap.putAll(factory.getFlattenedDescriptorMap());
     }
 
     protected void onInitialized() {}
