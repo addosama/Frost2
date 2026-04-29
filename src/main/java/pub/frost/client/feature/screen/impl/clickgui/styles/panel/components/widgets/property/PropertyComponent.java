@@ -42,7 +42,8 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         } else overridePopup = null;
 
         if (descriptor.isGroup()) {
-            children = descriptor.getChildProperties().stream().collect(
+            List<PropertyComponent<?>> childList = new ArrayList<>();
+            childList = descriptor.getChildProperties().stream().collect(
                     ArrayList::new,
                     (list, child) -> {
                         AbstractProperty childProp = child.getProperty();
@@ -51,6 +52,8 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
                     },
                     ArrayList::addAll
             );
+            if (childList.isEmpty()) children = null;
+            else children = childList;
         } else children = null;
     }
 
@@ -80,7 +83,7 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             renderOverride(dummy, tickDelta);
             xOffset -= 2;
         }
-        if (descriptor.isGroup()) {
+        if (children != null) {
             xOffset -= 20;
             ImGui.sameLine(xOffset);
             renderGroupPopupButton(dummy, tickDelta);
