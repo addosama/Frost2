@@ -22,14 +22,6 @@ public class NumberPropComponent<T extends Number & Comparable<T>> extends Prope
     }
 
     @Override
-    protected void renderWidgets(boolean dummy, float tickDelta) {
-        ImVec2 cursor = ImGui.getCursorPos();
-        ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - getElementWidth(prop.getValue()));
-        ImGui.setCursorPosY(cursor.y + 6);
-        prop.set(renderElement(dummy, tickDelta, this + ".slider", prop.getValue()));
-    }
-
-    @Override
     public T renderElement(boolean dummy, float tickDelta, String id, T value) {
         float valueMin = prop.getMinValue().floatValue();
         float valueMax = prop.getMaxValue().floatValue();

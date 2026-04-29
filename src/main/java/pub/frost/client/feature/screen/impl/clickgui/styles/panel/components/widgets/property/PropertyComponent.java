@@ -24,14 +24,15 @@ import java.util.stream.Collectors;
 
 public abstract class PropertyComponent<T> extends PanelComponent implements ElementRenderer<T> {
     protected final PropertyDescriptor descriptor;
-    protected final OverridePopupComponent<T> overridePopup;
+    protected final AbstractProperty prop;
     protected final List<PropertyComponent<?>> children;
+    protected final OverridePopupComponent<T> overridePopup;
 
     public PropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
         super(gui);
         this.descriptor = descriptor;
 
-        AbstractProperty prop = descriptor.getProperty();
+        prop = descriptor.getProperty();
         if (prop != null && prop.isOverridingEnabled()) {
             overridePopup = new OverridePopupComponent<>(
                     gui,
@@ -64,18 +65,24 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         );
 
         renderText(dummy, tickDelta);
-        ImVec2 cursor = ImGui.getCursorPos();
-        renderWidgets(dummy, tickDelta);
 
-        if (overridePopup != null) {
-            renderOverride(dummy, tickDelta, cursor);
+        float xOffset = ImGui.getContentRegionAvailX();
+        if (prop != null) {
+            T val = (T) prop.getValue();
+            xOffset -= getElementWidth(val);
+            ImGui.sameLine(xOffset);
+            renderWidgets(dummy, tickDelta, val);
+            xOffset -= 6;
         }
-
+        if (overridePopup != null) {
+            xOffset -= 14;
+            ImGui.sameLine(xOffset);
+            renderOverride(dummy, tickDelta);
+            xOffset -= 2;
+        }
         if (descriptor.isGroup()) {
-            ImGui.sameLine();
-            AbstractProperty prop = descriptor.getProperty();
-            float elementWidth = prop == null? 0 : getElementWidth((T) prop.getValue());
-            setupGroupPopupButtonPosition(new ImVec2(ImGui.getCursorPosX(), cursor.y), elementWidth);
+            xOffset -= 20;
+            ImGui.sameLine(xOffset);
             renderGroupPopupButton(dummy, tickDelta);
         }
 
@@ -99,27 +106,25 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         ImGui.setCursorPosY(y);
         ImGui.popFont();
     }
-    protected abstract void renderWidgets(boolean dummy, float tickDelta);
-    protected void renderOverride(boolean dummy, float tickDelta, ImVec2 pos) {
-        boolean overrideClicked = false;
+    protected void renderWidgets(boolean dummy, float tickDelta, T val) {
+        ImGui.setCursorPosY((ImGui.getCursorPosY() + ImGui.getContentRegionAvailY() - getElementHeight()) / 2);
+        prop.set(renderElement(dummy, tickDelta, this + ".element", val));
+    }
+    protected void renderOverride(boolean dummy, float tickDelta) {
         boolean overrideActive = descriptor.getProperty().isOverrideActive();
-        overrideClicked = renderOverrideButton(dummy, setupOverrideButtonPosition(pos, getElementWidth((T) descriptor.getProperty().getValue())), overrideActive);
-        if (overrideClicked) ImGui.openPopup(overridePopup.toString());
+        if (renderOverrideButton(dummy, overrideActive)) ImGui.openPopup(overridePopup.toString());
         overridePopup.render(dummy, tickDelta);
     }
 
-    protected ImVec2 setupOverrideButtonPosition(ImVec2 cursor, float elementWidth) {
-        ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - elementWidth - 20);
-        ImGui.setCursorPosY(cursor.y + 8);
-        return ImGui.getCursorScreenPos();
-    }
-    protected boolean renderOverrideButton(boolean dummy, ImVec2 pos, boolean highlight) {
+    protected boolean renderOverrideButton(boolean dummy, boolean highlight) {
+        float y = ImGui.getCursorPosY();
+        ImGui.setCursorPosY((y + ImGui.getContentRegionAvailY() - 14) / 2);
         boolean clicked = ImGui.invisibleButton(this + ".override", 14, 14);
         if (!dummy) {
             ImGui.pushFont(FontManager.INSTANCE.icon14);
             String icon = "\uedaf";
             ImVec2 iconSize = ImGui.calcTextSize(icon);
-            ImVec2 iconPos = pos.plus(
+            ImVec2 iconPos = ImGui.getItemRectMin().plus(
                     (14 - iconSize.x) / 2,
                     (14 - iconSize.y) / 2
             );
@@ -131,15 +136,12 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             );
             ImGui.popFont();
         }
+        ImGui.setCursorPosY(y);
         return clicked;
     }
-
-    protected ImVec2 setupGroupPopupButtonPosition(ImVec2 cursor, float elementWidth) {
-        ImGui.setCursorPosX(cursor.x - elementWidth - 26);
-        ImGui.setCursorPosY(cursor.y + 5);
-        return ImGui.getCursorScreenPos();
-    }
     protected void renderGroupPopupButton(boolean dummy, float tickDelta) {
+        float y = ImGui.getCursorPosY();
+        ImGui.setCursorPosY((y + ImGui.getContentRegionAvailY() - 20) / 2);
         if (ImGui.invisibleButton(this + ".button", 20, 20)) {
             ImGui.setNextWindowPos(ImGui.getWindowPos().plus(-12, ImGui.getWindowHeight() + 4));
             ImGui.openPopup(this + ".popup");
@@ -157,7 +159,9 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         if (popup) {
             renderGroupPopup(dummy, tickDelta);
         }
+        ImGui.setCursorPosY(y);
     }
+
     protected void renderGroupPopup(boolean dummy, float tickDelta) {
         float width = ImGui.getWindowWidth();
 
@@ -204,11 +208,6 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             }
         } else {
             component = new PropertyComponent<Object>(gui, descriptor) {
-                @Override
-                protected void renderWidgets(boolean dummy, float tickDelta) {
-
-                }
-
                 @Override
                 public Object renderElement(boolean dummy, float tickDelta, String id, Object value) {
                     return value;

@@ -65,14 +65,6 @@ public class MultipleBooleanPropComponent<T extends Enum<T>> extends PropertyCom
     }
 
     @Override
-    protected void renderWidgets(boolean dummy, float tickDelta) {
-        ImVec2 cursor = ImGui.getCursorPos();
-        ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - 100);
-        ImGui.setCursorPosY(cursor.y + 5);
-        prop.set(renderElement(dummy, tickDelta, selector.toString(), prop.getValue()));
-    }
-
-    @Override
     public Map<T, Boolean> renderElement(boolean dummy, float tickDelta, String id, Map<T, Boolean> value) {
         return selector.renderElement(dummy, tickDelta, id, value);
     }

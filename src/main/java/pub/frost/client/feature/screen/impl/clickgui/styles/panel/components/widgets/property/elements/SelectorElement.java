@@ -182,4 +182,8 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
     public float getElementWidth(PT value) {
         return 100;
     }
+    @Override
+    public float getElementHeight() {
+        return 20;
+    }
 }

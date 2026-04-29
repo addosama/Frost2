@@ -15,14 +15,6 @@ public class BooleanPropComponent extends PropertyComponent<Boolean> {
     }
 
     @Override
-    protected void renderWidgets(boolean dummy, float tickDelta) {
-        ImVec2 cursor = ImGui.getCursorPos();
-        ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - 30);
-        ImGui.setCursorPosY(cursor.y + 6);
-        prop.set(renderElement(dummy, tickDelta, this + ".switch", prop.getValue()));
-    }
-
-    @Override
     public Boolean renderElement(boolean dummy,float tickDelta, String id, Boolean value) {
         boolean clicked = ImGui.invisibleButton(id, 30, 18);
         if (!dummy) {

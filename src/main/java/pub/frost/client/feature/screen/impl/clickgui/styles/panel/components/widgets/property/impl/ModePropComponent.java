@@ -52,14 +52,6 @@ public class ModePropComponent<T extends Enum<T>> extends PropertyComponent<T> {
     }
 
     @Override
-    protected void renderWidgets(boolean dummy, float tickDelta) {
-        ImVec2 cursor = ImGui.getCursorPos();
-        ImGui.setCursorPosX(cursor.x + ImGui.getContentRegionAvailX() - 100);
-        ImGui.setCursorPosY(cursor.y + 5);
-        prop.set(renderElement(dummy, tickDelta, selector.toString(), prop.getValue()));
-    }
-
-    @Override
     public T renderElement(boolean dummy, float tickDelta, String id, T value) {
         return selector.renderElement(dummy, tickDelta, id, value);
     }
