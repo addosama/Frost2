@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Getter
-public final class FrostCore {
+public final class FrostCore implements Initializer {
     private static final @Getter String CLIENT_NAME = "Frost";
     private static final @Getter int
             MAJOR_VERSION = 1,
@@ -31,12 +31,6 @@ public final class FrostCore {
     public static final boolean DEBUG = true;
 
     private static @Getter FrostCore instance;
-    public static Path getClientDir() {
-        return Paths.get(System.getProperty("user.dir"), "frost");
-    }
-    public static Localizer getLocalizer() {
-        return getInstance().getI18nHelper().getCurrentLocalizer();
-    }
 
     private I18n i18nHelper;
     private EventBus eventBus;
@@ -45,11 +39,8 @@ public final class FrostCore {
     private ConfigManager configManager;
 
     private ClientScreenManager clientScreenManager;
-
-    private RotationManager rotationManager;
-    private PlayerListener playerListener;
-    private LagManager lagManager;
-    private PacketManager packetManager;
+    
+    private ClientHelpers helpers;
 
     public FrostCore() {
         instance = this;
@@ -60,22 +51,14 @@ public final class FrostCore {
         i18nHelper.loadLanguages();
 
         eventBus = new EventBus();
-        eventBus.register(ClientRenderContext.getInstance());
-        bindableManager = new BindableManager();
-        eventBus.register(bindableManager);
+        registerToEventBus(ClientRenderContext.getInstance());
+        bindableManager = registerToEventBus(new BindableManager());
         moduleManager = new ModuleManager();
         configManager = new ConfigManager();
 
-        clientScreenManager = new ClientScreenManager();
-        eventBus.register(clientScreenManager);
+        clientScreenManager = registerToEventBus(new ClientScreenManager());
 
-        rotationManager = new RotationManager();
-        eventBus.register(rotationManager);
-        playerListener = new PlayerListener();
-        eventBus.register(playerListener);
-        lagManager = new LagManager();
-        eventBus.register(lagManager);
-        packetManager = new PacketManager();
+        helpers = new ClientHelpers();
 
         FrostCore.getClientDir().toFile().mkdirs();
         moduleManager.registerModules();
@@ -85,5 +68,36 @@ public final class FrostCore {
 
     public void shutdown() {
         configManager.saveAndWriteAllConfig();
+    }
+
+    @Deprecated
+    public RotationManager getRotationManager() {
+        return helpers.rotationManager;
+    }
+    @Deprecated
+    public PlayerListener getPlayerListener() {
+        return helpers.playerListener;
+    }
+    @Deprecated
+    public LagManager getLagManager() {
+        return helpers.lagManager;
+    }
+    @Deprecated
+    public PacketManager getPacketManager() {
+        return helpers.packetManager;
+    }
+
+    public static Path getClientDir() {
+        return Paths.get(System.getProperty("user.dir"), "frost");
+    }
+    public static Localizer getLocalizer() {
+        return getInstance().getI18nHelper().getCurrentLocalizer();
+    }
+    
+    public static EventBus getEventBus() {
+        return instance.eventBus;
+    }
+    public static ClientHelpers getHelpers() {
+        return instance.helpers;
     }
 }
