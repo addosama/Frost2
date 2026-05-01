@@ -31,7 +31,7 @@ public abstract class ClientOverlay {
         this(key, "", nameSupplier);
     }
 
-    protected final int DEFAULT_WINDOW_FLAGS = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
+    protected final int DEFAULT_WINDOW_FLAGS = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize;
     
     public final void render(boolean dummy, boolean input, float tickDelta) {
         if (!isVisible()) return;
@@ -63,6 +63,7 @@ public abstract class ClientOverlay {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 12f);
         ImGui.pushStyleColor(ImGuiCol.WindowBg, 0xCC331914);
 
+        ImGui.setNextWindowSize(200, 30);
         ImGui.begin(this.toString(), windowFlags);
         windowPos = ImGui.getWindowPos();
 

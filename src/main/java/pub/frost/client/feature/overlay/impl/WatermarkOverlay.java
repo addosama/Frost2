@@ -78,4 +78,9 @@ public class WatermarkOverlay extends ClientOverlay implements Named {
     public boolean isVisible() {
         return enabled.get();
     }
+
+    @Override
+    public String getName() {
+        return Named.super.getName();
+    }
 }
