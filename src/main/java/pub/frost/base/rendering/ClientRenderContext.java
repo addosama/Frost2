@@ -40,6 +40,7 @@ public class ClientRenderContext {
         ImGui.getStyle().setAntiAliasedFill(true);
         ImGui.getStyle().setAntiAliasedLines(true);
         ImGui.getStyle().setAntiAliasedLinesUseTex(true);
+        ImGui.getStyle().setDisplayWindowPadding(0, 0);
         imGuiImplGl2.newFrame();
         imGuiDisplay.newFrame();
         ImGui.newFrame();

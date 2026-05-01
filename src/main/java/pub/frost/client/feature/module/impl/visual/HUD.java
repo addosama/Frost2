@@ -30,12 +30,12 @@ public class HUD extends AbstractModule {
             watermark, toggledModules
     );
 
-    @EventHandler(priority = 50)
+    @EventHandler(priority = -50)
     public void onRender(EventRender2D e) {
         overlayList.forEach(o -> o.render(false, isInChatHud(), e.getTickDelta()));
     }
 
-    @EventHandler(priority = 50)
+    @EventHandler(priority = -50)
     public void onPostRender(EventPostRender e) {
         overlayList.forEach(o -> o.render(true, isInChatHud(), e.getTickDelta()));
     }

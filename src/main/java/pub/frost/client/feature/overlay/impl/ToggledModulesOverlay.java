@@ -17,6 +17,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.data.EnumTextFormatting;
 
+// todo
 public class ToggledModulesOverlay extends ClientOverlay {
     public ToggledModulesOverlay() {
         super("overlays.toggledmodules");
@@ -30,9 +31,9 @@ public class ToggledModulesOverlay extends ClientOverlay {
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
     @Property("SidebarGradient")
-    public final BooleanProperty sidebarGradient = new BooleanProperty(true).setVisibilitySupplier(BooleanProperty.class, sidebar::get);
+    public final BooleanProperty sidebarGradient = new BooleanProperty(true).setVisibilitySupplier(sidebar::get);
     @Property("SidebarShadow")
-    public final BooleanProperty sidebarShadow = new BooleanProperty(false).setVisibilitySupplier(BooleanProperty.class, sidebar::get);
+    public final BooleanProperty sidebarShadow = new BooleanProperty(false).setVisibilitySupplier(sidebar::get);
 
     @Property("Background")
     public final BooleanProperty background = new BooleanProperty(true);
@@ -40,44 +41,49 @@ public class ToggledModulesOverlay extends ClientOverlay {
     public final BooleanProperty textShadow = new BooleanProperty(false);
 
     @Override
-    protected void doRender(boolean dummy, boolean input, float tickDelta) {
-        if (!enabled.get()) return;
-        int windowFlags = DEFAULT_WINDOW_FLAGS;
-        if (!input) windowFlags |= ImGuiWindowFlags.NoInputs;
-        ImGui.begin(this.toString(), windowFlags);
-        ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
+    protected void doRender(ImVec2 pos, ImVec2 normalizedOffset, ImDrawList draws, boolean input, float tickDelta) {
         ImGui.pushFont(FontManager.INSTANCE.puhui14);
 
-        for (
-                AbstractModule module :
-                FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
-                    float diff = ImTextRenderer.getTextWidth(m2.getName()) - ImTextRenderer.getTextWidth(m1.getName());
-                    return diff < 0? -1 : diff == 0? 0 : 1;
-                })
-        ) {
-            renderModule(
-                    dummy, input, tickDelta,
-                    module
-            );
-        }
+//        final int normalizedXOffset, normalizedYOffset;
+//        {
+//            ImVec2 displaySize = ImGui.getIO().getDisplaySize();
+//            ImVec2 windowPos = ImGui.getWindowPos();
+//            normalizedXOffset = windowPos.x <= displaySize.x / 2? 1 : -1;
+//            normalizedYOffset = windowPos.y <= displaySize.y / 2? 1 : -1;
+//        }
+//
+//        float lastItemHeight = 0;
+//        for (
+//                AbstractModule module :
+//                FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
+//                    float diff = ImTextRenderer.getTextWidth(m2.getName()) - ImTextRenderer.getTextWidth(m1.getName());
+//                    return diff < 0? -normalizedYOffset : diff == 0? 0 : normalizedYOffset;
+//                })
+//        ) {
+//            if (normalizedYOffset < 0) {
+//                ImGui.setCursorPosY(ImGui.getCursorPosY() - lastItemHeight * 2);
+//            }
+//            renderModule(
+//                    input, tickDelta,
+//                    normalizedXOffset, normalizedYOffset,
+//                    module
+//            );
+//            lastItemHeight = ImGui.getItemRectSizeY();
+//        }
 
         ImGui.popFont();
-        ImGui.popStyleVar();
-        ImGui.end();
     }
 
-    private void renderModule(boolean dummy, boolean input, float tickDelta, AbstractModule module) {
+    private void renderModule(
+            boolean input, float tickDelta,
+            int normalizedXOffset, int normalizedYOffset,
+            AbstractModule module
+    ) {
         ImGui.beginGroup();
         ImVec2 sidebarPosMin;
         ImVec2 textPos;
         ImVec2 panelPosMin, panelPosMax;
         String moduleName = module.getName();
-
-        if (sidebar.get()) {
-            ImGui.dummy(2, 0);
-            sidebarPosMin = ImGui.getItemRectMin();
-            ImGui.sameLine();
-        } else sidebarPosMin = ImGui.getCursorScreenPos();
 
         {
             ImGui.beginGroup();
@@ -94,7 +100,19 @@ public class ToggledModulesOverlay extends ClientOverlay {
             panelPosMax = ImGui.getItemRectMax();
         }
 
-        if (!dummy) {
+        if (sidebar.get()) {
+            ImGui.dummy(2, 0);
+            if (normalizedXOffset < 0) {
+                sidebarPosMin = new ImVec2(panelPosMax.x, panelPosMin.y);
+            } else {
+                sidebarPosMin = panelPosMin;
+                panelPosMin = panelPosMin.plus(2, 0);
+                panelPosMax = panelPosMax.plus(2, 0);
+            }
+            ImGui.sameLine();
+        } else sidebarPosMin = ImGui.getCursorScreenPos();
+
+        if (true) {
             final int
                     bgColor = ImColor.rgba("#141933CC"),
                     sidebarColor = ImColor.rgba("#E5EAFFFF"),
@@ -111,11 +129,11 @@ public class ToggledModulesOverlay extends ClientOverlay {
                 float panelHeight = panelPosMax.y - panelPosMin.y;
                 // draw sidebar
                 {
-                    ImVec2 sideBarPosMax = sidebarPosMin.plus(2, panelHeight);
+                    ImVec2 sideBarPosMax = sidebarPosMin.plus(2 * normalizedXOffset, panelHeight);
                     if (sidebarShadow.get()) {
                         draws.addRectFilled(
-                                sidebarPosMin.plus(1, 0),
-                                sideBarPosMax.plus(1, 0),
+                                sidebarPosMin.plus(normalizedXOffset, 0),
+                                sideBarPosMax.plus(normalizedXOffset, 0),
                                 (sidebarColor & 16579836) >> 2 | sidebarColor & -16777216
                         );
                     }
@@ -125,7 +143,7 @@ public class ToggledModulesOverlay extends ClientOverlay {
                     );
                 }
                 if (sidebarGradient.get()) {
-                    ImVec2 gradientPosMin = sidebarPosMin.plus(2, 0), gradientPosMax = gradientPosMin.plus(8, panelHeight);
+                    ImVec2 gradientPosMin = sidebarPosMin.plus(2 * normalizedXOffset, 0), gradientPosMax = gradientPosMin.plus(8 * normalizedXOffset, panelHeight);
                     final int gradientStartColor = ImGui.getColorU32i(sidebarColor, 0.2f),
                             gradientEndColor = ImGui.getColorU32i(sidebarColor, 0);
                     draws.addRectFilledMultiColor(
@@ -147,5 +165,10 @@ public class ToggledModulesOverlay extends ClientOverlay {
         }
 
         ImGui.endGroup();
+    }
+
+    @Override
+    public boolean isVisible() {
+        return enabled.get();
     }
 }

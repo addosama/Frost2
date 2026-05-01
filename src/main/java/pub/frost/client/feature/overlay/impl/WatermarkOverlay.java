@@ -1,9 +1,8 @@
 package pub.frost.client.feature.overlay.impl;
 
-import imgui.ImColor;
 import imgui.ImDrawList;
 import imgui.ImGui;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.ImVec2;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.i18n.annotations.TranslationKey;
@@ -24,63 +23,57 @@ public class WatermarkOverlay extends ClientOverlay {
     private final String text = "Frost";
 
     @Override
-    protected void preRender(boolean dummy) {
-        super.preRender(dummy);
+    protected ImVec2[] preRender(boolean dummy, boolean input) {
         ImGui.pushFont(FontManager.INSTANCE.puHui18);
+        return super.preRender(dummy, input);
     }
     @Override
-    protected void postRender(boolean dummy) {
+    protected void postRender(boolean dummy, boolean input) {
+        super.postRender(dummy, input);
         ImGui.popFont();
-        super.postRender(dummy);
     }
 
     @Override
-    protected void doRender(boolean dummy, boolean input, float tickDelta) {
-        if (!enabled.get()) return;
-        int windowFlags = DEFAULT_WINDOW_FLAGS;
-        if (!input) windowFlags |= ImGuiWindowFlags.NoInputs;
+    protected void doRender(ImVec2 pos, ImVec2 normalizedOffset, ImDrawList draws, boolean input, float tickDelta) {
+        final int bgColor = 0xCC331914;
+        final int textColor = 0xFFFFEAE5;
 
-        ImGui.begin(this.toString(), windowFlags);
-
-        final int bgColor = ImColor.rgba(20, 25, 51, 204);
-        final int textColor = ImColor.rgba("#E5EAFFFF");
-        ImDrawList draws = ImGui.getWindowDrawList();
-
+        float xOffset = pos.x, yOffset = pos.y;
+        if (normalizedOffset.y < 0) yOffset -= 30;
         // icon
         {
-            ImGui.dummy(30, 30);
-            if (!dummy) {
-                final float x = ImGui.getItemRectMinX(), y = ImGui.getItemRectMinY();
-                ImGui.pushFont(FontManager.INSTANCE.icon14);
-                draws.addRectFilled(
-                        x, y, x + 30, y + 30,
-                        bgColor, 12f
-                );
-                draws.addText(
-                        x + 8, y + 7,
-                        textColor, "\ue601"
-                );
-                ImGui.popFont();
-            }
+            final float x = xOffset, y = yOffset;
+            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            draws.addRectFilled(
+                    x, y, x + 30, y + 30,
+                    bgColor, 12f
+            );
+            draws.addText(
+                    x + 8, y + 7,
+                    textColor, "\ue601"
+            );
+            ImGui.popFont();
+            xOffset += 30;
         }
-        ImGui.sameLine(0, 5);
+        xOffset += 6;
         // text
         {
             final float textWidth = ImGui.calcTextSizeX(text) + 18f;
-            ImGui.dummy(textWidth, 30);
-            if (!dummy) {
-                final float x = ImGui.getItemRectMinX(), y = ImGui.getItemRectMinY();
-                draws.addRectFilled(
-                        x, y, x + textWidth, y + 30,
-                        bgColor, 12f
-                );
-                draws.addText(
-                        x + 9, y + 2,
-                        textColor, text
-                );
-            }
-        }
 
-        ImGui.end();
+            final float x = xOffset, y = yOffset;
+            draws.addRectFilled(
+                    x, y, x + textWidth, y + 30,
+                    bgColor, 12f
+            );
+            draws.addText(
+                    x + 9, y + 2,
+                    textColor, text
+            );
+        }
+    }
+
+    @Override
+    public boolean isVisible() {
+        return enabled.get();
     }
 }
