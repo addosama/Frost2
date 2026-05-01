@@ -66,8 +66,10 @@ public abstract class ClientOverlay {
         ImGui.begin(this.toString(), windowFlags);
         windowPos = ImGui.getWindowPos();
 
-        if (showTitle) {
-            yOffset += 30 + contentOffset;
+        // draw title
+        {
+            if (!showTitle) ImGui.pushStyleVar(ImGuiStyleVar.Alpha, 0.001f);
+            else yOffset += 30 + contentOffset;
 
             float xOffset = 6;
             if (icon != null && !icon.isEmpty()) {
@@ -88,6 +90,7 @@ public abstract class ClientOverlay {
             );
             ImGui.setCursorPos(namePos);
             ImGui.textColored(0xFFFFEAE5, name);
+            if (!showTitle) ImGui.popStyleVar();
         }
 
         ImVec2 windowSize = ImGui.getWindowSize();
@@ -116,12 +119,10 @@ public abstract class ClientOverlay {
             normalizedOffset = new ImVec2(normalizedX, normalizedY);
         }
 
-
-        if (showTitle) {
-            if (normalizedOffset.y < 0) {
-                renderPos = windowPos.minus(0, contentOffset);
-            } else renderPos = windowPos.plus(0, yOffset);
-        } else renderPos = windowPos;
+        renderPos = windowPos.plus(
+                normalizedOffset.x < 0? windowSize.x : 0,
+                normalizedOffset.y < 0? -contentOffset + (showTitle? 0 : windowSize.y) : yOffset
+        );
         ImGui.end();
 
         ImGui.popStyleColor();

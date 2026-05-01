@@ -4,21 +4,20 @@ import imgui.ImColor;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
-import imgui.flag.ImGuiStyleVar;
-import imgui.flag.ImGuiWindowFlags;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.ImTextRenderer;
-import pub.frost.utils.data.EnumTextFormatting;
 
-// todo
-public class ToggledModulesOverlay extends ClientOverlay {
+@TranslationKey("modules.hud.props.toggledmodules.name")
+public class ToggledModulesOverlay extends ClientOverlay implements Named {
     public ToggledModulesOverlay() {
         super("overlays.toggledmodules");
     }
@@ -28,8 +27,15 @@ public class ToggledModulesOverlay extends ClientOverlay {
     @Property("enabled")
     public final BooleanProperty enabled = new BooleanProperty(true);
 
+    @Property("HorizontalPadding")
+    public final IntegerProperty horizontalPadding = new IntegerProperty(0, 20, 1, 10);
+    @Property("VerticalPadding")
+    public final IntegerProperty verticalPadding = new IntegerProperty(0, 10, 1, 4);
+
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
+    @Property("SidebarWidth")
+    public final IntegerProperty sidebarWidth = new IntegerProperty(1, 10, 1, 4).setVisibilitySupplier(sidebar::get);
     @Property("SidebarGradient")
     public final BooleanProperty sidebarGradient = new BooleanProperty(true).setVisibilitySupplier(sidebar::get);
     @Property("SidebarShadow")
@@ -43,128 +49,91 @@ public class ToggledModulesOverlay extends ClientOverlay {
     @Override
     protected void doRender(ImVec2 pos, ImVec2 normalizedOffset, ImDrawList draws, boolean input, float tickDelta) {
         ImGui.pushFont(FontManager.INSTANCE.puhui14);
+        final int hPadding = horizontalPadding.get(), vPadding = verticalPadding.get();
+        final int sidebarWidth = sidebar.get()? this.sidebarWidth.get() : 0;
 
-//        final int normalizedXOffset, normalizedYOffset;
-//        {
-//            ImVec2 displaySize = ImGui.getIO().getDisplaySize();
-//            ImVec2 windowPos = ImGui.getWindowPos();
-//            normalizedXOffset = windowPos.x <= displaySize.x / 2? 1 : -1;
-//            normalizedYOffset = windowPos.y <= displaySize.y / 2? 1 : -1;
-//        }
-//
-//        float lastItemHeight = 0;
-//        for (
-//                AbstractModule module :
-//                FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
-//                    float diff = ImTextRenderer.getTextWidth(m2.getName()) - ImTextRenderer.getTextWidth(m1.getName());
-//                    return diff < 0? -normalizedYOffset : diff == 0? 0 : normalizedYOffset;
-//                })
-//        ) {
-//            if (normalizedYOffset < 0) {
-//                ImGui.setCursorPosY(ImGui.getCursorPosY() - lastItemHeight * 2);
-//            }
-//            renderModule(
-//                    input, tickDelta,
-//                    normalizedXOffset, normalizedYOffset,
-//                    module
-//            );
-//            lastItemHeight = ImGui.getItemRectSizeY();
-//        }
+        float maxWidth = 0;
+        float yOffset = 0;
+        for (
+                AbstractModule module :
+                FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
+                    float diff = ImTextRenderer.getTextWidth(m2.getName()) - ImTextRenderer.getTextWidth(m1.getName());
+                    return diff < 0? -1 : diff == 0? 0 : 1;
+                })
+        ) {
+            final String textRendering = module.getName();
+            final float predicatedW = ImTextRenderer.getTextWidth(textRendering) + hPadding * 2 + sidebarWidth;
+            final float predicatedH = ImTextRenderer.getTextHeight() + vPadding * 2;
+
+            maxWidth = Math.max(maxWidth, predicatedW);
+
+            renderModule(
+                    pos.plus(0, yOffset), draws,
+                    textRendering, sidebarWidth, predicatedW, predicatedH,
+                    hPadding, vPadding,
+                    normalizedOffset, module
+            );
+            yOffset += predicatedH * normalizedOffset.y;
+        }
 
         ImGui.popFont();
     }
 
     private void renderModule(
-            boolean input, float tickDelta,
-            int normalizedXOffset, int normalizedYOffset,
-            AbstractModule module
+            ImVec2 pos, ImDrawList draws,
+            String text, float sidebarWidth, float predicatedW, float predicatedH,
+            int hPadding, int vPadding,
+            ImVec2 normalizedOffset, AbstractModule module
     ) {
-        ImGui.beginGroup();
-        ImVec2 sidebarPosMin;
-        ImVec2 textPos;
-        ImVec2 panelPosMin, panelPosMax;
-        String moduleName = module.getName();
+        final int bgColor = ImColor.rgba("#141933CC"), sidebarColor = ImColor.rgba("#E5EAFFFF"), textColor = ImColor.rgba("#E5EAFFFF");
 
-        {
-            ImGui.beginGroup();
-            ImGui.dummy(0, 4);
-            ImGui.dummy(10, 0);
-            ImGui.sameLine();
-            ImGui.textColored(0, EnumTextFormatting.removeFormat(moduleName));
-            textPos = ImGui.getItemRectMin();
-            ImGui.sameLine();
-            ImGui.dummy(10, 0);
-            ImGui.dummy(0, 4);
-            ImGui.endGroup();
-            panelPosMin = ImGui.getItemRectMin();
-            panelPosMax = ImGui.getItemRectMax();
+        if (background.get()) {
+            draws.addRectFilled(
+                    pos, pos.plus(predicatedW * normalizedOffset.x, predicatedH * normalizedOffset.y),
+                    bgColor
+            );
         }
 
-        if (sidebar.get()) {
-            ImGui.dummy(2, 0);
-            if (normalizedXOffset < 0) {
-                sidebarPosMin = new ImVec2(panelPosMax.x, panelPosMin.y);
-            } else {
-                sidebarPosMin = panelPosMin;
-                panelPosMin = panelPosMin.plus(2, 0);
-                panelPosMax = panelPosMax.plus(2, 0);
-            }
-            ImGui.sameLine();
-        } else sidebarPosMin = ImGui.getCursorScreenPos();
-
-        if (true) {
-            final int
-                    bgColor = ImColor.rgba("#141933CC"),
-                    sidebarColor = ImColor.rgba("#E5EAFFFF"),
-                    textColor = ImColor.rgba("#E5EAFFFF")
-            ;
-            ImDrawList draws = ImGui.getWindowDrawList();
-            if (background.get()) {
+        ImVec2 sidebarEndXPos = pos;
+        if (sidebarWidth > 0) {
+            sidebarEndXPos = pos.plus(sidebarWidth * normalizedOffset.x, 0);
+            draws.addRectFilled(
+                    pos, sidebarEndXPos.plus(0, predicatedH * normalizedOffset.y),
+                    sidebarColor
+            );
+            if (sidebarShadow.get()) {
                 draws.addRectFilled(
-                        panelPosMin, panelPosMax,
-                        bgColor
+                        sidebarEndXPos,
+                        sidebarEndXPos.plus(2 * normalizedOffset.x, predicatedH * normalizedOffset.y),
+                        (sidebarColor & 16579836) >> 2 | sidebarColor & -16777216
                 );
             }
-            if (sidebar.get()) {
-                float panelHeight = panelPosMax.y - panelPosMin.y;
-                // draw sidebar
-                {
-                    ImVec2 sideBarPosMax = sidebarPosMin.plus(2 * normalizedXOffset, panelHeight);
-                    if (sidebarShadow.get()) {
-                        draws.addRectFilled(
-                                sidebarPosMin.plus(normalizedXOffset, 0),
-                                sideBarPosMax.plus(normalizedXOffset, 0),
-                                (sidebarColor & 16579836) >> 2 | sidebarColor & -16777216
-                        );
-                    }
-                    draws.addRectFilled(
-                            sidebarPosMin, sideBarPosMax,
-                            sidebarColor
-                    );
-                }
-                if (sidebarGradient.get()) {
-                    ImVec2 gradientPosMin = sidebarPosMin.plus(2 * normalizedXOffset, 0), gradientPosMax = gradientPosMin.plus(8 * normalizedXOffset, panelHeight);
-                    final int gradientStartColor = ImGui.getColorU32i(sidebarColor, 0.2f),
-                            gradientEndColor = ImGui.getColorU32i(sidebarColor, 0);
-                    draws.addRectFilledMultiColor(
-                            gradientPosMin, gradientPosMax,
-                            gradientStartColor,
-                            gradientEndColor,
-                            gradientEndColor,
-                            gradientStartColor
-                    );
-                }
+            if (sidebarGradient.get()) {
+                final int gradientStartColor = ImGui.getColorU32i(sidebarColor, 0.2f),
+                        gradientEndColor = ImGui.getColorU32i(sidebarColor, 0);
+
+                draws.addRectFilledMultiColor(
+                        sidebarEndXPos,
+                        sidebarEndXPos.plus(8 * normalizedOffset.x, predicatedH * normalizedOffset.y),
+                        gradientStartColor, gradientEndColor, gradientEndColor, gradientStartColor
+                );
             }
+        }
+
+        // render text
+        {
+            float textX = sidebarEndXPos.x + normalizedOffset.x * hPadding;
+            float textY = sidebarEndXPos.y + normalizedOffset.y * vPadding;
+            if (normalizedOffset.x < 0) textX -= ImTextRenderer.getTextWidth(text);
+            if (normalizedOffset.y < 0) textY -= ImTextRenderer.getTextHeight();
+
             ImTextRenderer.drawText(
-                    draws,
-                    moduleName,
-                    textPos.x, textPos.y,
+                    draws, text,
+                    textX, textY,
                     textColor,
                     textShadow.get()
             );
         }
-
-        ImGui.endGroup();
     }
 
     @Override

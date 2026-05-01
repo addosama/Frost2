@@ -6,11 +6,13 @@ import imgui.ImVec2;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 
-public class WatermarkOverlay extends ClientOverlay {
+@TranslationKey("modules.hud.props.watermark.name")
+public class WatermarkOverlay extends ClientOverlay implements Named {
     public WatermarkOverlay() {
         super("overlays.watermark");
     }
