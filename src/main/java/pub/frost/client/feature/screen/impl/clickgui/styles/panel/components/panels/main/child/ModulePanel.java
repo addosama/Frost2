@@ -9,13 +9,6 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.*;
-import pub.frost.client.property.AbstractProperty;
-import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.bool.BooleanProperty;
-import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
-import pub.frost.client.property.impl.mode.ModeProperty;
-import pub.frost.client.property.impl.number.NumberProperty;
 import pub.frost.utils.ImTextRenderer;
 
 import java.util.ArrayList;

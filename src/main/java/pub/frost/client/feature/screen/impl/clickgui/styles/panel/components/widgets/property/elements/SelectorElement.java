@@ -13,14 +13,39 @@ import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.utils.ImTextRenderer;
 
 import java.util.Collection;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public abstract class SelectorElement<T, PT> extends PanelComponent implements ElementRenderer<PT> {
-    public SelectorElement(PanelClickGui gui) {
+public class SelectorElement<ELEMENT, VAL> extends PanelComponent implements ElementRenderer<VAL> {
+    private final Function<VAL, String> valueStringProvider;
+    private final Supplier<Collection<ELEMENT>> valueListProvider;
+    
+    private final BiFunction<ELEMENT, VAL, VAL> valueClickAcceptor;
+    
+    private final BiFunction<ELEMENT, VAL, Boolean> valueStateProvider;
+    private final Function<VAL, Boolean> activeStateProvider;
+    
+    private final boolean allowMultiSelect;
+    
+    public SelectorElement(
+            PanelClickGui gui,
+            Function<VAL, String> valueStringProvider, Supplier<Collection<ELEMENT>> valueListProvider,
+            BiFunction<ELEMENT, VAL, VAL> valueClickAcceptor,
+            BiFunction<ELEMENT, VAL, Boolean> valueStateProvider, Function<VAL, Boolean> activeStateProvider,
+            boolean allowMultiSelect
+    ) {
         super(gui);
+        this.valueStringProvider = valueStringProvider;
+        this.valueListProvider = valueListProvider;
+        this.valueClickAcceptor = valueClickAcceptor;
+        this.valueStateProvider = valueStateProvider;
+        this.activeStateProvider = activeStateProvider;
+        this.allowMultiSelect = allowMultiSelect;
     }
 
     @Override
-    public PT renderElement(boolean dummy, float tickDelta, String id, PT value) {
+    public VAL renderElement(boolean dummy, float tickDelta, String id, VAL value) {
         boolean mouseClicked = ImGui.invisibleButton(id, 100, 20);
         ImVec2 itemMin = ImGui.getItemRectMin(), itemMax = ImGui.getItemRectMax();
         if (mouseClicked) ImGui.openPopup(id + ".popup");
@@ -67,7 +92,7 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
         }
 
         if (popupOpen) {
-            PT newValue = value;
+            VAL newValue = value;
             ImGui.setNextWindowPos(itemMin.x, itemMax.y + 4);
             ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 12);
             ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
@@ -76,7 +101,7 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
             ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());
 
             if (ImGui.beginPopup(id + ".popup")) {
-                newValue = renderPopup(dummy, tickDelta, id, value);
+                newValue = renderPopupContent(dummy, tickDelta, id, value);
                 ImGui.endPopup();
             }
 
@@ -89,12 +114,12 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
         return value;
     }
 
-    private PT renderPopup(boolean dummy, float tickDelta, String id, PT value) {
+    private VAL renderPopupContent(boolean dummy, float tickDelta, String id, VAL value) {
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
         ImGui.beginGroup();
         ImGui.pushFont(FontManager.INSTANCE.puHui12);
 
-        PT ret = doRenderPopup(dummy, tickDelta, id, value);
+        VAL ret = renderPopupChildren(dummy, tickDelta, id, value);
 
         ImGui.popFont();
         ImGui.endGroup();
@@ -102,7 +127,7 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
         return ret;
     }
 
-    private PT doRenderPopup(boolean dummy, float tickDelta, String id, PT value) {
+    private VAL renderPopupChildren(boolean dummy, float tickDelta, String id, VAL value) {
         ImDrawList drawList = ImGui.getWindowDrawList();
 
         boolean anyActive = isMultiSelect() && hasAnyActive(value);
@@ -117,8 +142,8 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
             drawList.channelsSetCurrent(1);
         }
 
-        PT valueReturn = value;
-        for (T mode : provideValueList(value)) {
+        VAL valueReturn = value;
+        for (ELEMENT mode : provideValueList(value)) {
             boolean active = isActive(mode, value);
             String buttonText = mode instanceof Named ? ((Named) mode).getName() : mode.toString();
             float buttonWidth = Math.max(ImTextRenderer.getTextWidth(buttonText) + 16 + xOffset, 150);
@@ -169,17 +194,37 @@ public abstract class SelectorElement<T, PT> extends PanelComponent implements E
         return valueReturn;
     }
 
-    protected abstract String providePreviewString(PT value);
-    protected abstract Collection<T> provideValueList(PT propValue);
-    protected abstract PT valueClicked(T value, PT propValue);
+    @Deprecated
+    protected String providePreviewString(VAL value) {
+        return valueStringProvider.apply(value);
+    }
+    @Deprecated
+    protected Collection<ELEMENT> provideValueList(VAL propValue) {
+        return valueListProvider.get();
+    }
+    @Deprecated
+    protected VAL valueClicked(ELEMENT value, VAL propValue) {
+        return valueClickAcceptor.apply(value, propValue);
+    }
 
-    protected abstract boolean isActive(T value, PT propValue);
-    protected abstract boolean isMultiSelect();
-    protected abstract boolean hasAnyActive(PT propValue);
+    @Deprecated
+    protected boolean isActive(ELEMENT value, VAL propValue) {
+        return valueStateProvider.apply(value, propValue);
+    }
+    @Deprecated
+    protected boolean isMultiSelect() {
+        return allowMultiSelect;
+    }
+    @Deprecated
+    protected boolean hasAnyActive(VAL propValue) {
+        return activeStateProvider.apply(propValue);
+    }
 
-    @Override public final void render(boolean dummy, float tickDelta) {}
+    @Override @Deprecated
+    public void render(boolean dummy, float tickDelta) {}
+
     @Override
-    public float getElementWidth(PT value) {
+    public float getElementWidth(VAL value) {
         return 100;
     }
     @Override

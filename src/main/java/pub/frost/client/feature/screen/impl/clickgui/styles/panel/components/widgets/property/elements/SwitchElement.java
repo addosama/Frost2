@@ -1,17 +1,14 @@
-package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl;
+package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements;
 
 import imgui.ImGui;
 import imgui.ImVec2;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
-import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.ElementRenderer;
 
-public class BooleanPropComponent extends PropertyComponent<Boolean> {
-    private final BooleanProperty prop;
-    public BooleanPropComponent(PanelClickGui gui, PropertyDescriptor descriptor, BooleanProperty prop) {
-        super(gui, descriptor);
-        this.prop = prop;
+public class SwitchElement extends PanelComponent implements ElementRenderer<Boolean> {
+    public SwitchElement(PanelClickGui gui) {
+        super(gui);
     }
 
     @Override
@@ -37,4 +34,7 @@ public class BooleanPropComponent extends PropertyComponent<Boolean> {
     public float getElementWidth(Boolean value) {
         return 30;
     }
+
+    @Override @Deprecated
+    public void render(boolean dummy, float tickDelta) {}
 }

@@ -6,10 +6,14 @@ import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.rendering.FontManager;
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl.*;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SelectorElement;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SliderElement;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SwitchElement;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.override.OverridePopupComponent;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
@@ -18,17 +22,17 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.NumberProperty;
 import pub.frost.utils.ImTextRenderer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class PropertyComponent<T> extends PanelComponent implements ElementRenderer<T> {
+public class PropertyComponent<T> extends PanelComponent {
     protected final PropertyDescriptor descriptor;
-    protected final AbstractProperty prop;
+    protected final AbstractProperty<T, ?> prop;
     protected final List<PropertyComponent<?>> children;
     protected final OverridePopupComponent<T> overridePopup;
+    protected final ElementRenderer<T> elementRenderer;
 
-    public PropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
+    public PropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor, ElementRenderer<T> elementRenderer) {
         super(gui);
         this.descriptor = descriptor;
 
@@ -37,7 +41,7 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             overridePopup = new OverridePopupComponent<>(
                     gui,
                     prop,
-                    this
+                    elementRenderer
             );
         } else overridePopup = null;
 
@@ -46,7 +50,7 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             childList = descriptor.getChildProperties().stream().collect(
                     ArrayList::new,
                     (list, child) -> {
-                        AbstractProperty childProp = child.getProperty();
+                        AbstractProperty<?, ?> childProp = child.getProperty();
                         if (childProp != null && childProp == prop) return;
                         list.add(buildForDescriptor(gui, child));
                     },
@@ -55,6 +59,21 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
             if (childList.isEmpty()) children = null;
             else children = childList;
         } else children = null;
+
+        if (elementRenderer == null) {
+            elementRenderer = new ElementRenderer<T>() {
+                @Override
+                public T renderElement(boolean dummy, float tickDelta, String id, T value) {
+                    return value;
+                }
+
+                @Override
+                public float getElementWidth(T value) {
+                    return 0;
+                }
+            };
+        }
+        this.elementRenderer = elementRenderer;
     }
 
     @Override
@@ -72,7 +91,7 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         float xOffset = ImGui.getContentRegionAvailX();
         if (prop != null) {
             T val = (T) prop.getValue();
-            xOffset -= getElementWidth(val);
+            xOffset -= elementRenderer.getElementWidth(val);
             ImGui.sameLine(xOffset);
             renderWidgets(dummy, tickDelta, val);
             xOffset -= 6;
@@ -110,8 +129,8 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         ImGui.popFont();
     }
     protected void renderWidgets(boolean dummy, float tickDelta, T val) {
-        ImGui.setCursorPosY((ImGui.getCursorPosY() + ImGui.getContentRegionAvailY() - getElementHeight()) / 2);
-        prop.set(renderElement(dummy, tickDelta, this + ".element", val));
+        ImGui.setCursorPosY((ImGui.getCursorPosY() + ImGui.getContentRegionAvailY() - elementRenderer.getElementHeight()) / 2);
+        prop.set(elementRenderer.renderElement(dummy, tickDelta, this + ".element", val));
     }
     protected void renderOverride(boolean dummy, float tickDelta) {
         boolean overrideActive = descriptor.getProperty().isOverrideActive();
@@ -196,33 +215,68 @@ public abstract class PropertyComponent<T> extends PanelComponent implements Ele
         return descriptor.isVisible();
     }
 
-    private static PropertyComponent<?> getPropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
-        AbstractProperty abstractProp = descriptor.getProperty();
-        PropertyComponent<?> component = null;
+    private static <NUM extends Number & Comparable<NUM>, MODE extends Enum<MODE>> PropertyComponent<?> getPropertyComponent(PanelClickGui gui, PropertyDescriptor descriptor) {
+        final AbstractProperty<?, ?> abstractProp = descriptor.getProperty();
+        ElementRenderer<?> er = null;
+
         if (abstractProp != null) {
             if (abstractProp instanceof BooleanProperty) {
-                component = new BooleanPropComponent(gui, descriptor, (BooleanProperty) abstractProp);
-            } else if (abstractProp instanceof NumberProperty) {
-                component = new NumberPropComponent(gui, descriptor, (NumberProperty) abstractProp);
-            } else if (abstractProp instanceof ModeProperty) {
-                component = new ModePropComponent(gui, descriptor, (ModeProperty) abstractProp);
-            } else if (abstractProp instanceof MultipleBooleanProperty) {
-                component = new MultipleBooleanPropComponent(gui, descriptor, (MultipleBooleanProperty) abstractProp);
+                er = new SwitchElement(gui);
             }
-        } else {
-            component = new PropertyComponent<Object>(gui, descriptor) {
-                @Override
-                public Object renderElement(boolean dummy, float tickDelta, String id, Object value) {
-                    return value;
-                }
-
-                @Override
-                public float getElementWidth(Object value) {
-                    return 0;
-                }
-            };
+            else if (abstractProp instanceof NumberProperty) {
+                NumberProperty<NUM, ?> numProp = (NumberProperty<NUM, ?>) abstractProp;
+                er = new SliderElement<>(
+                        gui,
+                        () -> numProp.getMinValue().floatValue(),
+                        () -> numProp.getMaxValue().floatValue(),
+                        numProp::getValueAsString,
+                        numProp::castValue,
+                        numProp::getProcessedValue
+                );
+            }
+            else if (abstractProp instanceof ModeProperty) {
+                ModeProperty<MODE> modeProp = (ModeProperty<MODE>) abstractProp;
+                er = new SelectorElement<MODE, MODE>(
+                        gui,
+                        value -> value instanceof Named ? ((Named) value).getName() : value.toString(),
+                        () -> Arrays.asList(modeProp.getTypeClass().getEnumConstants()),
+                        (element, value) -> value,
+                        (element, value) -> modeProp.is(value),
+                        value -> true,
+                        false
+                );
+            }
+            else if (abstractProp instanceof MultipleBooleanProperty) {
+                MultipleBooleanProperty<MODE> multipleProp = (MultipleBooleanProperty<MODE>) abstractProp;
+                er = new SelectorElement<MODE, Map<MODE, Boolean>>(
+                        gui,
+                        value -> {
+                            StringBuilder builder = new StringBuilder();
+                            boolean first = true;
+                            for (Map.Entry<MODE, Boolean> entry : value.entrySet().stream().filter(Map.Entry::getValue).collect(Collectors.toList())) {
+                                if (!first) builder.append(", ");
+                                first = false;
+                                MODE key = entry.getKey();
+                                builder.append(key instanceof Named? ((Named) key).getName() : key.toString());
+                            }
+                            String str = builder.toString();
+                            return str.isEmpty()? FrostCore.getLocalizer().get("strings.none") : str;
+                        },
+                        () -> multipleProp.get().keySet(),
+                        (element, value) -> {
+                            value.put(element, !value.getOrDefault(element, false));
+                            return value;
+                        },
+                        (element, value) -> value.getOrDefault(element, false),
+                        value -> value.containsValue(Boolean.TRUE),
+                        true
+                );
+            }
         }
-        return component;
+
+        return new PropertyComponent(
+                gui, descriptor, er
+        );
     }
     public static PropertyComponent<?> buildForDescriptor(PanelClickGui gui, PropertyDescriptor descriptor) {
         return getPropertyComponent(

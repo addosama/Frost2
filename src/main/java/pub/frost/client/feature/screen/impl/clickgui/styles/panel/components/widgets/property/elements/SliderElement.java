@@ -1,4 +1,4 @@
-package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.impl;
+package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements;
 
 import imgui.ImDrawList;
 import imgui.ImGui;
@@ -7,24 +7,38 @@ import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import pub.frost.base.rendering.FontManager;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
-import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.impl.number.NumberProperty;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.ElementRenderer;
 
 import java.math.BigDecimal;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public class NumberPropComponent<T extends Number & Comparable<T>> extends PropertyComponent<T> {
-    private final NumberProperty<T, ? extends NumberProperty> prop;
+public class SliderElement<T extends Number & Comparable<T>> extends PanelComponent implements ElementRenderer<T> {
+    private final Supplier<Float> minValueProvider, maxValueProvider;
+    private final Function<T, String> valueStringProvider;
+    private final Function<BigDecimal, T> valueConverter;
+    private final Function<BigDecimal, BigDecimal> valueProcessor;
 
-    public NumberPropComponent(PanelClickGui gui, PropertyDescriptor descriptor, NumberProperty<T, ? extends NumberProperty> prop) {
-        super(gui, descriptor);
-        this.prop = prop;
+    public SliderElement(
+            PanelClickGui gui,
+            Supplier<Float> minValueProvider, Supplier<Float> maxValueProvider,
+            Function<T, String> valueStringProvider,
+            Function<BigDecimal, T> valueConverter, Function<BigDecimal, BigDecimal> valueProcessor
+    ) {
+        super(gui);
+
+        this.minValueProvider = minValueProvider;
+        this.maxValueProvider = maxValueProvider;
+        this.valueStringProvider = valueStringProvider;
+        this.valueConverter = valueConverter;
+        this.valueProcessor = valueProcessor;
     }
 
     @Override
     public T renderElement(boolean dummy, float tickDelta, String id, T value) {
-        float valueMin = prop.getMinValue().floatValue();
-        float valueMax = prop.getMaxValue().floatValue();
+        float valueMin = minValueProvider.get();
+        float valueMax = maxValueProvider.get();
         float valueInterval = valueMax - valueMin;
         T valReturn = value;
 
@@ -33,7 +47,7 @@ public class NumberPropComponent<T extends Number & Comparable<T>> extends Prope
         // value
         {
             ImGui.pushFont(FontManager.INSTANCE.puHui10);
-            String valText = prop.getValueAsString(valReturn);
+            String valText = valueStringProvider.apply(valReturn);
             ImGui.pushStyleVar(ImGuiStyleVar.FrameRounding, 6);
             ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 4, 2);
             ImGui.pushStyleColor(ImGuiCol.Button, gui.getTheme().getButtonBgColor());
@@ -58,8 +72,8 @@ public class NumberPropComponent<T extends Number & Comparable<T>> extends Prope
             if (drag) {
                 float relativeMouseX = ImGui.getMousePosX() - rectMin.x;
                 float mousePercent = relativeMouseX / size.x;
-                valReturn = prop.castValue(prop.getProcessedValue(
-                        prop.castValue(BigDecimal.valueOf(valueMin + (mousePercent * valueInterval)))
+                valReturn = valueConverter.apply(valueProcessor.apply(
+                        BigDecimal.valueOf(valueMin + (mousePercent * valueInterval))
                 ));
             }
 
@@ -95,6 +109,9 @@ public class NumberPropComponent<T extends Number & Comparable<T>> extends Prope
 
     @Override
     public float getElementWidth(T value) {
-        return 100 + 14 + FontManager.INSTANCE.puHui10.calcTextSizeAX(14f, Float.MAX_VALUE, 0f, prop.getValueAsString(value));
+        return 100 + 14 + FontManager.INSTANCE.puHui10.calcTextSizeAX(14f, Float.MAX_VALUE, 0f, valueStringProvider.apply(value));
     }
+
+    @Override @Deprecated
+    public void render(boolean dummy, float tickDelta) {}
 }
