@@ -36,14 +36,17 @@ public abstract class NumberProperty<T extends Number & Comparable<T>, SELF exte
     public String getValueAsString(T value) {
         return getProcessedValue(value).toPlainString();
     }
-    public final BigDecimal getProcessedValue(T value) {
+    public final BigDecimal getProcessedValue(BigDecimal value) {
         return MathUtils.roundToStep(
                 MathUtils.clamp(
-                        new BigDecimal(value.toString()),
+                        value,
                         minValue, maxValue
                 ),
                 increaseStep
         );
+    }
+    public final BigDecimal getProcessedValue(T value) {
+        return getProcessedValue(new BigDecimal(value.toString()));
     }
     public abstract T castValue(BigDecimal value);
 }

@@ -1,6 +1,7 @@
 package pub.frost.client.property.impl.bool;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import lombok.Getter;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.utils.EnumUtils;
 
@@ -8,7 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MultipleBooleanProperty<T extends Enum<T>> extends AbstractProperty<Map<T, Boolean>, MultipleBooleanProperty<T>> {
+    @Getter
     private final transient Class<T> typeClass;
+
     @JSONField(name = "value")
     private final Map<T, Boolean> values;
 
@@ -41,11 +44,12 @@ public class MultipleBooleanProperty<T extends Enum<T>> extends AbstractProperty
     }
 
     public Set<Map.Entry<T, Boolean>> getEntrySet() {
-        return values.entrySet();
+        return get().entrySet();
     }
 
     public Set<T> getEnabled() {
-        return values.keySet().stream().filter(values::get).collect(Collectors.toSet());
+        Map<T, Boolean> val = get();
+        return val.keySet().stream().filter(val::get).collect(Collectors.toSet());
     }
     public boolean isEnabled(T value) {
         return values.get(value).equals(Boolean.TRUE);

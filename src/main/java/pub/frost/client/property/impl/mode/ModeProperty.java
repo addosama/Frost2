@@ -2,13 +2,21 @@ package pub.frost.client.property.impl.mode;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.utils.EnumUtils;
 
-@AllArgsConstructor
 public class ModeProperty<T extends Enum<T>> extends AbstractProperty<T, ModeProperty<T>> {
+    @Getter
+    private final transient Class<T> typeClass;
+
     @JSONField(name = "value")
     private T value;
+
+    public ModeProperty(T value) {
+        this.value = value;
+        this.typeClass = value.getDeclaringClass();
+    }
 
     @Override
     public T getValue() {
