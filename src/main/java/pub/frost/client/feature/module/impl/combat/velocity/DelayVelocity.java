@@ -2,7 +2,7 @@ package pub.frost.client.feature.module.impl.combat.velocity;
 
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.event.impl.events.EventPacket;
-import pub.frost.client.feature.module.api.SubModule;
+import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.Velocity;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
@@ -13,7 +13,7 @@ import pub.frost.client.property.impl.number.IntegerProperty;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class DelayVelocity extends SubModule<Velocity> implements Supplier<Boolean> {
+public class DelayVelocity extends AbstractSubModule<Velocity> implements Supplier<Boolean> {
     public DelayVelocity(Velocity velocity) {
         super(velocity);
     }

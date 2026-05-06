@@ -1,6 +1,6 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
-import pub.frost.client.feature.module.api.SubModule;
+import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
@@ -12,7 +12,7 @@ import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KillAuraTargeting extends SubModule<KillAura> {
+public class KillAuraTargeting extends AbstractSubModule<KillAura> {
     public KillAuraTargeting(KillAura killAura) {
         super(killAura);
     }

@@ -3,7 +3,7 @@ package pub.frost.client.feature.module.impl.visual.esp;
 import imgui.ImGui;
 import imgui.ImVec2;
 import org.joml.Matrix4f;
-import pub.frost.client.feature.module.api.SubModule;
+import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.visual.ESP;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
@@ -13,7 +13,7 @@ import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.RenderUtils;
 import pub.frost.utils.data.BoundingBox;
 
-public class NameTagESP extends SubModule<ESP> {
+public class NameTagESP extends AbstractSubModule<ESP> {
     public NameTagESP(ESP esp) {
         super(esp);
     }

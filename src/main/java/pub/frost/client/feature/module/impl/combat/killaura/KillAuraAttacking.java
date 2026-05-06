@@ -1,6 +1,6 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
-import pub.frost.client.feature.module.api.SubModule;
+import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
@@ -10,7 +10,7 @@ import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.interacting.EnumInteractType;
 
-public class KillAuraAttacking extends SubModule<KillAura> {
+public class KillAuraAttacking extends AbstractSubModule<KillAura> {
     public KillAuraAttacking(KillAura killAura) {
         super(killAura);
     }

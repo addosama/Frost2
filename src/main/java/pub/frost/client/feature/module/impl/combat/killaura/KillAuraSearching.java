@@ -2,7 +2,7 @@ package pub.frost.client.feature.module.impl.combat.killaura;
 
 import org.joml.Vector3d;
 import pub.frost.client.core.FrostCore;
-import pub.frost.client.feature.module.api.SubModule;
+import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.property.annotations.Property;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class KillAuraSearching extends SubModule<KillAura> {
+public class KillAuraSearching extends AbstractSubModule<KillAura> {
     public KillAuraSearching(KillAura killAura) {
         super(killAura);
     }
