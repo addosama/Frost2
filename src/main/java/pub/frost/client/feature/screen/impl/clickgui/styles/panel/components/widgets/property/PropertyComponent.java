@@ -240,8 +240,8 @@ public class PropertyComponent<T> extends PanelComponent {
                         gui,
                         value -> value instanceof Named ? ((Named) value).getName() : value.toString(),
                         () -> Arrays.asList(modeProp.getTypeClass().getEnumConstants()),
-                        (element, value) -> value,
-                        (element, value) -> modeProp.is(value),
+                        (element, value) -> element,
+                        (element, value) -> modeProp.is(element),
                         value -> true,
                         false
                 );
