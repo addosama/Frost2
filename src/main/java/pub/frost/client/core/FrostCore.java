@@ -79,10 +79,6 @@ public final class FrostCore implements Initializer {
         return helpers.playerListener;
     }
     @Deprecated
-    public LagManager getLagManager() {
-        return helpers.lagManager;
-    }
-    @Deprecated
     public PacketManager getPacketManager() {
         return helpers.packetManager;
     }
