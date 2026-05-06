@@ -25,6 +25,7 @@ import pub.frost.utils.ImTextRenderer;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class PropertyComponent<T> extends PanelComponent {
     protected final PropertyDescriptor descriptor;
     protected final AbstractProperty<T, ?> prop;
@@ -46,7 +47,7 @@ public class PropertyComponent<T> extends PanelComponent {
         } else overridePopup = null;
 
         if (descriptor.isGroup()) {
-            List<PropertyComponent<?>> childList = new ArrayList<>();
+            List<PropertyComponent<?>> childList;
             childList = descriptor.getChildProperties().stream().collect(
                     ArrayList::new,
                     (list, child) -> {
@@ -90,7 +91,7 @@ public class PropertyComponent<T> extends PanelComponent {
 
         float xOffset = ImGui.getContentRegionAvailX();
         if (prop != null) {
-            T val = (T) prop.getValue();
+            T val = prop.getValue();
             xOffset -= elementRenderer.getElementWidth(val);
             ImGui.sameLine(xOffset);
             renderWidgets(dummy, tickDelta, val);
@@ -274,7 +275,7 @@ public class PropertyComponent<T> extends PanelComponent {
             }
         }
 
-        return new PropertyComponent(
+        return new PropertyComponent<>(
                 gui, descriptor, er
         );
     }
