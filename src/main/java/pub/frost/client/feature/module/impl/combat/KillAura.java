@@ -11,12 +11,14 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
-import pub.frost.client.feature.module.impl.utility.Teams;
+import pub.frost.client.feature.module.impl.combat.killaura.KillAuraAttacking;
+import pub.frost.client.feature.module.impl.combat.killaura.KillAuraSearching;
+import pub.frost.client.feature.module.impl.combat.killaura.KillAuraTargeting;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
-import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
@@ -31,45 +33,25 @@ import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.interacting.EnumInteractType;
 import pub.frost.utils.raycast.EnumRaycastType;
 import pub.frost.utils.raycast.RaycastUtils;
-import pub.frost.utils.targeting.EnumEntityTarget;
-import pub.frost.utils.targeting.EnumEntityTargetPriority;
 import pub.frost.wrappers.shared.network.packet.impl.play.c2s.WPlayerDiggingPacket;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Module(
         key = "KillAura",
         category = ModuleCategory.COMBAT
 )
 public class KillAura extends AbstractModule {
-    @Property("mode")
-    public final ModeProperty<Mode> mode = new ModeProperty<>(Mode.SINGLE);
-    @Property("fov")
-    public final IntegerProperty fov = new IntegerProperty(1, 180, 1, 180);
-
-    @Property("targets")
-    public final MultipleBooleanProperty<EnumEntityTarget> targets = new MultipleBooleanProperty<>(EnumEntityTarget.class, EnumEntityTarget.PLAYERS);
-    @Property("targetInvisible")
-    public final BooleanProperty targetInvisible = new BooleanProperty(true);
-    @Property("TeamCheck")
-    public final BooleanProperty teamCheck = new BooleanProperty(true);
-    @Property("priority")
-    public final ModeProperty<EnumEntityTargetPriority> priority = new ModeProperty<>(EnumEntityTargetPriority.ANGLE);
-
-    @Property("targetRange")
-    public final FloatProperty targetRange = new FloatProperty(0, 8, 0.01f, 3.2f);
-
-    @Property("AttackMode")
-    public final ModeProperty<EnumInteractType> attackMode = new ModeProperty<>(EnumInteractType.LEGIT);
-    @Property("attackRange")
-    public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> attackMode.is(EnumInteractType.PACKET));
-
+    @InsertProperty("targeting")
+    public final KillAuraTargeting targeting = new KillAuraTargeting(this);
+    @InsertProperty("searching")
+    public final KillAuraSearching searching = new KillAuraSearching(this);
+    @InsertProperty("attacking")
+    public final KillAuraAttacking attacking = new KillAuraAttacking(this);
     @Property("RayCast")
-    public final ModeProperty<EnumRaycastType> raycast = new ModeProperty<>(EnumRaycastType.DEFAULT).setVisibilitySupplier(() -> attackMode.is(EnumInteractType.PACKET));
-    @Property("cps")
-    public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+    public final ModeProperty<EnumRaycastType> rayCast = new ModeProperty<>(EnumRaycastType.DEFAULT).setVisibilitySupplier(() -> attacking.mode.is(EnumInteractType.PACKET));
+
     @Property("BlockHit")
     public final BooleanProperty blockHit = new BooleanProperty(true);
     // @Property("BlockMode")
@@ -103,44 +85,29 @@ public class KillAura extends AbstractModule {
     @EventHandler
     private void onRotation(EventRotation event) {
         rotationProvided = false;
-        List<Object> validTargets = provideValidTargetList();
+        List<Object> validTargets = searching.searchTargets();
         if (validTargets.isEmpty()) {
             resetTarget();
-            return;
-        }
-        if (validTargets.size() > 1) sortByPriority(validTargets);
+        } else {
+            target = targeting.selectBestTarget(validTargets);
 
-        if (mode.is(Mode.SINGLE)) {
-            if (target == null || !validTargets.stream().collect(ArrayList::new,
-                    ArrayList::add,
-                    ArrayList::addAll
-            ).contains(target)) {
-                target = validTargets.get(0);
-            }
-        } else target = validTargets.get(0);
-
-        if (target != null) {
-            Rotation rotation = getRotation();
-            if (rotation != null) {
-                event.setYaw(rotation.getYaw());
-                event.setPitch(rotation.getPitch());
-                event.setSpeed(rotationSpeed.get());
-                event.setLockView(lockView.get());
-                rotationProvided = true;
+            if (target != null) {
+                Rotation rotation = getRotation();
+                if (rotation != null) {
+                    event.setYaw(rotation.getYaw());
+                    event.setPitch(rotation.getPitch());
+                    event.setSpeed(rotationSpeed.get());
+                    event.setLockView(lockView.get());
+                    rotationProvided = true;
+                }
             }
         }
     }
 
-    private long lastAttack = 0;
-    private int attackCount = 0;
     @EventHandler
     private void onRender2D(EventRender2D event) {
         if (target != null && rotationProvided) {
-            int minimumDelay = 1000 / cps.get();
-            if (System.currentTimeMillis() > lastAttack + minimumDelay) {
-                lastAttack = System.currentTimeMillis();
-                attackCount ++;
-            }
+            attacking.updateCpsLimiter();
         }
     }
 
@@ -148,14 +115,12 @@ public class KillAura extends AbstractModule {
     private void onProcessInteract(EventPreProcessInteract e) {
         stopBlocking();
         if (target != null && rotationProvided) {
-            while (attackCount > 0) {
-                attack();
-            }
+            attacking.doAttack(target);
             if (blockHit.get() && isHoldingSword()) {
-                if (notWhileHurt.get() && EntityLivingBase.getHurtTime(mcWrapper.getPlayer(mc)) > 0) return;
+                if (notWhileHurt.get() && EntityLivingBase.getHurtTime(Minecraft.getPlayer(mc)) > 0) return;
                 double distance = Entity.distanceTo(
                         target,
-                        Entity.getPositionVector(mcWrapper.getPlayer(mc))
+                        Entity.getPositionVector(Minecraft.getPlayer(mc))
                 );
                 double range = blockRange.get();
                 if (range == 0) return;
@@ -167,68 +132,25 @@ public class KillAura extends AbstractModule {
                 if (Math.random() <= chance) makeBlocking();
             }
         }
-        attackCount = 0;
+        attacking.resetAttackCount();
     }
 
-    private List<Object> provideValidTargetList() {
-        List<Object> list = new ArrayList<>();
-        int fovValue = fov.get();
-        Vector3d eyePos = Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1);
-        for (Object entity : World.getLoadedEntityList(mcWrapper.getWorld(mc))) {
-            if (Entity.isDead(entity)) continue;
-            if (!EntityLivingBase.isTarget(entity.getClass())) continue;
-            if (entity == mcWrapper.getPlayer(mc)) continue;
-
-            if (EntityLivingBase.getHealth(entity) <= 0) continue;
-            if (EntityLivingBase.distanceTo(entity, Entity.getPositionVector(mcWrapper.getPlayer(mc))) > targetRange.getValue()) continue;
-
-            if (teamCheck.get() && Teams.isTeammate(entity)) continue;
-
-            for (EnumEntityTarget targetEnum : targets.getEnabled()) {
-                if (!targetEnum.isTarget(entity.getClass())) continue;
-                if (!targetInvisible.get() && Entity.isInvisible(entity)) continue;
-                if (fovValue != 180) {
-                    Rotation rotDelta = RotationUtils.getRotationDeltaAimingPoint(
-                            eyePos,
-                            FrostCore.getInstance().getRotationManager().getCurrentPlayerRotation(),
-                            Entity.getBoundingBox(entity).getCenter()
-                    );
-                    if (Math.abs(rotDelta.getYaw()) > fovValue || Math.abs(rotDelta.getPitch()) > fovValue / 2f) {
-                        break;
-                    }
-                }
-
-                list.add(entity);
-                break;
-            }
-        }
-        return list;
-    }
-    private void sortByPriority(List<Object> list) {
-        EnumEntityTargetPriority value = priority.getValue();
-        Comparator<Object> comparator = value.getComparator().apply(mcWrapper.getPlayer(mc));
-        for (EnumEntityTargetPriority p : EnumEntityTargetPriority.values()) {
-            if (p == value) continue;
-            comparator = comparator.thenComparing(p.getComparator().apply(mcWrapper.getPlayer(mc)));
-        }
-        list.sort(comparator);
-    }
     private Rotation getRotation() {
         BoundingBox box = Entity.getBoundingBox(target);
-        Vector3d eyePos = Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1);
+        Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
         Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
                 eyePos,
                 Entity.getPositionEyes(target, 1)
         );
 
         // aim eyePos when the target out of attackRange
-        if (eyePos.distance(Entity.getPositionVector(target)) > attackRange.get()) {
+        if (eyePos.distance(Entity.getPositionVector(target)) > attacking.attackRange.get()) {
             return rotationAimingEyePos;
         }
 
         // return current rotation if our eyePos inside targetBoundingBox
         if (box.isVecInside(eyePos)) {
-            return new Rotation(rotationAimingEyePos.getYaw(), FrostCore.getInstance().getRotationManager().getSilentPitch());
+            return new Rotation(rotationAimingEyePos.getYaw(), FrostCore.getHelpers().getRotationManager().getSilentPitch());
         }
         // can we hit target directly when aiming eyePos of target?
         {
@@ -243,68 +165,37 @@ public class KillAura extends AbstractModule {
         );
     }
 
-    private boolean rayTraceTarget(Rotation r) {
-        if (attackMode.is(EnumInteractType.LEGIT) || raycast.is(EnumRaycastType.LEGIT)) {
+    public boolean rayTraceTarget(Rotation rotation) {
+        return rayTraceTarget(rotation, attacking.getRealAttackRange());
+    }
+    public boolean rayTraceTarget(Rotation r, double reach) {
+        if (attacking.mode.is(EnumInteractType.LEGIT) || rayCast.is(EnumRaycastType.LEGIT)) {
             HitResult result = Entity.rayTrace(
-                    mcWrapper.getPlayer(mc),
+                    Minecraft.getPlayer(mc),
                     RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
-                    getAttackRange(), 1
+                    reach, 1
             );
             if (result == null) return false;
             if (result.getType() == HitResult.EnumHitType.ENTITY) {
                 EntityHitResult entityHit = (EntityHitResult) result;
                 return entityHit.getHitEntity() == target;
             }
-        } else if (raycast.is(EnumRaycastType.DEFAULT)) {
-            return RaycastUtils.raycast(
-                    Entity.getPositionEyes(mcWrapper.getPlayer(mc), 1),
+            else return false;
+        } else if (rayCast.is(EnumRaycastType.DEFAULT)) {
+            Map.Entry<Boolean, Vector3d> result = RaycastUtils.raycast(
+                    Entity.getPositionEyes(Minecraft.getPlayer(mc), 1),
                     r.getYaw(), r.getPitch(),
                     Entity.getBoundingBox(target)
-            ).getKey();
-        } else if (raycast.is(EnumRaycastType.DISABLED)) return true;
-        return false;
+            );
+            if (result.getKey()) {
+                return Entity.distanceTo(Minecraft.getPlayer(mc), result.getValue()) <= reach;
+            }
+            else return false;
+        } else return rayCast.is(EnumRaycastType.DISABLED);
     }
 
-    private void attack() {
-        if (attackMode.is(EnumInteractType.LEGIT)) mcWrapper.clickLMB(mc);
-        else {
-            Object player = mcWrapper.getPlayer(mc);
-            EntityLivingBase.swingItem(player);
-
-            boolean raycastResult = raycast.is(EnumRaycastType.DISABLED);
-            if (!raycastResult) {
-                Vector3d eyePos = Entity.getPositionEyes(player, 1);
-                float yaw = Entity.getYaw(player), pitch = Entity.getPitch(player);
-                BoundingBox targetBB = Entity.getBoundingBox(target);
-                if (raycast.is(EnumRaycastType.DEFAULT)) {
-                    raycastResult = RaycastUtils.raycast(
-                            eyePos,
-                            yaw, pitch,
-                            targetBB
-                    ).getKey();
-                } else {
-                    raycastResult = targetBB.isVecInside(
-                            Entity.raytraceBlocks(
-                                    player,
-                                    eyePos,
-                                    RotationUtils.getVectorForRotation(pitch, yaw),
-                                    attackRange.get()
-                            ).getHitVec()
-                    );
-                }
-            }
-
-            if (raycastResult) {
-                PlayerControllerMP.attackEntity(
-                        Minecraft.getPlayerController(mc),
-                        player, target
-                );
-            }
-        }
-        attackCount --;
-    }
     private void makeBlocking() {
-        if (blockMode.is(EnumInteractType.LEGIT)) mcWrapper.clickRMB(mc);
+        if (blockMode.is(EnumInteractType.LEGIT)) Minecraft.clickRMB(mc);
         else packetBlock();
     }
     private void stopBlocking() {
@@ -316,7 +207,7 @@ public class KillAura extends AbstractModule {
     private void packetBlock() {
         if (!packetBlockState) {
             EntityPlayer.setItemInUse(getPlayer(), getPlayerHeldItem(), 72000);
-            FrostCore.getInstance().getPacketManager().sendPacket(
+            FrostCore.getHelpers().getPacketManager().sendPacket(
                     Wrappers.PlayerBlockPlacementPacket.build(
                             getPlayerHeldItem()
                     ), true
@@ -327,7 +218,7 @@ public class KillAura extends AbstractModule {
     private void packetUnblock() {
         if (packetBlockState) {
             if (switchItemUnblock.get()) {
-                if (FrostCore.getInstance().getPlayerListener().getTicksSinceHeldItemChange() >= 1) {
+                if (FrostCore.getHelpers().getPlayerListener().getTicksSinceHeldItemChange() >= 1) {
                     if (switchedFromSlot != -1) {
                         InventoryPlayer.setCurrentItem(
                                 EntityPlayer.getInventory(getPlayer()),
@@ -344,7 +235,7 @@ public class KillAura extends AbstractModule {
                     }
                 }
             } else {
-                FrostCore.getInstance().getPacketManager().sendPacket(PlayerDiggingPacket.build(
+                FrostCore.getHelpers().getPacketManager().sendPacket(PlayerDiggingPacket.build(
                         WPlayerDiggingPacket.RELEASE_USE_ITEM,
                         new BlockPosition(-1, -1, -1),
                         EnumDirection.DOWN
@@ -362,12 +253,8 @@ public class KillAura extends AbstractModule {
                 ItemStack.getItem(itemHeld).getClass()
         );
     }
-    private double getAttackRange() {
-        if (attackMode.is(EnumInteractType.LEGIT)) return 3;
-        return attackRange.get();
-    }
     private Object getPlayer() {
-        return mcWrapper.getPlayer(mc);
+        return Minecraft.getPlayer(mc);
     }
     private Object getPlayerHeldItem() {
         return EntityLivingBase.getHeldItem(getPlayer());
@@ -379,8 +266,7 @@ public class KillAura extends AbstractModule {
     @Override
     protected void onEnabled() {
         resetTarget();
-        attackCount = 0;
-        lastAttack = 0;
+        attacking.resetCpsLimiter();
         packetBlockState = false;
         switchedFromSlot = -1;
     }
