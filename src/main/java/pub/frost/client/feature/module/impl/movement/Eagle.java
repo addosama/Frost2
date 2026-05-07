@@ -1,7 +1,9 @@
 package pub.frost.client.feature.module.impl.movement;
 
+import imgui.ImGui;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
+import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventUpdateMovementInput;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.core.FrostCore;
@@ -33,16 +35,31 @@ public class Eagle extends AbstractModule {
     private final WEntity entityWrapper = Entity;
     private final WWorld worldWrapper = World;
 
+    private BlockPosition lastPos;
     private boolean onEdge;
 
     @EventHandler
     private void onPlayerUpdate(EventPlayerUpdateTick event) {
+        BlockPosition pos = new BlockPosition(entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))).offset(EnumDirection.DOWN);
         if (event.getType() == TickType.PRE) {
             onEdge = worldWrapper.isAirBlock(
                     mcWrapper.getWorld(mc),
-                    new BlockPosition(entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))).offset(EnumDirection.DOWN)
+                    pos
             );
         }
+        lastPos = pos;
+    }
+
+    @EventHandler
+    private void onRender2D(EventRender2D e) {
+        if (lastPos == null) return;
+        Object w = Minecraft.getWorld(mc);
+        if (w == null) return;
+        ImGui.getForegroundDrawList().addText(
+                100f, 100f,
+                0xFF0000FF,
+                IBlockState.getBlock(World.getBlockState(w, lastPos)).toString()
+        );
     }
 
     @EventHandler
