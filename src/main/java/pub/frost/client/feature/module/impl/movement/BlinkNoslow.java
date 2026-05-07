@@ -4,6 +4,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -20,6 +21,10 @@ import pub.frost.utils.MoveUtils;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * @Author jiuxian_baka
+ * @Date 2026/2/3 02:55
+ */
 @Module(
         key = "BlinkNoslow",
         category = ModuleCategory.MOVEMENT
@@ -38,7 +43,8 @@ public class BlinkNoslow extends AbstractModule {
             return;
         }
 
-        if (isMoving() && net.minecraft.client.Minecraft.getMinecraft().thePlayer.isUsingItem() && canNoslow()) {
+        if (MoveUtils.getForwardValue() != 0 || MoveUtils.getStrafeValue() != 0
+                && net.minecraft.client.Minecraft.getMinecraft().thePlayer.isUsingItem() && canNoslow()) {
             event.cancel();
             packets.add(packet);
         } else {
@@ -50,8 +56,9 @@ public class BlinkNoslow extends AbstractModule {
     private void onMotion(EventPrePlayerMotionUpdate event) {
         if (net.minecraft.client.Minecraft.getMinecraft().thePlayer == null) return;
         if (net.minecraft.client.Minecraft.getMinecraft().thePlayer.isUsingItem() && canNoslow()) {
-            if (isMoving()) {
-                packets.add(new C09PacketHeldItemChange(net.minecraft.client.Minecraft.getMinecraft().thePlayer.inventory.currentItem));
+            if (MoveUtils.getForwardValue() != 0 || MoveUtils.getStrafeValue() != 0) {
+                packets.add(new C08PacketPlayerBlockPlacement(
+                        net.minecraft.client.Minecraft.getMinecraft().thePlayer.getCurrentEquippedItem()));
                 flush();
                 packets.add(new C07PacketPlayerDigging(
                         C07PacketPlayerDigging.Action.RELEASE_USE_ITEM,
@@ -60,7 +67,8 @@ public class BlinkNoslow extends AbstractModule {
                 ));
             } else {
                 FrostCore.getInstance().getPacketManager().sendPacket(
-                        new C09PacketHeldItemChange(net.minecraft.client.Minecraft.getMinecraft().thePlayer.inventory.currentItem), false);
+                        new C08PacketPlayerBlockPlacement(
+                                net.minecraft.client.Minecraft.getMinecraft().thePlayer.getCurrentEquippedItem()), false);
             }
         } else {
             flush();
@@ -69,7 +77,8 @@ public class BlinkNoslow extends AbstractModule {
 
     @EventHandler
     private void onUseItemSlowdown(EventPlayerUseItemSlowdown event) {
-        if (isMoving() && net.minecraft.client.Minecraft.getMinecraft().thePlayer.isUsingItem() && canNoslow()) {
+        if (MoveUtils.getForwardValue() != 0 || MoveUtils.getStrafeValue() != 0
+                && net.minecraft.client.Minecraft.getMinecraft().thePlayer.isUsingItem() && canNoslow()) {
             event.setForward(1.0f);
             event.setStrafe(1.0f);
         } else {
@@ -86,21 +95,17 @@ public class BlinkNoslow extends AbstractModule {
         flush(true);
     }
 
-    private void flush(boolean includeC09) {
+    private void flush(boolean includeC08) {
         if (packets.isEmpty()) return;
 
-        if (!includeC09) {
-            packets.removeIf(p -> p instanceof C09PacketHeldItemChange);
+        if (!includeC08) {
+            packets.removeIf(p -> p instanceof C08PacketPlayerBlockPlacement);
         }
 
         for (Object packet : packets) {
             FrostCore.getInstance().getPacketManager().sendPacket(packet, false);
         }
         packets.clear();
-    }
-
-    private boolean isMoving() {
-        return MoveUtils.getForwardValue() != 0 || MoveUtils.getStrafeValue() != 0;
     }
 
     private boolean canNoslow() {

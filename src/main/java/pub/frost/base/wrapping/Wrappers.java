@@ -19,12 +19,14 @@ import pub.frost.wrappers.shared.network.packet.impl.play.s2c.WEntityPacket;
 import pub.frost.wrappers.shared.network.packet.impl.play.s2c.WEntityTeleportPacket;
 import pub.frost.wrappers.shared.network.packet.impl.play.s2c.WEntityVelocityPacket;
 import pub.frost.wrappers.shared.player.*;
+import pub.frost.wrappers.shared.tileentity.*;
 import pub.frost.wrappers.shared.world.*;
 
 public interface Wrappers {
     WBlock Block = new WBlock();
     WIBlockState IBlockState = new WIBlockState();
 
+    WETileEntity TileEntity = new WETileEntity();
     WITileEntityProvider ITileEntityProvider = new WITileEntityProvider();
 
     WPlayerControllerMP PlayerControllerMP = new WPlayerControllerMP();

@@ -14,6 +14,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.feature.module.impl.visual.esp.BoxESP;
+import pub.frost.client.feature.module.impl.visual.esp.ChestESP;
 import pub.frost.client.feature.module.impl.visual.esp.NameTagESP;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
@@ -47,6 +48,8 @@ public class ESP extends AbstractModule {
     public final BoxESP box = new BoxESP(this);
     @InsertProperty("NameTag")
     public final NameTagESP nameTag = new NameTagESP(this);
+    @InsertProperty("Chest")
+    public final ChestESP chest = new ChestESP(this);
     @Property("health")
     public final BooleanProperty renderHealth = new BooleanProperty(true);
     @Property("data")
@@ -57,6 +60,7 @@ public class ESP extends AbstractModule {
     private final WEntityLivingBase livingEntityWrapper = Wrappers.EntityLivingBase;
 
     private final List<EntityData> cachedData = new ArrayList<>();
+    private final List<Object> cachedChestData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;
 
@@ -66,6 +70,13 @@ public class ESP extends AbstractModule {
         worldWrapper.getLoadedEntityList(mcWrapper.getWorld(mc)).stream().filter(
                 this::isTarget
         ).forEach(en -> cachedData.add(new EntityData(en)));
+
+        cachedChestData.clear();
+        if (chest.enabled.get()) {
+            worldWrapper.getLoadedTileEntityList(mcWrapper.getWorld(mc)).stream().filter(
+                    Wrappers.TileEntity::isChest
+            ).forEach(cachedChestData::add);
+        }
     }
 
     @EventHandler
@@ -178,6 +189,22 @@ public class ESP extends AbstractModule {
                 }
             }
         }
+
+        // render chests
+        if (chest.enabled.get() && !cachedChestData.isEmpty()) {
+            cachedChestData.sort(Comparator.comparingDouble(tile ->
+                    -Wrappers.TileEntity.distanceTo(tile, playerPos.x(), playerPos.y(), playerPos.z())
+            ));
+            double expandSize = box.expand.get();
+            for (Object tile : cachedChestData) {
+                BoundingBox bb = Wrappers.TileEntity.getBoundingBox(tile).move(negatedPlayerPos);
+                if (expandSize != 0) {
+                    bb = bb.expand(expandSize, expandSize, expandSize);
+                }
+                chest.renderChest(bb, cachedModelView, cachedProjection, width, height);
+            }
+        }
+
         ImGui.popFont();
     }
 

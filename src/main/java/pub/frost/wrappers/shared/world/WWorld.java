@@ -27,6 +27,10 @@ public class WWorld extends Wrapper implements FakeInstanceWrapper<World> {
         return new ArrayList<>(cast(instance).getLoadedEntityList());
     }
 
+    public List<Object> getLoadedTileEntityList(Object instance) {
+        return new ArrayList<>(cast(instance).loadedTileEntityList);
+    }
+
     public List<Object> getEntitiesInAABBExcluding(Object instance, Object entityIn, BoundingBox boundingBox, Predicate<? super Object> predicate) {
         return new ArrayList<>(cast(instance).getEntitiesInAABBexcluding(
                 (Entity) entityIn,
