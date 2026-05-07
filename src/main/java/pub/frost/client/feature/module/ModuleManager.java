@@ -33,6 +33,7 @@ public class ModuleManager {
                 new SprintReset(),
                 new KeepSprint(),
                 new NoSlowdown(),
+                new BlinkNoslow(),
                 new ChestStealer(),
                 new InvManager()
         );
