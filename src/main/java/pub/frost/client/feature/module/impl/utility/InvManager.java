@@ -48,6 +48,12 @@ public class InvManager extends AbstractModule {
     public final IntegerProperty blocksSlot = new IntegerProperty(0, 9, 1, 2);
     @Property("MaxBlocks")
     public final IntegerProperty blocks = new IntegerProperty(64, 2304, 64, 128);
+    @Property("GappleSlot")
+    public final IntegerProperty gappleSlot = new IntegerProperty(0, 9, 1, 0);
+    @Property("KeepThrowables")
+    public final BooleanProperty keepThrowables = new BooleanProperty(true);
+    @Property("ThrowableSlot")
+    public final IntegerProperty throwableSlot = new IntegerProperty(0, 9, 1, 0);
 
     private int actionDelay = 0;
     private int oDelay = 0;
@@ -211,6 +217,28 @@ public class InvManager extends AbstractModule {
             }
         }
 
+        int preferredGappleHotbarSlot = gappleSlot.get() - 1;
+        if (preferredGappleHotbarSlot >= 0 && preferredGappleHotbarSlot <= 8
+                && !usedHotbarSlots.contains(preferredGappleHotbarSlot)) {
+            int inventoryGappleSlot = ItemUtils.findAppleGoldInInventorySlot(minecraft.thePlayer.inventory);
+            if (inventoryGappleSlot != -1 && inventoryGappleSlot != preferredGappleHotbarSlot) {
+                usedHotbarSlots.add(preferredGappleHotbarSlot);
+                clickSlot(minecraft.thePlayer.inventoryContainer.windowId, convertSlotIndex(inventoryGappleSlot), preferredGappleHotbarSlot, 2);
+                return;
+            }
+        }
+
+        int preferredThrowableHotbarSlot = throwableSlot.get() - 1;
+        if (keepThrowables.get() && preferredThrowableHotbarSlot >= 0 && preferredThrowableHotbarSlot <= 8
+                && !usedHotbarSlots.contains(preferredThrowableHotbarSlot)) {
+            int inventoryThrowableSlot = ItemUtils.findThrowableInInventorySlot(minecraft.thePlayer.inventory);
+            if (inventoryThrowableSlot != -1 && inventoryThrowableSlot != preferredThrowableHotbarSlot) {
+                usedHotbarSlots.add(preferredThrowableHotbarSlot);
+                clickSlot(minecraft.thePlayer.inventoryContainer.windowId, convertSlotIndex(inventoryThrowableSlot), preferredThrowableHotbarSlot, 2);
+                return;
+            }
+        }
+
         if (dropTrash.get()) {
             int currentBlockCount = getStackSize(inventoryBlocksSlot);
             for (int i = 0; i < 36; i++) {
@@ -227,6 +255,8 @@ public class InvManager extends AbstractModule {
                         && inventoryBlocksSlot != i) {
                     ItemStack stack = minecraft.thePlayer.inventory.getStackInSlot(i);
                     if (stack != null) {
+                        if (gappleSlot.get() > 0 && ItemUtils.isGoldenApple(stack)) continue;
+                        if (keepThrowables.get() && ItemUtils.isThrowable(stack)) continue;
                         boolean isBlock = ItemUtils.isBlock(stack);
                         if (ItemUtils.isNotSpecialItem(stack) || isBlock && currentBlockCount >= blocks.get()) {
                             clickSlot(minecraft.thePlayer.inventoryContainer.windowId, convertSlotIndex(i), 1, 4);

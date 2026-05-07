@@ -1,6 +1,8 @@
 package pub.frost.utils;
 
 import net.minecraft.block.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.BlockPos;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.utils.data.BlockPosition;
 
@@ -71,5 +73,13 @@ public class BlockUtils implements Wrappers {
         if (block instanceof BlockRailBase) return false;
         if (block instanceof BlockSlime) return false;
         return !(block instanceof BlockTNT);
+    }
+
+    public static boolean isReplaceable(BlockPos pos) {
+        return net.minecraft.client.Minecraft.getMinecraft().theWorld.getBlockState(pos).getBlock().getMaterial().isReplaceable();
+    }
+
+    public static boolean isInteractable(BlockPos pos) {
+        return isInteractable(net.minecraft.client.Minecraft.getMinecraft().theWorld.getBlockState(pos).getBlock());
     }
 }

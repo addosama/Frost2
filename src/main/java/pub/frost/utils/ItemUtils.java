@@ -64,6 +64,21 @@ public class ItemUtils implements Wrappers {
         return item != Items.nether_star;
     }
 
+    public static boolean isGoldenApple(ItemStack itemStack) {
+        if (itemStack == null) return false;
+        return itemStack.getItem() instanceof ItemAppleGold;
+    }
+
+    public static boolean isThrowable(ItemStack itemStack) {
+        if (itemStack == null) return false;
+        Item item = itemStack.getItem();
+        return item instanceof ItemEnderPearl
+                || item instanceof ItemEgg
+                || item instanceof ItemSnowball
+                || item instanceof ItemExpBottle
+                || (item instanceof ItemPotion && ItemPotion.isSplash(itemStack.getItemDamage()));
+    }
+
     public static boolean isBlock(ItemStack itemStack) {
         if (itemStack == null || itemStack.stackSize < 1) {
             return false;
@@ -216,6 +231,22 @@ public class ItemUtils implements Wrappers {
             bestProtection = protection;
         }
         return bestSlot;
+    }
+
+    public static int findAppleGoldInInventorySlot(InventoryPlayer inventory) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = inventory.getStackInSlot(i);
+            if (isGoldenApple(stack)) return i;
+        }
+        return -1;
+    }
+
+    public static int findThrowableInInventorySlot(InventoryPlayer inventory) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = inventory.getStackInSlot(i);
+            if (isThrowable(stack)) return i;
+        }
+        return -1;
     }
 
     static final class SpecialItems extends ArrayList<Integer> {
