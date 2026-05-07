@@ -91,12 +91,12 @@ public class Eagle extends AbstractModule {
         Minecraft minecraft = (Minecraft) mc;
         if (!isEnabled()) return;
         if (minecraft.currentScreen != null) return;
-        if (minecraft.thePlayer.movementInput.sneak) return;
+        if (event.isSneak()) return;
 
         if (shouldSneak() && (sneakDelay > 0 || canMoveSafely())) {
-            minecraft.thePlayer.movementInput.sneak = true;
-            minecraft.thePlayer.movementInput.moveStrafe *= 0.3F;
-            minecraft.thePlayer.movementInput.moveForward *= 0.3F;
+            event.setSneak(true);
+            event.setMoveStrafe(event.getMoveStrafe() * 0.3F);
+            event.setMoveForward(event.getMoveForward() * 0.3F);
         }
     }
 

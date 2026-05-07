@@ -65,6 +65,21 @@ public class ConfigManager {
         }
     }
 
+    public boolean reloadCurrentConfig() {
+        if (currentConfig == null) return false;
+        try {
+            String fileContent = FileUtils.readFileToString(currentConfig.getFile(), StandardCharsets.UTF_8);
+            if (!JSON.isValid(fileContent)) return false;
+            Config reloaded = new Config(currentConfig.getFile(), JSON.parseObject(fileContent));
+            reloaded.load();
+            configMap.put(currentConfig.getFile().toPath().toRealPath(), reloaded);
+            this.currentConfig = reloaded;
+            return true;
+        } catch (IOException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     public boolean switchConfig(Config config) {
         if (config != null) {
             Config lastConfig = this.currentConfig;

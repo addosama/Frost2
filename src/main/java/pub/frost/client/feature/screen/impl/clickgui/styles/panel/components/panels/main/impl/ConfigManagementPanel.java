@@ -40,14 +40,21 @@ public class ConfigManagementPanel extends MainPanel {
             ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 6, 0);
 
             // refresh button
-            if (renderIconButton(dummy, tickDelta, "\ue7d0")) {
+            if (renderIconButton(dummy, tickDelta, "")) {
                 FrostCore.getInstance().getConfigManager().refreshConfigList();
             }
 
             ImGui.sameLine();
 
+            // load button
+            if (renderIconButton(dummy, tickDelta, "")) {
+                FrostCore.getInstance().getConfigManager().reloadCurrentConfig();
+            }
+
+            ImGui.sameLine();
+
             // save button
-            if (renderIconButton(dummy, tickDelta, "\ue868")) {
+            if (renderIconButton(dummy, tickDelta, "")) {
                 Config currentConfig = FrostCore.getInstance().getConfigManager().getCurrentConfig();
                 currentConfig.save();
                 FrostCore.getInstance().getConfigManager().writeConfig(currentConfig);
