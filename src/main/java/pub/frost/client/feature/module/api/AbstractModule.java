@@ -31,7 +31,7 @@ public class AbstractModule implements Wrappers, Named, Described {
         Module annotation = this.getClass().getAnnotation(Module.class);
         if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
 
-        this.key = "modules." + annotation.key().toLowerCase();
+        this.key = annotation.key().toLowerCase();
         this.category = annotation.category();
 
         this.mc = Minecraft.getInstance();
@@ -61,10 +61,10 @@ public class AbstractModule implements Wrappers, Named, Described {
     protected void onDisabled() {}
 
     protected void registerToEventBus() {
-        FrostCore.getInstance().getEventBus().register(AbstractModule.this);
+        FrostCore.getEventBus().register(AbstractModule.this);
     }
     protected void unregisterFromEventBus() {
-        FrostCore.getInstance().getEventBus().unregister(AbstractModule.this);
+        FrostCore.getEventBus().unregister(AbstractModule.this);
     }
 
     public final void initialize() {
@@ -74,7 +74,7 @@ public class AbstractModule implements Wrappers, Named, Described {
 
     private void registerProperties() {
         if (FrostCore.DEBUG) assert propertyMap.isEmpty();
-        final String propKeyPrefix = this.getKey() + ".props.";
+        final String propKeyPrefix = getTranslationKey() + ".props.";
 
         {
             enabledProperty.enableOverriding();
@@ -117,5 +117,10 @@ public class AbstractModule implements Wrappers, Named, Described {
 
     public PropertyDescriptor getDescriptor(String key) {
         return flattenedPropertyMap.get(key);
+    }
+
+    @Override
+    public String getTranslationKey() {
+        return "modules." + this.getKey();
     }
 }
