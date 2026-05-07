@@ -1,79 +1,107 @@
 package pub.frost.client.feature.module.impl.movement;
 
-import imgui.ImGui;
+import net.minecraft.client.Minecraft;
+import org.apache.commons.lang3.RandomUtils;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
-import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventUpdateMovementInput;
 import pub.frost.base.event.impl.types.TickType;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
-import pub.frost.utils.data.BlockPosition;
-import pub.frost.utils.data.EnumDirection;
-import pub.frost.wrappers.shared.entity.WEntity;
-import pub.frost.wrappers.shared.entity.WEntityPlayer;
-import pub.frost.wrappers.shared.item.WItemBlock;
-import pub.frost.wrappers.shared.item.WItemStack;
-import pub.frost.wrappers.shared.world.WWorld;
+import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.utils.ItemUtils;
+import pub.frost.utils.MoveUtils;
+import pub.frost.utils.PlayerUtils;
 
 @Module(
         key = "eagle",
         category = ModuleCategory.MOVEMENT
 )
 public class Eagle extends AbstractModule {
+    @Property("MinDelay")
+    public final IntegerProperty minDelay = new IntegerProperty(0, 10, 1, 2);
+    @Property("MaxDelay")
+    public final IntegerProperty maxDelay = new IntegerProperty(0, 10, 1, 3);
+    @Property("DirectionCheck")
+    public final BooleanProperty directionCheck = new BooleanProperty(true);
     @Property("PitchCheck")
     public final BooleanProperty pitchCheck = new BooleanProperty(true);
-    @Property("BlockCheck")
-    public final BooleanProperty blockCheck = new BooleanProperty(true);
-    @Property("ModifyInput")
-    public final BooleanProperty modifyInput = new BooleanProperty(true);
+    @Property("BlocksOnly")
+    public final BooleanProperty blocksOnly = new BooleanProperty(true);
 
-    private final WEntity entityWrapper = Entity;
-    private final WWorld worldWrapper = World;
+    private int sneakDelay = 0;
 
-    private BlockPosition lastPos;
-    private boolean onEdge;
+    @Override
+    protected void onInitialized() {
+        minDelay.setValueChangeListener((old, current) -> {
+            if (current > maxDelay.get()) {
+                maxDelay.set(current);
+            }
+        });
+        maxDelay.setValueChangeListener((old, current) -> {
+            if (current < minDelay.get()) {
+                minDelay.set(current);
+            }
+        });
+    }
 
-    @EventHandler
-    private void onPlayerUpdate(EventPlayerUpdateTick event) {
-        BlockPosition pos = new BlockPosition(entityWrapper.getPositionVector(mcWrapper.getPlayer(mc))).offset(EnumDirection.DOWN);
-        if (event.getType() == TickType.PRE) {
-            onEdge = worldWrapper.isAirBlock(
-                    mcWrapper.getWorld(mc),
-                    pos
-            );
+    private boolean canMoveSafely() {
+        Minecraft minecraft = (Minecraft) mc;
+        double[] offset = MoveUtils.predictMovement();
+        return PlayerUtils.canMove(
+                minecraft.thePlayer.motionX + offset[0],
+                minecraft.thePlayer.motionZ + offset[1]
+        );
+    }
+
+    private boolean shouldSneak() {
+        Minecraft minecraft = (Minecraft) mc;
+        if (directionCheck.get() && minecraft.gameSettings.keyBindForward.isKeyDown()) {
+            return false;
         }
-        lastPos = pos;
+        if (pitchCheck.get() && minecraft.thePlayer.rotationPitch < 69.0F) {
+            return false;
+        }
+        return (!blocksOnly.get() || isHoldingBlock()) && minecraft.thePlayer.onGround;
+    }
+
+    private boolean isHoldingBlock() {
+        Minecraft minecraft = (Minecraft) mc;
+        return ItemUtils.isBlock(minecraft.thePlayer.getHeldItem());
     }
 
     @EventHandler
-    private void onRender2D(EventRender2D e) {
-        if (lastPos == null) return;
-        Object w = Minecraft.getWorld(mc);
-        if (w == null) return;
-        ImGui.getForegroundDrawList().addText(
-                100f, 100f,
-                0xFF0000FF,
-                IBlockState.getBlock(World.getBlockState(w, lastPos)).toString()
-        );
+    private void onTick(EventPlayerUpdateTick event) {
+        if (event.getType() != TickType.PRE) return;
+        if (!isEnabled()) return;
+
+        if (sneakDelay > 0) {
+            sneakDelay--;
+        }
+        if (sneakDelay == 0 && canMoveSafely()) {
+            sneakDelay = RandomUtils.nextInt(minDelay.get(), maxDelay.get() + 1);
+        }
     }
 
     @EventHandler
     private void onMoveInput(EventUpdateMovementInput event) {
-        if (pitchCheck.get() && entityWrapper.getPitch(mcWrapper.getPlayer(mc)) < 70) return;
-        if (blockCheck.get() && !isHoldingBlock()) return;
-        event.setSneak(onEdge || !modifyInput.get() && event.isSneak());
+        Minecraft minecraft = (Minecraft) mc;
+        if (!isEnabled()) return;
+        if (minecraft.currentScreen != null) return;
+        if (minecraft.thePlayer.movementInput.sneak) return;
+
+        if (shouldSneak() && (sneakDelay > 0 || canMoveSafely())) {
+            minecraft.thePlayer.movementInput.sneak = true;
+            minecraft.thePlayer.movementInput.moveStrafe *= 0.3F;
+            minecraft.thePlayer.movementInput.moveForward *= 0.3F;
+        }
     }
 
-    private boolean isHoldingBlock() {
-        Object itemHeld = EntityPlayer.getHeldItem(mcWrapper.getPlayer(mc));
-        if (itemHeld != null) {
-            return ItemBlock.isTarget(ItemStack.getItem(itemHeld));
-        }
-        return false;
+    @Override
+    protected void onDisabled() {
+        sneakDelay = 0;
     }
 }
