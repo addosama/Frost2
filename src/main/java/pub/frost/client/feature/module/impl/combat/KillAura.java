@@ -77,6 +77,9 @@ public class KillAura extends AbstractModule {
     public final BooleanProperty lockView = new BooleanProperty(false);
 
     private Object target = null;
+    public Object getTarget() {
+        return target;
+    }
     private void resetTarget() {
         target = null;
     }
