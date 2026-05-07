@@ -32,7 +32,9 @@ public class ModuleManager {
                 new BackTrack(),
                 new SprintReset(),
                 new KeepSprint(),
-                new NoSlowdown()
+                new NoSlowdown(),
+                new ChestStealer(),
+                new InvManager()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
