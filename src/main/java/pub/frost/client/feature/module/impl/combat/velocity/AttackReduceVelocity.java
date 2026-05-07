@@ -26,8 +26,6 @@ public class AttackReduceVelocity extends AbstractSubModule<Velocity> implements
     @Property("enabled")
     public final BooleanProperty enabled = new BooleanProperty(false);
 
-    @Property("Reduce")
-    public final BooleanProperty reduce = new BooleanProperty(true);
     @Property("TickExact")
     public final BooleanProperty tickExact = new BooleanProperty(true);
 
@@ -89,7 +87,7 @@ public class AttackReduceVelocity extends AbstractSubModule<Velocity> implements
     }
 
     public void update() {
-        if (reduceTicks <= 0 || !reduce.get()) return;
+        if (reduceTicks <= 0) return;
 
         reduceTicks--;
 
