@@ -1,5 +1,6 @@
 package pub.frost.client.feature.helper.player.rotation.processors;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.i18n.interfaces.Named;
@@ -39,6 +40,7 @@ public enum EnumRotationProcessor implements Named, RotationProcessor, Wrappers 
 
 
     final String key;
+    @Getter
     final int flag;
     final RotationProcessor impl;
 

@@ -21,6 +21,7 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.client.property.preset.RotationSetting;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
@@ -49,10 +50,8 @@ public class KillAura extends AbstractModule {
     @Property("RayCast")
     public final ModeProperty<EnumRaycastType> rayCast = new ModeProperty<>(EnumRaycastType.DEFAULT).setVisibilitySupplier(() -> attacking.mode.is(EnumInteractType.PACKET));
 
-    @Property("RotationSpeed")
-    public final IntegerProperty rotationSpeed = new IntegerProperty(0, 180, 1, 180);
-    @Property("LockView")
-    public final BooleanProperty lockView = new BooleanProperty(false);
+    @InsertProperty
+    public final RotationSetting rotationSetting = new RotationSetting();
 
     private Object target = null;
     public Object getTarget() {
@@ -77,8 +76,9 @@ public class KillAura extends AbstractModule {
                 if (rotation != null) {
                     event.setYaw(rotation.getYaw());
                     event.setPitch(rotation.getPitch());
-                    event.setSpeed(rotationSpeed.get());
-                    event.setLockView(lockView.get());
+                    event.setSpeed(rotationSetting.getSpeed());
+                    event.setLockView(rotationSetting.isLockViewEnabled());
+                    event.setProcessors(rotationSetting.getEnabledProcessors());
                     rotationProvided = true;
                 }
             }
