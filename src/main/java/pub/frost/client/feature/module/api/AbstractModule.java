@@ -24,6 +24,10 @@ public class AbstractModule implements Wrappers, Named, Described {
     public final BooleanProperty enabledProperty = new BooleanProperty(false);
 
     protected final Object mc;
+    /**
+     * @deprecated
+     * use <code>Wrappers.Minecraft</code> instead
+     */
     @Deprecated
     protected final WMinecraft mcWrapper = Minecraft;
 

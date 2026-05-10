@@ -5,12 +5,21 @@ import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.SubModule;
 
 public class AbstractSubModule<PARENT extends AbstractModule> implements Wrappers {
+    /**
+     * @deprecated
+     * consider using <code>getParent()</code> with no args constructor
+     */
     @Deprecated
     protected final PARENT parent;
 
     private PARENT p;
     protected final Object mc = Minecraft.getInstance();
 
+
+    /**
+     * @deprecated
+     * consider using <code>@SubModule</code> annotation with no args constructor
+     */
     @Deprecated
     public AbstractSubModule(PARENT parent) {
         this.parent = parent;

@@ -70,14 +70,29 @@ public final class FrostCore implements Initializer {
         configManager.saveAndWriteAllConfig();
     }
 
+    /**
+     * @deprecated
+     * use <code>getHelpers().getRotationManager()</code> instead
+     * @return Global RotationManager instance
+     */
     @Deprecated
     public RotationManager getRotationManager() {
         return helpers.rotationManager;
     }
+    /**
+     * @deprecated
+     * use <code>getHelpers().getPlayerListener()</code> instead
+     * @return PlayerListener instance
+     */
     @Deprecated
     public PlayerListener getPlayerListener() {
         return helpers.playerListener;
     }
+    /**
+     * @deprecated
+     * use <code>getHelpers().getPacketManager()</code> instead
+     * @return Global PacketManager instance
+     */
     @Deprecated
     public PacketManager getPacketManager() {
         return helpers.packetManager;
