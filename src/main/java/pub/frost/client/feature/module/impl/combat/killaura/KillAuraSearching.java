@@ -2,6 +2,7 @@ package pub.frost.client.feature.module.impl.combat.killaura;
 
 import org.joml.Vector3d;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.feature.module.impl.utility.Teams;
@@ -18,18 +19,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+@SubModule(KillAura.class)
 public class KillAuraSearching extends AbstractSubModule<KillAura> {
-    public KillAuraSearching(KillAura killAura) {
-        super(killAura);
-    }
-
     @Property("targetRange")
     public final FloatProperty targetRange = new FloatProperty(0, 8, 0.01f, 3.2f);
     @Property("fov")
     public final IntegerProperty fov = new IntegerProperty(1, 180, 1, 180);
 
     private List<Object> provideValidTargetList() {
-        final TargetSetting targetSetting = parent.targeting.targets;
+        final TargetSetting targetSetting = getParent().targeting.targets;
         List<Object> list = new ArrayList<>();
         int fovValue = fov.get();
         Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
@@ -64,7 +62,7 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
         return list;
     }
     private void sortEntityListByPriority(List<Object> list) {
-        EnumEntityTargetPriority value = parent.targeting.priority.getValue();
+        EnumEntityTargetPriority value = getParent().targeting.priority.getValue();
         Comparator<Object> comparator = value.getComparator().apply(Minecraft.getPlayer(mc));
         for (EnumEntityTargetPriority p : EnumEntityTargetPriority.values()) {
             if (p == value) continue;

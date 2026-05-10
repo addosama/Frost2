@@ -39,11 +39,11 @@ import java.util.Map;
 )
 public class KillAura extends AbstractModule {
     @InsertProperty("targeting")
-    public final KillAuraTargeting targeting = new KillAuraTargeting(this);
+    public final KillAuraTargeting targeting = new KillAuraTargeting();
     @InsertProperty("searching")
-    public final KillAuraSearching searching = new KillAuraSearching(this);
+    public final KillAuraSearching searching = new KillAuraSearching();
     @InsertProperty("attacking")
-    public final KillAuraAttacking attacking = new KillAuraAttacking(this);
+    public final KillAuraAttacking attacking = new KillAuraAttacking();
     @InsertProperty("AutoBlock")
     public final KillAuraAutoBlock autoBlock = new KillAuraAutoBlock();
     @Property("RayCast")
@@ -73,7 +73,7 @@ public class KillAura extends AbstractModule {
             target = targeting.selectBestTarget(validTargets);
 
             if (target != null) {
-                Rotation rotation = getRotation();
+                Rotation rotation = getRotation(target);
                 if (rotation != null) {
                     event.setYaw(rotation.getYaw());
                     event.setPitch(rotation.getPitch());
@@ -108,7 +108,7 @@ public class KillAura extends AbstractModule {
         attacking.resetAttackCount();
     }
 
-    private Rotation getRotation() {
+    public Rotation getRotation(Object target) {
         BoundingBox box = Entity.getBoundingBox(target);
         Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
         Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
@@ -127,21 +127,21 @@ public class KillAura extends AbstractModule {
         }
         // can we hit target directly when aiming eyePos of target?
         {
-            if (rayTraceTarget(rotationAimingEyePos)) return rotationAimingEyePos;
+            if (rayTraceTarget(target, rotationAimingEyePos)) return rotationAimingEyePos;
         }
         // search rotation that available to hit target
         return RotationUtils.searchRotationHittingBoundingBox(
                 eyePos,
                 box,
-                this::rayTraceTarget,
+                rot -> rayTraceTarget(target, rot),
                 2
         );
     }
 
-    public boolean rayTraceTarget(Rotation rotation) {
-        return rayTraceTarget(rotation, attacking.getRealAttackRange());
+    public boolean rayTraceTarget(Object target, Rotation rotation) {
+        return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? searching.targetRange.get() : attacking.getRealAttackRange());
     }
-    public boolean rayTraceTarget(Rotation r, double reach) {
+    public boolean rayTraceTarget(Object target, Rotation r, double reach) {
         if (attacking.mode.is(EnumInteractType.LEGIT) || rayCast.is(EnumRaycastType.LEGIT)) {
             HitResult result = Entity.rayTrace(
                     Minecraft.getPlayer(mc),

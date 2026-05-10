@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
+import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.property.annotations.Property;
@@ -10,11 +11,8 @@ import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.interacting.EnumInteractType;
 
+@SubModule(KillAura.class)
 public class KillAuraAttacking extends AbstractSubModule<KillAura> {
-    public KillAuraAttacking(KillAura killAura) {
-        super(killAura);
-    }
-
     @PropertyGroupMain
     @Property("Mode")
     public final ModeProperty<EnumInteractType> mode = new ModeProperty<>(EnumInteractType.LEGIT);
@@ -54,7 +52,8 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
             EntityLivingBase.swingItem(player);
 
 
-            boolean rayCastResult = parent.rayTraceTarget(
+            boolean rayCastResult = getParent().rayTraceTarget(
+                    target,
                     new Rotation(
                             Entity.getYaw(player),
                             Entity.getPitch(player)
