@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.combat;
 
+import lombok.Getter;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
@@ -31,12 +32,13 @@ public class Velocity extends AbstractModule {
     @InsertProperty("Basic")
     public final BasicVelocity basic = new BasicVelocity(this);
     @InsertProperty("JumpReset")
-    public final JumpResetVelocity jumpReset = new JumpResetVelocity(this);
+    public final JumpResetVelocity jumpReset = new JumpResetVelocity();
     @InsertProperty("Delay")
     public final DelayVelocity delay = new DelayVelocity(this);
     @InsertProperty("AttackReduce")
     public final AttackReduceVelocity attackReduce = new AttackReduceVelocity(this);
 
+    @Getter
     private boolean hasVelocity;
 
     @EventHandler
@@ -73,14 +75,13 @@ public class Velocity extends AbstractModule {
 
     @EventHandler
     public void onMovementInput(EventUpdateMovementInput event) {
-        if (hasVelocity) {
-            if (jumpReset.enabled.get()) jumpReset.tryJump(event);
-        }
+        if (jumpReset.enabled.get()) jumpReset.tickMovement(event);
     }
 
     @Override
     protected void onDisabled() {
         if (delay.enabled.get()) delay.flush();
+        hasVelocity = false;
     }
 
     private boolean hasMotion(EventPlayerVelocity event) {
