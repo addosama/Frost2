@@ -1,8 +1,9 @@
-package pub.frost.client.feature.helper.player.rotation.processors;
+package pub.frost.client.feature.helper.player.rotation.processors.post;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import pub.frost.base.wrapping.Wrappers;
+import pub.frost.client.feature.helper.player.rotation.processors.RotationProcessor;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.utils.RotationUtils;
@@ -11,7 +12,7 @@ import java.util.function.BiConsumer;
 
 @TranslationKey("strings.enum.rotation.processors.~")
 @RequiredArgsConstructor
-public enum EnumRotationProcessor implements Named, RotationProcessor, Wrappers {
+public enum EnumRotationPostProcessor implements Named, RotationProcessor, Wrappers {
     GCD_FIX(
             "GCDFix", 0x01,
             (currentYaw, currentPitch, nextYaw, nextPitch, rotationAcceptor) -> {

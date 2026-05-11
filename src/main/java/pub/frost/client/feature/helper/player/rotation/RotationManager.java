@@ -7,7 +7,7 @@ import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
-import pub.frost.client.feature.helper.player.rotation.processors.EnumRotationProcessor;
+import pub.frost.client.feature.helper.player.rotation.processors.post.EnumRotationPostProcessor;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
@@ -51,7 +51,7 @@ public class RotationManager {
             if (pitch != null) rotation[1] = pitch;
         };
 
-        for (EnumRotationProcessor processor : EnumRotationProcessor.values()) {
+        for (EnumRotationPostProcessor processor : EnumRotationPostProcessor.values()) {
             if (processor.isEnabled(processors)) {
                 processor.process(
                         silentYaw, silentPitch,

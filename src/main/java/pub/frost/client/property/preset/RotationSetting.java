@@ -1,7 +1,7 @@
 package pub.frost.client.property.preset;
 
 import lombok.RequiredArgsConstructor;
-import pub.frost.client.feature.helper.player.rotation.processors.EnumRotationProcessor;
+import pub.frost.client.feature.helper.player.rotation.processors.post.EnumRotationPostProcessor;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
@@ -35,7 +35,7 @@ public class RotationSetting {
     public final BooleanProperty lockView = new BooleanProperty(false);
     @TranslationKey("strings.rotation.extraprocessors")
     @Property(value = "ExtraProcessors", endGroup = true)
-    public final MultipleBooleanProperty<EnumRotationProcessor> extraProcessors = new MultipleBooleanProperty<>(EnumRotationProcessor.class);
+    public final MultipleBooleanProperty<EnumRotationPostProcessor> extraProcessors = new MultipleBooleanProperty<>(EnumRotationPostProcessor.class);
 
     public int getSpeed() {
         return instant.get()? 0 : speed.get();
@@ -45,7 +45,7 @@ public class RotationSetting {
     }
     public int getEnabledProcessors() {
         int processorFlag = 0;
-        for (EnumRotationProcessor processor : extraProcessors.getEnabled()) {
+        for (EnumRotationPostProcessor processor : extraProcessors.getEnabled()) {
             processorFlag |= processor.getFlag();
         }
         return processorFlag;
