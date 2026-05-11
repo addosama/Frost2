@@ -7,6 +7,8 @@ import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.helper.player.rotation.providers.AbstractRotationProvider;
+import pub.frost.client.feature.helper.player.rotation.providers.impl.BasicRotationProvider;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -52,6 +54,8 @@ public class KillAura extends AbstractModule {
 
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
+
+    private final AbstractRotationProvider rotationProvider = new BasicRotationProvider();
 
     private Object target = null;
     public Object getTarget() {
@@ -130,11 +134,10 @@ public class KillAura extends AbstractModule {
             if (rayTraceTarget(target, rotationAimingEyePos)) return rotationAimingEyePos;
         }
         // search rotation that available to hit target
-        return RotationUtils.searchRotationHittingBoundingBox(
-                eyePos,
-                box,
+        return rotationProvider.getRotation(
+                eyePos, box, null,
                 rot -> rayTraceTarget(target, rot),
-                2
+                true
         );
     }
 

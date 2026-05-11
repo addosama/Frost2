@@ -9,7 +9,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
-import pub.frost.utils.EnumRotationMode;
+import pub.frost.client.feature.helper.player.rotation.providers.EnumRotationProvider;
 
 import java.util.function.Supplier;
 
@@ -24,7 +24,7 @@ public class RotationSetting {
     public final BooleanProperty instant = new BooleanProperty(false);
     @TranslationKey("strings.mode")
     @Property("mode")
-    public final ModeProperty<EnumRotationMode> mode = new ModeProperty<>(EnumRotationMode.BASIC);
+    public final ModeProperty<EnumRotationProvider> mode = new ModeProperty<>(EnumRotationProvider.BASIC);
 
     @TranslationKey("strings.speed")
     @Property("Speed")
