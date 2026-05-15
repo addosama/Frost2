@@ -11,6 +11,7 @@ import pub.frost.wrappers.shared.network.packet.impl.play.c2s.WPlayerDiggingPack
 
 @Getter
 public class PlayerListener implements Wrappers {
+    private final Object mc = Minecraft.getInstance();
     private boolean digging;
 
     private boolean startDiggingTick;
@@ -21,9 +22,10 @@ public class PlayerListener implements Wrappers {
     @EventHandler(priority = -1)
     public void preGameTick(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
-            startDiggingTick = false;
-            stopDiggingTick = false;
-            ticksSinceHeldItemChange++;
+            if (Minecraft.getWorld(mc) == null) resetAllStates();
+            else {
+                ticksSinceHeldItemChange++;
+            }
         }
     }
 
@@ -32,21 +34,36 @@ public class PlayerListener implements Wrappers {
         if (e.isCancelled()) return;
         if (e.getType() == PacketType.OUT) {
             Object packet = e.getPacket();
-            if (PlayerDiggingPacket.isTarget(packet)) {
-                if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.START_DESTROY_BLOCK) {
-                    startDiggingTick = true;
-                    digging = true;
+            if (PlayerPacket.isTarget(packet)) {
+                resetTickStates();
+            } else {
+                if (PlayerDiggingPacket.isTarget(packet)) {
+                    if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.START_DESTROY_BLOCK) {
+                        startDiggingTick = true;
+                        digging = true;
+                    }
+                    if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.ABORT_DESTROY_BLOCK
+                            || PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.STOP_DESTROY_BLOCK
+                    ) {
+                        stopDiggingTick = true;
+                        digging = false;
+                    }
                 }
-                if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.ABORT_DESTROY_BLOCK
-                        || PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.STOP_DESTROY_BLOCK
-                ) {
-                    stopDiggingTick = true;
-                    digging = false;
+                else if (HeldItemChangePacket.isTarget(packet)) {
+                    ticksSinceHeldItemChange = 0;
                 }
-            }
-            else if (HeldItemChangePacket.isTarget(packet)) {
-                ticksSinceHeldItemChange = 0;
             }
         }
+    }
+
+    private void resetTickStates() {
+        startDiggingTick = false;
+        stopDiggingTick = false;
+    }
+
+    private void resetAllStates() {
+        digging = false;
+        resetTickStates();
+        ticksSinceHeldItemChange = 0;
     }
 }
