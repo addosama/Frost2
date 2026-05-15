@@ -102,19 +102,23 @@ public class ESP extends AbstractModule {
 
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
         for (EntityData data : cachedData) {
-            BoundingBox bb = data.getBoundingBox(e.getTickDelta()).move(negatedPlayerPos);
+            BoundingBox lerpedBB = data.getBoundingBox(e.getTickDelta()).move(negatedPlayerPos);
+            BoundingBox prevBB = data.getBoundingBox(0).move(negatedPlayerPos);
+            BoundingBox tickBB = data.getBoundingBox(1).move(negatedPlayerPos);
 
             // expand bounding box
             {
                 double expandSize = box.expand.get();
-                bb = bb.expand(expandSize, expandSize, expandSize);
+                lerpedBB = lerpedBB.expand(expandSize, expandSize, expandSize);
+                prevBB = prevBB.expand(expandSize, expandSize, expandSize);
+                tickBB = tickBB.expand(expandSize, expandSize, expandSize);
             }
 
             // project vertices to screen
-            final Vector3d[] vertexArray = bb.getVertices();
+            final Vector3d[] vertexArray = lerpedBB.getVertices();
             final ImVec2[] vertexScreenPosArray = new ImVec2[vertexArray.length];
             ImVec2 minVec, maxVec, centerVec = RenderUtils.worldToScreen(
-                    bb.getCenter(),
+                    lerpedBB.getCenter(),
                     cachedModelView, cachedProjection,
                     width, height
             );
@@ -144,7 +148,7 @@ public class ESP extends AbstractModule {
 
             // render box
             if (box.enabled.get()) box.renderBox(
-                    bb,
+                    lerpedBB, prevBB, tickBB,
                     cachedModelView, cachedProjection,
                     width, height,
                     minVec, maxVec
@@ -168,7 +172,7 @@ public class ESP extends AbstractModule {
                 );
             }
             if (nameTag.enabled.get()) nameTag.renderNameTag(
-                    bb,
+                    lerpedBB,
                     cachedModelView, cachedProjection,
                     width, height,
                     minVec, maxVec,

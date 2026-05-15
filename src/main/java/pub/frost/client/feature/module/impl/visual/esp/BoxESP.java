@@ -34,12 +34,14 @@ public class BoxESP extends AbstractSubModule<ESP> {
 
     @Property("outline")
     public final BooleanProperty outline = new BooleanProperty(true).setVisibilitySupplier(() -> mode.is(EnumBoxRenderType.RECT));
-
     @Property("shadow")
     public final BooleanProperty shadow = new BooleanProperty(true).setVisibilitySupplier(() -> !mode.is(EnumBoxRenderType.RECT));
 
+    @Property("TickPos")
+    public final BooleanProperty tickPos = new BooleanProperty(false);
+
     public void renderBox(
-            BoundingBox bb,
+            BoundingBox lerpedBB, BoundingBox prevBB, BoundingBox tickBB,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int width, int height,
             ImVec2 rectMin, ImVec2 rectMax
@@ -61,13 +63,13 @@ public class BoxESP extends AbstractSubModule<ESP> {
                         0,
                         thickness
                 );
-                return;
+                break;
             }
             case BOX_2D: {
                 if (shadow.get()) {
                     RenderUtils.drawBoundingBox2DOutline(
                             ImGui.getBackgroundDrawList(),
-                            bb,
+                            lerpedBB,
                             thickness * 4, 0x33000000,
                             modelViewMatrix, projectionMatrix,
                             width, height
@@ -75,18 +77,18 @@ public class BoxESP extends AbstractSubModule<ESP> {
                 }
                 RenderUtils.drawBoundingBox2DOutline(
                         ImGui.getBackgroundDrawList(),
-                        bb,
+                        lerpedBB,
                         thickness, -1,
                         modelViewMatrix, projectionMatrix,
                         width, height
                 );
-                return;
+                break;
             }
             case BOX_3D: {
                 if (shadow.get()) {
                     RenderUtils.drawBoundingBox(
                             ImGui.getBackgroundDrawList(),
-                            bb,
+                            lerpedBB,
                             thickness * 4, 0x33000000,
                             modelViewMatrix, projectionMatrix,
                             width, height
@@ -94,12 +96,28 @@ public class BoxESP extends AbstractSubModule<ESP> {
                 }
                 RenderUtils.drawBoundingBox(
                         ImGui.getBackgroundDrawList(),
-                        bb,
+                        lerpedBB,
                         thickness, -1,
                         modelViewMatrix, projectionMatrix,
                         width, height
                 );
             }
+        }
+        if (tickPos.get()) {
+            RenderUtils.drawBoundingBox(
+                    ImGui.getBackgroundDrawList(),
+                    tickBB,
+                    thickness, 0xFFFF0000,
+                    modelViewMatrix, projectionMatrix,
+                    width, height
+            );
+            RenderUtils.drawBoundingBox(
+                    ImGui.getBackgroundDrawList(),
+                    prevBB,
+                    thickness, 0x330000FF,
+                    modelViewMatrix, projectionMatrix,
+                    width, height
+            );
         }
     }
 }
