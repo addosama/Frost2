@@ -6,8 +6,8 @@ import pub.frost.utils.data.BoundingBox;
 import java.util.AbstractMap;
 import java.util.Map;
 
-public class RaycastUtils {
-    public static Map.Entry<Boolean, Vector3d> raycast(Vector3d eyePos, float rotYaw, float rotPitch, BoundingBox target) {
+public class RayCastUtils {
+    public static Map.Entry<Boolean, Vector3d> getSimpleHitResult(Vector3d eyePos, float rotYaw, float rotPitch, BoundingBox target) {
         // yaw / pitch -> direction
         double yawRad = Math.toRadians(rotYaw);
         double pitchRad = Math.toRadians(rotPitch);

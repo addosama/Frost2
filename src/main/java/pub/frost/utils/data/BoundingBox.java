@@ -17,11 +17,16 @@ public class BoundingBox {
         this.maxY = Math.max(y1, y2);
         this.maxZ = Math.max(z1, z2);
     }
-
     public BoundingBox(Vector3d vec1, Vector3d vec2) {
         this(
                 vec1.x(), vec1.y(), vec1.z(),
                 vec2.x(), vec2.y(), vec2.z()
+        );
+    }
+    public BoundingBox(Vector3d center, double xExpand, double yExpand, double zExpand) {
+        this(
+                center.x - xExpand, center.y - yExpand, center.z - zExpand,
+                center.x + xExpand, center.y + yExpand, center.z + zExpand
         );
     }
 

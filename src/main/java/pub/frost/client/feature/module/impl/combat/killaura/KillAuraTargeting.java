@@ -46,11 +46,13 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
             boolean hit = preTargetRaytrace(targetRet);
 
             if (!hit) {
-                targetRet = null;
+                Object tempTarget = null;
                 for (Object validTarget : validTargets) {
-                    if (preTargetRaytrace(validTarget)) targetRet = validTarget;
+                    if (validTarget == targetRet) continue;
+                    if (preTargetRaytrace(validTarget)) tempTarget = validTarget;
                     break;
                 }
+                targetRet = tempTarget;
             }
         }
 

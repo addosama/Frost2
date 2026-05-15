@@ -58,7 +58,8 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
                             Entity.getYaw(player),
                             Entity.getPitch(player)
                     ),
-                    getRealAttackRange()
+                    getRealAttackRange(),
+                    false
             );
 
             if (rayCastResult) {
