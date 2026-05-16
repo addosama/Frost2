@@ -14,7 +14,6 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.feature.module.impl.visual.esp.BoxESP;
-import pub.frost.client.feature.module.impl.visual.esp.ChestESP;
 import pub.frost.client.feature.module.impl.visual.esp.NameTagESP;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
@@ -48,8 +47,6 @@ public class ESP extends AbstractModule {
     public final BoxESP box = new BoxESP(this);
     @InsertProperty("NameTag")
     public final NameTagESP nameTag = new NameTagESP(this);
-    @InsertProperty("Chest")
-    public final ChestESP chest = new ChestESP(this);
     @Property("health")
     public final BooleanProperty renderHealth = new BooleanProperty(true);
     @Property("data")
@@ -60,23 +57,15 @@ public class ESP extends AbstractModule {
     private final WEntityLivingBase livingEntityWrapper = Wrappers.EntityLivingBase;
 
     private final List<EntityData> cachedData = new ArrayList<>();
-    private final List<Object> cachedChestData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;
 
     @EventHandler
     public void onUpdate(EventPlayerUpdateTick event) {
         cachedData.clear();
-        worldWrapper.getLoadedEntityList(mcWrapper.getWorld(mc)).stream().filter(
+        worldWrapper.getLoadedEntityList(Minecraft.getWorld(mc)).stream().filter(
                 this::isTarget
         ).forEach(en -> cachedData.add(new EntityData(en)));
-
-        cachedChestData.clear();
-        if (chest.enabled.get()) {
-            worldWrapper.getLoadedTileEntityList(mcWrapper.getWorld(mc)).stream().filter(
-                    Wrappers.TileEntity::isChest
-            ).forEach(cachedChestData::add);
-        }
     }
 
     @EventHandler
@@ -89,7 +78,7 @@ public class ESP extends AbstractModule {
     public void onRender2D(EventRender2D e) {
         int width = (int) ImGui.getIO().getDisplaySizeX();
         int height = (int) ImGui.getIO().getDisplaySizeY();
-        Vector3d playerPos = entityWrapper.getLerpedPositionVector(mcWrapper.getPlayer(mc), e.getTickDelta());
+        Vector3d playerPos = entityWrapper.getLerpedPositionVector(Minecraft.getPlayer(mc), e.getTickDelta());
         Vector3d negatedPlayerPos = playerPos.negate(new Vector3d());
 
         // sort entities by distance
@@ -117,11 +106,7 @@ public class ESP extends AbstractModule {
             // project vertices to screen
             final Vector3d[] vertexArray = lerpedBB.getVertices();
             final ImVec2[] vertexScreenPosArray = new ImVec2[vertexArray.length];
-            ImVec2 minVec, maxVec, centerVec = RenderUtils.worldToScreen(
-                    lerpedBB.getCenter(),
-                    cachedModelView, cachedProjection,
-                    width, height
-            );
+            ImVec2 minVec, maxVec;
             {
                 for (int i = 0; i < 8; i++) {
                     Vector3d vertex = vertexArray[i];
@@ -150,8 +135,7 @@ public class ESP extends AbstractModule {
             if (box.enabled.get()) box.renderBox(
                     lerpedBB, prevBB, tickBB,
                     cachedModelView, cachedProjection,
-                    width, height,
-                    minVec, maxVec
+                    width, height
             );
 
             ImVec2 boxSize = maxVec.minus(minVec);
@@ -194,26 +178,11 @@ public class ESP extends AbstractModule {
             }
         }
 
-        // render chests
-        if (chest.enabled.get() && !cachedChestData.isEmpty()) {
-            cachedChestData.sort(Comparator.comparingDouble(tile ->
-                    -Wrappers.TileEntity.distanceTo(tile, playerPos.x(), playerPos.y(), playerPos.z())
-            ));
-            double expandSize = box.expand.get();
-            for (Object tile : cachedChestData) {
-                BoundingBox bb = Wrappers.TileEntity.getBoundingBox(tile).move(negatedPlayerPos);
-                if (expandSize != 0) {
-                    bb = bb.expand(expandSize, expandSize, expandSize);
-                }
-                chest.renderChest(bb, cachedModelView, cachedProjection, width, height);
-            }
-        }
-
         ImGui.popFont();
     }
 
     private boolean isTarget(Object entity) {
-        if (entity == mcWrapper.getPlayer(mc)) return false;
+        if (entity == Minecraft.getPlayer(mc)) return false;
         return target.isTarget(entity);
     }
 

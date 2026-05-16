@@ -35,7 +35,8 @@ public class ModuleManager {
                 new NoSlowdown(),
                 new BlinkNoslow(),
                 new ChestStealer(),
-                new InvManager()
+                new InvManager(),
+                new ChestESP()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize

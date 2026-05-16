@@ -1,6 +1,7 @@
 package pub.frost.utils;
 
 import imgui.ImDrawList;
+import imgui.ImGui;
 import imgui.ImVec2;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -181,6 +182,100 @@ public class RenderUtils {
                 x, y, x + width, y + height,
                 colorABGR
         );
+    }
+
+    public static void renderBox(
+            BoundingBox lerpedBB,
+            Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
+            int width, int height,
+            EnumBoxRenderType type,
+            float thickness, float shadowExThickness,
+            int color, int shadowColor
+    ) {
+        // project vertices to screen
+        final Vector3d[] vertexArray = lerpedBB.getVertices();
+        final ImVec2[] vertexScreenPosArray = new ImVec2[vertexArray.length];
+        ImVec2 minVec, maxVec;
+        {
+            for (int i = 0; i < 8; i++) {
+                Vector3d vertex = vertexArray[i];
+                vertexScreenPosArray[i] = RenderUtils.worldToScreen(
+                        vertex,
+                        modelViewMatrix, projectionMatrix,
+                        width, height
+                );
+            }
+
+            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+            for (ImVec2 vec : vertexScreenPosArray) {
+                if (vec == null) {
+                    continue;
+                }
+                if (vec.x < minX) minX = vec.x;
+                if (vec.y < minY) minY = vec.y;
+                if (vec.x > maxX) maxX = vec.x;
+                if (vec.y > maxY) maxY = vec.y;
+            }
+            minVec = new ImVec2(minX, minY);
+            maxVec = new ImVec2(maxX, maxY);
+        }
+        final float shadowThickness = thickness + shadowExThickness;
+        switch (type) {
+            case RECT: {
+                if (shadowExThickness > 0 && shadowColor != 0) {
+                    ImGui.getBackgroundDrawList().addRect(
+                            minVec, maxVec,
+                            shadowColor,
+                            0,
+                            shadowThickness
+                    );
+                }
+                ImGui.getBackgroundDrawList().addRect(
+                        minVec, maxVec,
+                        color,
+                        0,
+                        thickness
+                );
+                break;
+            }
+            case BOX_2D: {
+                if (shadowExThickness > 0 && shadowColor != 0) {
+                    RenderUtils.drawBoundingBox2DOutline(
+                            ImGui.getBackgroundDrawList(),
+                            lerpedBB,
+                            shadowThickness, shadowColor,
+                            modelViewMatrix, projectionMatrix,
+                            width, height
+                    );
+                }
+                RenderUtils.drawBoundingBox2DOutline(
+                        ImGui.getBackgroundDrawList(),
+                        lerpedBB,
+                        thickness, color,
+                        modelViewMatrix, projectionMatrix,
+                        width, height
+                );
+                break;
+            }
+            case BOX_3D: {
+                if (shadowExThickness > 0 && shadowColor != 0) {
+                    RenderUtils.drawBoundingBox(
+                            ImGui.getBackgroundDrawList(),
+                            lerpedBB,
+                            shadowThickness, shadowColor,
+                            modelViewMatrix, projectionMatrix,
+                            width, height
+                    );
+                }
+                RenderUtils.drawBoundingBox(
+                        ImGui.getBackgroundDrawList(),
+                        lerpedBB,
+                        thickness, color,
+                        modelViewMatrix, projectionMatrix,
+                        width, height
+                );
+            }
+        }
     }
 
     public static void drawHorizontalGradientRect(
