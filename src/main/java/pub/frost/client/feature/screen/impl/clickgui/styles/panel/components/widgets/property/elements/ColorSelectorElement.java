@@ -108,8 +108,8 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             }
         }
 
-        final int hueColor = ColorUtils.toABGR(Color.HSBtoRGB(hRet, 1, 1));
-        final int colorFullAlpha = ColorUtils.toABGR(Color.HSBtoRGB(hRet, sRet, bRet));
+        final int hueColor = ColorUtils.HSBtoBGR(hRet, 1, 1);
+        final int colorFullAlpha = ColorUtils.HSBtoBGR(hRet, sRet, bRet);
         final int colorRet = ColorUtils.reAlpha(
                 colorFullAlpha,
                 alphaRet
