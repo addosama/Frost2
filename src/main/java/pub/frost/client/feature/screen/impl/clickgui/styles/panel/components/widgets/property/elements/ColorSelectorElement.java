@@ -75,18 +75,18 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
         }
 
         // s & b
-        final ImVec2 sbMin, sbMax, sbSize;
+        final float sbRadius = 12f;
+        final ImVec2 sbMin, sbSize;
         {
             ImGui.invisibleButton(
                     id + ".popup.sbButton",
                     240, 240
             );
             sbMin = ImGui.getItemRectMin();
-            sbMax = ImGui.getItemRectMax();
             sbSize = ImGui.getItemRectSize();
 
             if (ImGui.isItemActive()) {
-                ImVec2 mouseVal = ImGui.getMousePos().minus(sbMin).div(sbSize);
+                ImVec2 mouseVal = ImGui.getMousePos().minus(sbMin.plus(sbRadius, sbRadius)).div(sbSize.minus(sbRadius * 2, sbRadius * 2));
                 sRet = MathUtils.clamp(mouseVal.x, 0f, 1f);
                 bRet = MathUtils.clamp(1 - mouseVal.y, 0f, 1f);
             }
@@ -108,37 +108,21 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             }
         }
 
+        final int hueColor = ColorUtils.toABGR(Color.HSBtoRGB(hRet, 1, 1));
+        final int colorFullAlpha = ColorUtils.toABGR(Color.HSBtoRGB(hRet, sRet, bRet));
+        final int colorRet = ColorUtils.reAlpha(
+                colorFullAlpha,
+                alphaRet
+        );
+
         // draw
         if (!dummy) {
             // s & b
             {
-                draws.addRectFilledMultiColor(
-                        sbMin, sbMax,
-                        0xFFFFFFFF, ColorUtils.toABGR(Color.HSBtoRGB(hRet, 1, 1)),
-                        ColorUtils.toABGR(Color.HSBtoRGB(hRet, 1, 1)), 0xFFFFFFFF
-                );
-                draws.addRectFilledMultiColor(
-                        sbMin, sbMax,
-                        0, 0,
-                        0xFF000000, 0xFF000000
-                );
-
-                ImVec2 sbValue = sbMin.plus(sbSize.x * sRet, sbSize.y * (1 - bRet));
-                draws.addCircleFilled(
-                        sbValue,
-                        6, 0xFFFFFFFF
-                );
-                draws.addCircleFilled(
-                        sbValue,
-                        4, 0x16000000
-                );
-                draws.addCircleFilled(
-                        sbValue,
-                        4, value
-                );
-                draws.addCircle(
-                        sbValue,
-                        4, 0x16000000
+                renderRoundedSbPicker(
+                        draws,
+                        sbMin, sbSize, 12,
+                        new ImVec2(sRet, 1 - bRet), hueColor
                 );
             }
 
@@ -152,10 +136,112 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             }
         }
 
-        return ColorUtils.reAlpha(
-                ColorUtils.toABGR(Color.HSBtoRGB(hRet, sRet, bRet)),
-                alphaRet
-        );
+        return colorRet;
+    }
+
+    private void renderRoundedSbPicker(
+            ImDrawList draws,
+            ImVec2 pos, ImVec2 size, float radius,
+            ImVec2 value, int hueColor
+    ) {
+        // draw rounds
+        {
+            // l t round
+            draws.addCircleFilled(
+                    pos.plus(radius, radius),
+                    radius,
+                    0xFFFFFFFF
+            );
+            // r t round
+            draws.addCircleFilled(
+                    pos.plus(size.x - radius, radius),
+                    radius,
+                    hueColor
+            );
+            // l b round
+            draws.addCircleFilled(
+                    pos.plus(radius, size.y - radius),
+                    radius,
+                    0xFF000000
+            );
+            // r b round
+            draws.addCircleFilled(
+                    pos.plus(size.x - radius, size.y - radius),
+                    radius,
+                    0xFF000000
+            );
+        }
+        // draw edge gradients
+        {
+            // top
+            draws.addRectFilledMultiColor(
+                    pos.plus(radius, 0),
+                    pos.plus(size.x - radius, radius),
+                    0xFFFFFFFF, hueColor, hueColor, 0xFFFFFFFF
+            );
+            // left
+            draws.addRectFilledMultiColor(
+                    pos.plus(0, radius),
+                    pos.plus(radius, size.y - radius),
+                    0xFFFFFFFF, 0xFFFFFFFF, 0xFF000000, 0xFF000000
+            );
+            // right
+            draws.addRectFilledMultiColor(
+                    pos.plus(size.x - radius, radius),
+                    pos.plus(size.x, size.y - radius),
+                    hueColor, hueColor, 0xFF000000, 0xFF000000
+            );
+            // bottom
+            draws.addRectFilled(
+                    pos.plus(radius, size.y - radius),
+                    pos.plus(size.x - radius, size.y),
+                    0xFF000000
+            );
+        }
+        // draw picker area
+        {
+            ImVec2 pickerMin = pos.plus(radius, radius), pickerMax = pos.plus(size.x - radius, size.y - radius);
+            draws.addRectFilledMultiColor(
+                    pickerMin, pickerMax,
+                    0xFFFFFFFF, hueColor,
+                    hueColor, 0xFFFFFFFF
+            );
+            draws.addRectFilledMultiColor(
+                    pickerMin, pickerMax,
+                    0, 0,
+                    0xFF000000, 0xFF000000
+            );
+
+            // indicator
+            {
+                ImVec2 indicatorPos = pos.plus(
+                        radius + (size.x - radius * 2) * value.x,
+                        radius + (size.y - radius * 2) * value.y
+                );
+                draws.addCircleFilled(
+                        indicatorPos,
+                        6, 0xFFFFFFFF
+                );
+                draws.addCircleFilled(
+                        indicatorPos,
+                        4, 0x16000000
+                );
+                draws.addCircleFilled(
+                        indicatorPos,
+                        4, hueColor
+                );
+                draws.addCircle(
+                        indicatorPos,
+                        4, 0x16000000
+                );
+            }
+        }
+    }
+
+    private void renderRoundedHueBar(
+
+    ) {
+
     }
 
     @Override
