@@ -9,6 +9,7 @@ import pub.frost.base.rendering.FontManager;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.ColorSelectorElement;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SelectorElement;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SliderElement;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.elements.SwitchElement;
@@ -18,6 +19,7 @@ import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
+import pub.frost.client.property.impl.color.ColorProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.NumberProperty;
 import pub.frost.utils.ImTextRenderer;
@@ -272,6 +274,10 @@ public class PropertyComponent<T> extends PanelComponent {
                         value -> value.containsValue(Boolean.TRUE),
                         true
                 );
+            }
+            else if (abstractProp instanceof ColorProperty) {
+                ColorProperty colorProp = (ColorProperty) abstractProp;
+                er = new ColorSelectorElement(gui, colorProp.isAlphaEnabled());
             }
         }
 

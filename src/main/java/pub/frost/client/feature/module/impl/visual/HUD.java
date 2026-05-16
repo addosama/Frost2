@@ -11,6 +11,8 @@ import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.feature.overlay.impl.ToggledModulesOverlay;
 import pub.frost.client.feature.overlay.impl.WatermarkOverlay;
 import pub.frost.client.property.annotations.InsertProperty;
+import pub.frost.client.property.annotations.Property;
+import pub.frost.client.property.impl.color.ColorProperty;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +27,10 @@ public class HUD extends AbstractModule {
     private final WatermarkOverlay watermark = new WatermarkOverlay();
     @InsertProperty("ToggledModules")
     private final ToggledModulesOverlay toggledModules = new ToggledModulesOverlay();
+    @Property("colorTest")
+    private final ColorProperty colorTest = new ColorProperty(0x33000000);
+    @Property("colorTestNoAlpha")
+    private final ColorProperty colorNoAlpha = new ColorProperty(0x33FFFFFF, false);
 
     private final List<ClientOverlay> overlayList = Arrays.asList(
             watermark, toggledModules
@@ -33,6 +39,14 @@ public class HUD extends AbstractModule {
     @EventHandler(priority = -50)
     public void onRender(EventRender2D e) {
         overlayList.forEach(o -> o.render(false, isInChatHud(), e.getTickDelta()));
+        ImGui.getForegroundDrawList().addRectFilled(
+                0f, 0f, 100f, 100f,
+                colorTest.getValueABGR()
+        );
+        ImGui.getForegroundDrawList().addRectFilled(
+                100f, 0f, 200f, 100f,
+                colorNoAlpha.getValueABGR()
+        );
     }
 
     @EventHandler(priority = -50)
