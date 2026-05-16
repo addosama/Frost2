@@ -2,12 +2,25 @@ package pub.frost.utils;
 
 import imgui.ImVec4;
 
+import java.awt.*;
+
 public class ColorUtils {
     public static int reAlpha(int colorABGR, int alpha) {
         alpha = Math.max(0, Math.min(255, alpha));
         return (colorABGR & 0x00FFFFFF) | (alpha << 24);
     }
+    public static int getAlpha(int colorAXXX) {
+        return (colorAXXX >> 24) & 0xFF;
+    }
 
+    public static int[] toRGBA(int colorABGR) {
+        int r = (colorABGR & 0xFF);
+        int g = ((colorABGR >> 8) & 0xFF);
+        int b = ((colorABGR >> 16) & 0xFF);
+        int a = ((colorABGR >> 24) & 0xFF);
+
+        return new int[]{r, g, b, a};
+    }
     public static ImVec4 toImVec4(int colorABGR) {
         float r = (colorABGR & 0xFF) / 255.0f;
         float g = ((colorABGR >> 8) & 0xFF) / 255.0f;
@@ -70,5 +83,9 @@ public class ColorUtils {
             }
         }
         return 0xff000000 | (b << 16) | (g << 8) | (r);
+    }
+    public static float[] BGRtoHSB(int colorABGR) {
+        int[] rgba = toRGBA(colorABGR);
+        return Color.RGBtoHSB(rgba[0], rgba[1], rgba[2], null);
     }
 }

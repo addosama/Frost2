@@ -8,16 +8,17 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.Pan
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.ElementRenderer;
 import pub.frost.utils.ColorUtils;
 import pub.frost.utils.MathUtils;
+import pub.frost.utils.RenderUtils;
 
 import java.awt.*;
 
-public class ColorSelectorElement extends PanelComponent implements ElementRenderer<Integer> {
+public class ColorSelectorElement extends PanelComponent implements ElementRenderer<float[]> {
     public ColorSelectorElement(PanelClickGui gui, boolean alpha) {
         super(gui);
     }
 
     @Override
-    public Integer renderElement(boolean dummy, float tickDelta, String id, Integer value) {
+    public float[] renderElement(boolean dummy, float tickDelta, String id, float[] valueHSBA) {
         boolean mouseClicked = ImGui.invisibleButton(
                 id,
                 18, 18
@@ -26,14 +27,6 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
         if (mouseClicked) ImGui.openPopup(id + ".popup");
         boolean popupOpen = ImGui.isPopupOpen(id + ".popup");
 
-        if (!dummy) {
-            ImGui.getWindowDrawList().addRectFilled(
-                    itemMin, itemMax,
-                    value, 6f
-            );
-        }
-
-        int valueRet = value;
         if (popupOpen) {
             ImGui.pushStyleVar(ImGuiStyleVar.PopupRounding, 16);
             ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 1f);
@@ -43,7 +36,7 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());
 
             if (ImGui.beginPopup(id + ".popup")) {
-                valueRet = renderPopupContent(dummy, tickDelta, id, value);
+                renderPopupContent(dummy, tickDelta, id, valueHSBA);
                 ImGui.endPopup();
             }
 
@@ -51,27 +44,32 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             ImGui.popStyleVar(4);
         }
 
-        return valueRet;
+        if (!dummy) {
+            int color = ColorUtils.HSBtoBGR(valueHSBA[0], valueHSBA[1], valueHSBA[2]);
+            if (valueHSBA[3] >= 0) {
+                color = ColorUtils.reAlpha(
+                        color,
+                        (int) (valueHSBA[3] * 255)
+                );
+            }
+            ImGui.getWindowDrawList().addRectFilled(
+                    itemMin, itemMax,
+                    color, 6f
+            );
+        }
+
+        return valueHSBA;
     }
 
-    public Integer renderPopupContent(boolean dummy, float tickDelta, String id, Integer value) {
+    public void renderPopupContent(boolean dummy, float tickDelta, String id, float[] value) {
         final ImDrawList draws = ImGui.getWindowDrawList();
 
-        float hRet, sRet, bRet;
-        int alphaRet;
+        float hRet, sRet, bRet, aRet;
         {
-            final ImVec4 color = ColorUtils.toImVec4(value);
-            float[] colorHSB = new float[3];
-            colorHSB = Color.RGBtoHSB(
-                    (int) (color.x * 255), (int) (color.y * 255), (int) (color.z * 255),
-                    colorHSB
-            );
-
-            hRet = colorHSB[0];
-            sRet = colorHSB[1];
-            bRet = colorHSB[2];
-
-            alphaRet = (int) (color.w * 255);
+            hRet = value[0];
+            sRet = value[1];
+            bRet = value[2];
+            aRet = value[3];
         }
 
         // s & b
@@ -93,7 +91,7 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
         }
 
         // hue
-        final ImVec2 hMin, hMax, hSize;
+        final ImVec2 hMin, hMax;
         {
             ImGui.invisibleButton(
                     id + ".popup.hButton",
@@ -101,48 +99,72 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
             );
             hMin = ImGui.getItemRectMin();
             hMax = ImGui.getItemRectMax();
-            hSize = ImGui.getItemRectSize();
 
             if (ImGui.isMouseDragging(0) && ImGui.isItemActive()) {
-
+                float val = (ImGui.getMousePosX() - (hMin.x + 6)) / (ImGui.getItemRectSizeX() - 12);
+                hRet = MathUtils.clamp(val, 0f, 1f);
             }
+        }
+
+        // alpha
+        final ImVec2 aMin, aMax;
+        if (aRet >= 0) {
+            ImGui.invisibleButton(
+                    id + ".popup.aButton",
+                    240, 18
+            );
+            aMin = ImGui.getItemRectMin();
+            aMax = ImGui.getItemRectMax();
+
+            if (ImGui.isMouseDragging(0) && ImGui.isItemActive()) {
+                float val = (ImGui.getMousePosX() - (hMin.x + 6)) / (ImGui.getItemRectSizeX() - 12);
+                aRet = MathUtils.clamp(val, 0f, 1f);
+            }
+        }
+        else {
+            aMin = null;
+            aMax = null;
         }
 
         final int hueColor = ColorUtils.HSBtoBGR(hRet, 1, 1);
         final int colorFullAlpha = ColorUtils.HSBtoBGR(hRet, sRet, bRet);
-        final int colorRet = ColorUtils.reAlpha(
-                colorFullAlpha,
-                alphaRet
-        );
 
         // draw
         if (!dummy) {
             // s & b
-            {
-                renderRoundedSbPicker(
-                        draws,
-                        sbMin, sbSize, 12,
-                        new ImVec2(sRet, 1 - bRet), hueColor
-                );
-            }
+            renderRoundedSbPicker(
+                    draws,
+                    sbMin, sbSize, 12,
+                    new ImVec2(sRet, 1 - bRet), colorFullAlpha, hueColor
+            );
 
             // h
-            {
-                draws.addRectFilledMultiColor(
-                        hMin.plus(0, 5), hMax.minus(0, 5),
-                        0xFFFFFFFF, 0xFF000000,
-                        0xFF000000, 0xFFFFFFFF
+            renderRoundedHueBar(
+                    draws,
+                    hMin, hMax,
+                    hRet, hueColor
+            );
+
+            // a
+            if (aRet >= 0) {
+                renderRoundedAlphaBar(
+                        draws,
+                        aMin, aMax,
+                        aRet, colorFullAlpha
                 );
             }
         }
 
-        return colorRet;
+        value[0] = hRet;
+        value[1] = sRet;
+        value[2] = bRet;
+        value[3] = aRet;
     }
 
     private void renderRoundedSbPicker(
             ImDrawList draws,
             ImVec2 pos, ImVec2 size, float radius,
-            ImVec2 value, int hueColor
+            ImVec2 value, int valueColorFullAlpha, int hueColor
     ) {
         // draw rounds
         {
@@ -220,32 +242,175 @@ public class ColorSelectorElement extends PanelComponent implements ElementRende
                 );
                 draws.addCircleFilled(
                         indicatorPos,
-                        6, 0xFFFFFFFF
+                        9, 0xFFFFFFFF
                 );
                 draws.addCircleFilled(
                         indicatorPos,
-                        4, 0x16000000
-                );
-                draws.addCircleFilled(
-                        indicatorPos,
-                        4, hueColor
+                        6, valueColorFullAlpha
                 );
                 draws.addCircle(
                         indicatorPos,
-                        4, 0x16000000
+                        6, 0x16000000
                 );
             }
         }
     }
 
     private void renderRoundedHueBar(
-
+            ImDrawList draws,
+            ImVec2 minVec, ImVec2 maxVec,
+            float hValue, int hColor
     ) {
+        final float barX = minVec.x + 6, barY = minVec.y + 5;
+        final float barWidth = maxVec.x - minVec.x - 12, barHeight = maxVec.y - minVec.y - 10;
+        // bar
+        {
+            // round & width fix
+            {
+                // left round
+                draws.addCircleFilled(
+                        minVec.plus(4, 9),
+                        4,
+                        0xFF0000FF
+                );
+                // left width fix
+                draws.addRectFilled(
+                        minVec.plus(4, 5),
+                        minVec.plus(6, 13),
+                        0xFF0000FF
+                );
+                // right round
+                draws.addCircleFilled(
+                        maxVec.minus(4, 9),
+                        4,
+                        0xFF0000FF
+                );
+                // right width fix
+                draws.addRectFilled(
+                        maxVec.minus(13, 6),
+                        maxVec.minus(4, 5),
+                        0xFF0000FF
+                );
+            }
 
+            // hue bar
+            final float step = 1 / 7f;
+            RenderUtils.drawHorizontalGradientRect(
+                    draws,
+                    barX, barY, barWidth, barHeight,
+                    ColorUtils.HSBtoBGR(0, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 1, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 2, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 3, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 4, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 5, 1, 1),
+                    ColorUtils.HSBtoBGR(step * 6, 1, 1),
+                    ColorUtils.HSBtoBGR(1, 1, 1)
+            );
+        }
+
+        // indicator
+        {
+            ImVec2 indicatorCenter = new ImVec2(barX + barWidth * hValue, barY + barHeight / 2);
+            // bg
+            drawIndicator(
+                    draws,
+                    indicatorCenter,
+                    6f, 3f, 6f,
+                    0xFFFFFFFF
+            );
+            // color
+            drawIndicator(
+                    draws,
+                    indicatorCenter,
+                    3f, 3f, 3f,
+                    hColor
+            );
+        }
+    }
+
+    private void renderRoundedAlphaBar(
+            ImDrawList draws,
+            ImVec2 minVec, ImVec2 maxVec,
+            float alphaValue, int colFullAlpha
+    ) {
+        final float barX = minVec.x + 6, barY = minVec.y + 5;
+        final float barWidth = maxVec.x - minVec.x - 12, barHeight = maxVec.y - minVec.y - 10;
+        // bar
+        {
+            final int colNoAlpha = ColorUtils.reAlpha(colFullAlpha, 0);
+            // round & width fix
+            {
+                // left round
+                draws.addCircleFilled(
+                        minVec.plus(4, 9),
+                        4,
+                        colNoAlpha
+                );
+                // left width fix
+                draws.addRectFilled(
+                        minVec.plus(4, 5),
+                        minVec.plus(6, 13),
+                        colNoAlpha
+                );
+                // right round
+                draws.addCircleFilled(
+                        maxVec.minus(4, 9),
+                        4,
+                        colFullAlpha
+                );
+                // right width fix
+                draws.addRectFilled(
+                        maxVec.minus(13, 6),
+                        maxVec.minus(4, 5),
+                        colFullAlpha
+                );
+            }
+
+            // alpha bar
+            RenderUtils.drawHorizontalGradientRect(
+                    draws,
+                    barX, barY, barWidth, barHeight,
+                    colNoAlpha, colFullAlpha
+            );
+        }
+
+        // indicator
+        {
+            ImVec2 indicatorCenter = new ImVec2(barX + barWidth * alphaValue, barY + barHeight / 2);
+            // bg
+            drawIndicator(
+                    draws,
+                    indicatorCenter,
+                    6f, 3f, 6f,
+                    0xFFFFFFFF
+            );
+        }
+    }
+
+    private void drawIndicator(
+            ImDrawList draws,
+            ImVec2 indicatorCenter,
+            float xOffset, float yOffset, float radius,
+            int color
+    ) {
+        draws.addCircleFilled(
+                indicatorCenter.minus(0, yOffset),
+                radius, color
+        );
+        draws.addCircleFilled(
+                indicatorCenter.plus(0, yOffset),
+                radius, color
+        );
+        draws.addRectFilled(
+                indicatorCenter.minus(xOffset, yOffset),
+                indicatorCenter.plus(xOffset, yOffset),
+                color
+        );
     }
 
     @Override
-    public float getElementWidth(Integer value) {
+    public float getElementWidth(float[] value) {
         return 18;
     }
 

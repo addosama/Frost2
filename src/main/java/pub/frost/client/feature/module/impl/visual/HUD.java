@@ -41,11 +41,11 @@ public class HUD extends AbstractModule {
         overlayList.forEach(o -> o.render(false, isInChatHud(), e.getTickDelta()));
         ImGui.getForegroundDrawList().addRectFilled(
                 0f, 0f, 100f, 100f,
-                colorTest.getValue()
+                colorTest.getValueABGR()
         );
         ImGui.getForegroundDrawList().addRectFilled(
                 100f, 0f, 200f, 100f,
-                colorNoAlpha.getValue()
+                colorNoAlpha.getValueABGR()
         );
     }
 

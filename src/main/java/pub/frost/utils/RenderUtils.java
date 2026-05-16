@@ -171,4 +171,88 @@ public class RenderUtils {
                 thickness
         );
     }
+
+    public static void drawRect(
+            ImDrawList draws,
+            float x, float y, float width, float height,
+            int colorABGR
+    ) {
+        draws.addRect(
+                x, y, x + width, y + height,
+                colorABGR
+        );
+    }
+
+    public static void drawHorizontalGradientRect(
+            ImDrawList draws,
+            float x, float y, float width, float height,
+            int... colorsABGR
+    ) {
+        if (colorsABGR.length < 2) {
+            if (colorsABGR.length == 1) drawRect(draws, x, y, width, height, colorsABGR[0]);
+            return;
+        }
+
+        int colorSize = colorsABGR.length;
+        float singleWidth = width / (colorSize - 1);
+        float currentX = x + width;
+
+        for (int index = 0; index < colorSize - 1; index++) {
+            int col1 = colorsABGR[Math.abs(index - colorSize) - 1];
+            int col2 = colorsABGR[Math.abs((index + 1) - colorSize) - 1];
+            draws.addRectFilledMultiColor(
+                    currentX - singleWidth, y,
+                    currentX, y + height,
+                    col2, col1,
+                    col1, col2
+            );
+            currentX -= singleWidth;
+        }
+    }
+    /*
+    public static void drawVerticalGradientRect(float x, float y, float width, float height, int... colors) {
+        if (colors.length < 2) {
+            if (colors.length == 1) drawRect(x, y, width, height, colors[0]);
+            return;
+        }
+
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.shadeModel(7425);
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        int colorSize = colors.length;
+        float singleHeight = height / (colorSize - 1);
+        float currentY = y;
+        Function<Integer, float[]> rgbaFun = color -> new float[] {
+                (float)(color >> 16 & 255) / 255.0F,
+                (float)(color >> 8 & 255) / 255.0F,
+                (float)(color & 255) / 255.0F,
+                (float)(color >> 24 & 255) / 255.0F
+        };
+
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        for (int index = 0; index < colorSize - 1; index++) {
+            float[] rgba = rgbaFun.apply(colors[index]);
+            float[] next = rgbaFun.apply(colors[index + 1]);
+
+            worldrenderer.pos(x + width, currentY, 0).color(rgba[0], rgba[1], rgba[2], rgba[3]).endVertex();
+            worldrenderer.pos(x, currentY, 0).color(rgba[0], rgba[1], rgba[2], rgba[3]).endVertex();
+            worldrenderer.pos(x, currentY + singleHeight, 0).color(next[0], next[1], next[2], next[3]).endVertex();
+            worldrenderer.pos(x + width, currentY + singleHeight, 0).color(next[0], next[1], next[2], next[3]).endVertex();
+            currentY += singleHeight;
+        }
+//        worldrenderer.pos((double)right, (double)top, 0).color(f1, f2, f3, f).endVertex();
+//        worldrenderer.pos((double)left, (double)top, 0).color(f1, f2, f3, f).endVertex();
+//        worldrenderer.pos((double)left, (double)bottom, 0).color(f5, f6, f7, f4).endVertex();
+//        worldrenderer.pos((double)right, (double)bottom, 0).color(f5, f6, f7, f4).endVertex();
+        tessellator.draw();
+        GlStateManager.shadeModel(7424);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+    }
+     */
 }
