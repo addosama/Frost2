@@ -1,10 +1,11 @@
 package pub.frost.client.feature.helper.network;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
+import pub.frost.base.event.impl.events.EventProactiveLag;
+import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
@@ -18,14 +19,25 @@ public class LagManager implements Wrappers {
     private final Deque<DelayedPacket> incomingPacketDeque = new ConcurrentLinkedDeque<>();
     private final Deque<DelayedPacket> outgoingPacketDeque = new ConcurrentLinkedDeque<>();
 
-    @Getter
-    private boolean lagIncoming = false;
-    @Getter
-    private int delay = 0;
+    private int incomingLaggedTicks = 0;
+    private int outgoingLaggedTicks = 0;
+
+    private boolean laggingInc = false, laggingOut = false;
+    private int releaseIncTick = -1, releaseOutTick = -1;
 
     public boolean processIncoming(Object packet) {
-        if (lagIncoming && shouldLag()) {
-            incomingPacketDeque.offerLast(new DelayedPacket(packet));
+        EventProactiveLag lagEvent = new EventProactiveLag(
+                packet, PacketType.IN,
+                incomingLaggedTicks, outgoingLaggedTicks
+        );
+        FrostCore.getEventBus().call(lagEvent);
+        laggingInc = lagEvent.isLagIncoming();
+        laggingOut = lagEvent.isLagOutgoing();
+        releaseIncTick = lagEvent.getReleaseIncomingReachTick();
+        releaseOutTick = lagEvent.getReleaseOutgoingReachTick();
+
+        if (laggingInc || lagEvent.isLagCurrentPacket()) {
+            if (laggingInc) incomingPacketDeque.offerLast(new DelayedPacket(packet));
             return true;
         }
         return false;
@@ -38,11 +50,21 @@ public class LagManager implements Wrappers {
                 || C2SEncryptionResponsePacket.isTarget(packet)
                 || C2SLoginStartPacket.isTarget(packet)
         ) {
-            setDelay(0);
+            return false;
         }
 
-        if (shouldLag()) {
-            outgoingPacketDeque.offerLast(new DelayedPacket(packet));
+        EventProactiveLag lagEvent = new EventProactiveLag(
+                packet, PacketType.OUT,
+                incomingLaggedTicks, outgoingLaggedTicks
+        );
+        FrostCore.getEventBus().call(lagEvent);
+        laggingInc = lagEvent.isLagIncoming();
+        laggingOut = lagEvent.isLagOutgoing();
+        releaseIncTick = lagEvent.getReleaseIncomingReachTick();
+        releaseOutTick = lagEvent.getReleaseOutgoingReachTick();
+
+        if (laggingOut || lagEvent.isLagCurrentPacket()) {
+            if (laggingOut) outgoingPacketDeque.offerLast(new DelayedPacket(packet));
             return true;
         }
         return false;
@@ -62,38 +84,54 @@ public class LagManager implements Wrappers {
                     return;
                 }
 
-                while (!incomingPacketDeque.isEmpty()) {
-                    DelayedPacket data = incomingPacketDeque.peek();
-                    if (data.ticks <= delay) break;
-                    else {
-                        Packet.processPacket(
-                                data.packet,
-                                Minecraft.getNetHandler(mc)
-                        );
-                        incomingPacketDeque.pop();
+                if (laggingInc) {
+                    if (releaseIncTick >= 0) {
+                        while (!incomingPacketDeque.isEmpty()) {
+                            DelayedPacket data = incomingPacketDeque.peekFirst();
+                            if (data.ticks >= releaseIncTick) {
+                                Packet.processPacket(
+                                        data.packet,
+                                        Minecraft.getNetHandler(mc)
+                                );
+                                incomingPacketDeque.pollFirst();
+                            } else break;
+                        }
                     }
                 }
+                else flushIncoming();
 
-                while (!outgoingPacketDeque.isEmpty()) {
-                    DelayedPacket data = outgoingPacketDeque.peek();
-                    if (data.ticks <= delay) break;
-                    else {
-                        FrostCore.getInstance().getPacketManager().sendPacket(
-                                data.packet,
-                                false
-                        );
-                        outgoingPacketDeque.pop();
+                if (laggingOut) {
+                    if (releaseOutTick >= 0) {
+                        while (!outgoingPacketDeque.isEmpty()) {
+                            DelayedPacket data = outgoingPacketDeque.peekFirst();
+                            if (data.ticks >= releaseOutTick) {
+                                FrostCore.getHelpers().getPacketManager().sendPacket(
+                                        data.packet,
+                                        false
+                                );
+                                outgoingPacketDeque.pollFirst();
+                            } else break;
+                        }
                     }
                 }
+                else flushOutgoing();
             }
-        } else {
-            incomingPacketDeque.forEach(p -> p.ticks++);
-            outgoingPacketDeque.forEach(p -> p.ticks++);
         }
-    }
+        else {
+            laggingInc = !incomingPacketDeque.isEmpty();
+            if (laggingInc) {
+                incomingLaggedTicks++;
+                incomingPacketDeque.forEach(p -> p.ticks++);
+            }
+            else incomingLaggedTicks = 0;
 
-    private boolean shouldLag() {
-        return delay > 0;
+            laggingOut = !outgoingPacketDeque.isEmpty();
+            if (laggingOut) {
+                outgoingLaggedTicks++;
+                outgoingPacketDeque.forEach(p -> p.ticks++);
+            }
+            else outgoingLaggedTicks = 0;
+        }
     }
 
     private void flushIncoming() {
@@ -108,7 +146,7 @@ public class LagManager implements Wrappers {
     private void flushOutgoing() {
         while (!outgoingPacketDeque.isEmpty()) {
             DelayedPacket data = outgoingPacketDeque.poll();
-            FrostCore.getInstance().getPacketManager().sendPacket(
+            FrostCore.getHelpers().getPacketManager().sendPacket(
                     data.packet,
                     false
             );
