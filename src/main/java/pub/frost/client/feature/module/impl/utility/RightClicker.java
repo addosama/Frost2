@@ -21,7 +21,7 @@ import pub.frost.wrappers.shared.item.WItemStack;
 )
 public class RightClicker extends AbstractModule {
     @Property("cps")
-    private final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+    private final IntegerProperty cps = new IntegerProperty(1, 20, 1, 12);
     @Property("BlockCheck")
     private final BooleanProperty blockCheck = new BooleanProperty(true);
 

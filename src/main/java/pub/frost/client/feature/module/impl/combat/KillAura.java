@@ -157,6 +157,7 @@ public class KillAura extends AbstractModule {
     }
     public boolean rayTraceTarget(Object target, Rotation r, double reach, boolean useDefaultIfOutOfRange, float tickDelta) {
         if (rayCast.is(EnumRaycastType.DISABLED)) return true;
+        tickDelta = Math.max(0, Math.min(1, tickDelta));
 
         final Object player = getPlayer();
         final Vector3d playerEyePos = Entity.getPositionEyes(player, tickDelta);

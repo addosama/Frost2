@@ -21,7 +21,7 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
     public final FloatProperty attackRange = new FloatProperty(0, 6, 0.01f, 3f).setVisibilitySupplier(() -> mode.is(EnumInteractType.PACKET));
 
     @Property("cps")
-    public final IntegerProperty cps = new IntegerProperty(0, 20, 1, 12);
+    public final IntegerProperty cps = new IntegerProperty(1, 20, 1, 12);
 
     private long lastAttack = 0;
     private int attackCount = 0;
