@@ -106,9 +106,14 @@ public class PropertyComponent<T> extends PanelComponent {
             xOffset -= 2;
         }
         if (children != null) {
-            xOffset -= 20;
-            ImGui.sameLine(xOffset);
-            renderGroupPopupButton(dummy, tickDelta);
+            for (PropertyComponent<?> child : children) {
+                if (child.isVisible()) {
+                    xOffset -= 20;
+                    ImGui.sameLine(xOffset);
+                    renderGroupPopupButton(dummy, tickDelta);
+                    break;
+                }
+            }
         }
 
         ImGui.endChild();
