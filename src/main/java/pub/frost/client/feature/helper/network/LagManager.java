@@ -74,10 +74,11 @@ public class LagManager implements Wrappers {
     private void onUpdate(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
             Object player = Minecraft.getPlayer(mc);
-            if (player == null) {
+            if (player == null || Minecraft.getWorld(mc) == null) {
                 clearIncoming();
                 clearOutgoing();
-            } else {
+            }
+            else {
                 if (Entity.isDead(player)) {
                     flushIncoming();
                     clearOutgoing();
