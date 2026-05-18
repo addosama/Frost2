@@ -24,6 +24,7 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.preset.RotationSetting;
+import pub.frost.client.property.preset.TickDeltaFixSetting;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
@@ -43,6 +44,8 @@ import java.util.Map;
 public class KillAura extends AbstractModule {
     @Property("TickTiming")
     public final ModeProperty<TickTiming> tickTiming = new ModeProperty<>(TickTiming.PRE_GAME_TICK);
+    @InsertProperty
+    public final TickDeltaFixSetting tickDeltaFix = new TickDeltaFixSetting(() -> tickTiming.is(TickTiming.PRE_GAME_TICK));
     @InsertProperty("targeting")
     public final KillAuraTargeting targeting = new KillAuraTargeting();
     @InsertProperty("searching")
@@ -79,7 +82,7 @@ public class KillAura extends AbstractModule {
 
     @EventHandler
     private void onRotation(EventRotation event) {
-        if (tickTiming.is(TickTiming.PRE_GAME_TICK)) tick(1);
+        if (tickTiming.is(TickTiming.PRE_GAME_TICK)) tick(tickDeltaFix.get());
         if (targetRotation != null) {
             event.setYaw(targetRotation.getYaw());
             event.setPitch(targetRotation.getPitch());
