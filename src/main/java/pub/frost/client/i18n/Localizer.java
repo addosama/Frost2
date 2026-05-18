@@ -10,17 +10,17 @@ public class Localizer {
     }
 
     public String get(String key) {
-        return getOrDefault(key.toLowerCase(), key);
+        return getOrDefault(key, key);
     }
     public String getOrDefault(String key, String defaultValue) {
-        return properties.getProperty(key, defaultValue);
+        return properties.getProperty(key.toLowerCase(), defaultValue);
     }
 
     public String getName(String key) {
-        return getOrDefault(key.toLowerCase() + ".name", get(key));
+        return getOrDefault(key + ".name", get(key));
     }
     public String getDescription(String key) {
-        return getOrDefault(key.toLowerCase() + ".descriptions", "");
+        return getOrDefault(key + ".descriptions", "");
     }
     public String getNoDescriptionText() {
         return get("strings.nodescriptions");

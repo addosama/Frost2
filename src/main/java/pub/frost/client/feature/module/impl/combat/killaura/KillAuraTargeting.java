@@ -31,7 +31,7 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
 
     private Object lastTarget = null;
 
-    public Object selectBestTarget(List<Object> validTargets) {
+    public Object selectBestTarget(List<Object> validTargets, float tickDelta) {
         Object targetRet = lastTarget;
         if (mode.is(KillAura.Mode.SINGLE)) {
             if (lastTarget == null || !validTargets.stream().collect(ArrayList::new,
@@ -43,13 +43,13 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
         } else targetRet = validTargets.get(0);
 
         if (targetRet != null && raytraceBeforeTarget.get()) {
-            boolean hit = preTargetRaytrace(targetRet);
+            boolean hit = preTargetRaytrace(targetRet, tickDelta);
 
             if (!hit) {
                 Object tempTarget = null;
                 for (Object validTarget : validTargets) {
                     if (validTarget == targetRet) continue;
-                    if (preTargetRaytrace(validTarget)) tempTarget = validTarget;
+                    if (preTargetRaytrace(validTarget, tickDelta)) tempTarget = validTarget;
                     break;
                 }
                 targetRet = tempTarget;
@@ -60,8 +60,8 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
         return targetRet;
     }
 
-    private boolean preTargetRaytrace(Object target) {
-        Rotation rotationAimingTarget = getParent().getRotation(target);
+    private boolean preTargetRaytrace(Object target, float tickDelta) {
+        Rotation rotationAimingTarget = getParent().getRotation(target, tickDelta);
         return rotationAimingTarget != null;
     }
 }

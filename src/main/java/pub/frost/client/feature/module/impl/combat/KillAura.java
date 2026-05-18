@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.joml.Vector3d;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
+import pub.frost.base.event.impl.events.EventPreTickLoop;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRotation;
 import pub.frost.client.core.FrostCore;
@@ -40,6 +41,8 @@ import java.util.Map;
         category = ModuleCategory.COMBAT
 )
 public class KillAura extends AbstractModule {
+    @Property("TickTiming")
+    public final ModeProperty<TickTiming> tickTiming = new ModeProperty<>(TickTiming.PRE_GAME_TICK);
     @InsertProperty("targeting")
     public final KillAuraTargeting targeting = new KillAuraTargeting();
     @InsertProperty("searching")
@@ -59,40 +62,36 @@ public class KillAura extends AbstractModule {
     private final AbstractRotationProvider rotationProvider = new BasicRotationProvider();
 
     private Object target = null;
+    private Rotation targetRotation = null;
+    private boolean tickRotProvided;
+
     public Object getTarget() {
         return target;
     }
     private void resetTarget() {
         target = null;
     }
-    private boolean rotationProvided = false;
+
+    @EventHandler
+    private void onPreTickLoop(EventPreTickLoop event) {
+        if (tickTiming.is(TickTiming.PRE_TICK_LOOP)) tick(event.getTickDelta());
+    }
 
     @EventHandler
     private void onRotation(EventRotation event) {
-        rotationProvided = false;
-        List<Object> validTargets = searching.searchTargets();
-        if (validTargets.isEmpty()) {
-            resetTarget();
-        } else {
-            target = targeting.selectBestTarget(validTargets);
-
-            if (target != null) {
-                Rotation rotation = getRotation(target);
-                if (rotation != null) {
-                    event.setYaw(rotation.getYaw());
-                    event.setPitch(rotation.getPitch());
-                    event.setSpeed(rotationSetting.getSpeed());
-                    event.setLockView(rotationSetting.isLockViewEnabled());
-                    event.setProcessors(rotationSetting.getEnabledProcessors());
-                    rotationProvided = true;
-                }
-            }
+        if (tickTiming.is(TickTiming.PRE_GAME_TICK)) tick(1);
+        if (targetRotation != null) {
+            event.setYaw(targetRotation.getYaw());
+            event.setPitch(targetRotation.getPitch());
+            event.setSpeed(rotationSetting.getSpeed());
+            event.setLockView(rotationSetting.isLockViewEnabled());
+            event.setProcessors(rotationSetting.getEnabledProcessors());
         }
     }
 
     @EventHandler
     private void onRender2D(EventRender2D event) {
-        if (target != null && rotationProvided) {
+        if (isGoodTick()) {
             attacking.updateCpsLimiter();
         }
     }
@@ -100,8 +99,8 @@ public class KillAura extends AbstractModule {
     @EventHandler
     private void onProcessInteract(EventPreProcessInteract e) {
         autoBlock.stopBlocking();
-        if (target != null && rotationProvided) {
-            attacking.doAttack(target);
+        if (isGoodTick()) {
+            attacking.doAttack(target, 1);
             if (autoBlock.enabled.get() && isHoldingSword()) {
                 double distance = Entity.distanceTo(
                         target,
@@ -113,10 +112,26 @@ public class KillAura extends AbstractModule {
         attacking.resetAttackCount();
     }
 
-    public Rotation getRotation(Object target) {
+    private void tick(float tickDelta) {
+        tickRotProvided = false;
+        List<Object> validTargets = searching.searchTargets();
+        if (validTargets.isEmpty()) {
+            resetTarget();
+            targetRotation = null;
+        } else {
+            target = targeting.selectBestTarget(validTargets, tickDelta);
+
+            if (target != null) {
+                targetRotation = getRotation(target, tickDelta);
+                if (targetRotation != null) tickRotProvided = true;
+            }
+        }
+    }
+
+    public Rotation getRotation(Object target, float tickDelta) {
         BoundingBox box = Entity.getBoundingBox(target);
-        Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
-        Vector3d targetEyePos = Entity.getPositionEyes(target, 1);
+        Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), tickDelta);
+        Vector3d targetEyePos = Entity.getPositionEyes(target, tickDelta);
         Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
                 eyePos,
                 targetEyePos
@@ -129,22 +144,22 @@ public class KillAura extends AbstractModule {
         // search rotation that available to hit target
         return rotationProvider.getRotation(
                 eyePos, box, targetEyePos,
-                rot -> rayTraceTarget(target, rot),
+                rot -> rayTraceTarget(target, rot, tickDelta),
                 true
         );
     }
 
-    public boolean rayTraceTarget(Object target, Rotation rotation) {
-        return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? searching.targetRange.get() : attacking.getRealAttackRange(), true);
+    public boolean rayTraceTarget(Object target, Rotation rotation, float tickDelta) {
+        return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? searching.targetRange.get() : attacking.getRealAttackRange(), true, tickDelta);
     }
-    public boolean rayTraceTarget(Object target, Rotation r, double reach, boolean useDefaultIfOutOfRange) {
+    public boolean rayTraceTarget(Object target, Rotation r, double reach, boolean useDefaultIfOutOfRange, float tickDelta) {
         if (rayCast.is(EnumRaycastType.DISABLED)) return true;
 
         final Object player = getPlayer();
-        final Vector3d playerEyePos = Entity.getPositionEyes(player, 1);
+        final Vector3d playerEyePos = Entity.getPositionEyes(player, tickDelta);
         final float yaw = r.getYaw(), pitch = r.getPitch();
 
-        final boolean outofRange = useDefaultIfOutOfRange && playerEyePos.distance(Entity.getPositionEyes(target, 1)) > reach;
+        final boolean outofRange = useDefaultIfOutOfRange && playerEyePos.distance(Entity.getPositionEyes(target, tickDelta)) > reach;
 
         if (rayCast.is(EnumRaycastType.DEFAULT) || outofRange) {
             double cmpReach = outofRange? searching.targetRange.get() : reach;
@@ -176,7 +191,7 @@ public class KillAura extends AbstractModule {
             HitResult result = Entity.rayTrace(
                     player,
                     RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
-                    reach, 1
+                    reach, tickDelta
             );
             if (result == null) return false;
             if (result.getType() == HitResult.EnumHitType.ENTITY) {
@@ -187,6 +202,10 @@ public class KillAura extends AbstractModule {
         }
 
         return false;
+    }
+
+    private boolean isGoodTick() {
+        return target != null && tickRotProvided;
     }
 
     private boolean isHoldingSword() {
@@ -224,9 +243,18 @@ public class KillAura extends AbstractModule {
         SINGLE("single"),
         SWITCH("switch"),;
         final String key;
+        @Override public String toString() {
+            return key;
+        }
+    }
 
-        @Override
-        public String toString() {
+    @TranslationKey("strings.enum.killaura.ticktiming.~")
+    @RequiredArgsConstructor
+    public enum TickTiming implements Named {
+        PRE_TICK_LOOP("PreTickLoop"),
+        PRE_GAME_TICK("PreGameTick");
+        final String key;
+        @Override public String toString() {
             return key;
         }
     }

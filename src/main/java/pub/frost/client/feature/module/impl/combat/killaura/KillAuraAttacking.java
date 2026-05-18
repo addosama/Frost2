@@ -40,12 +40,12 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
         attackCount = 0;
     }
     
-    public void doAttack(Object target) {
+    public void doAttack(Object target, float tickDelta) {
         while (attackCount > 0) {
-            attack(target);
+            attack(target, tickDelta);
         }
     }
-    private void attack(Object target) {
+    private void attack(Object target, float tickDelta) {
         if (mode.is(EnumInteractType.LEGIT)) Minecraft.clickLMB(mc);
         else {
             Object player = Minecraft.getPlayer(mc);
@@ -59,7 +59,8 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
                             Entity.getPitch(player)
                     ),
                     getRealAttackRange(),
-                    false
+                    false,
+                    tickDelta
             );
 
             if (rayCastResult) {
