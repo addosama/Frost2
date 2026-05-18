@@ -1,9 +1,12 @@
 package pub.frost.platforms.v1_8_9.forged.mixin;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Timer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -11,17 +14,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
+import pub.frost.base.event.impl.events.EventPreTickLoop;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
+    @Shadow
+    private Timer timer;
+
     @Inject(
             method = "runTick",
             at = @At("HEAD")
     )
     private void preGameTick(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(EventGameTick.PRE);
+        FrostCore.getEventBus().call(EventGameTick.PRE);
     }
 
     @Inject(
@@ -29,7 +36,7 @@ public abstract class MixinMinecraft {
             at = @At("TAIL")
     )
     private void postGameTick(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(EventGameTick.POST);
+        FrostCore.getEventBus().call(EventGameTick.POST);
     }
 
     @Redirect(
@@ -47,7 +54,7 @@ public abstract class MixinMinecraft {
                     -1 - eventButton,
                     Mouse.getEventButtonState()? 1 : 0
             );
-            FrostCore.getInstance().getEventBus().call(event);
+            FrostCore.getEventBus().call(event);
             return !event.isCancelled();
         }
         return false;
@@ -69,7 +76,7 @@ public abstract class MixinMinecraft {
                     eventKey,
                     Keyboard.getEventKeyState()? 1 : Keyboard.isRepeatEvent()? 2 : 0
             );
-            FrostCore.getInstance().getEventBus().call(event);
+            FrostCore.getEventBus().call(event);
             return !event.isCancelled();
         }
         return false;
@@ -84,7 +91,22 @@ public abstract class MixinMinecraft {
             )
     )
     private void preProcessInteract(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventPreProcessInteract());
+        FrostCore.getEventBus().call(new EventPreProcessInteract());
+    }
+    
+    @Inject(
+            method = "runGameLoop",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/util/Timer;elapsedTicks:I",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    private void preTickLoop(CallbackInfo ci) {
+        FrostCore.getEventBus().call(new EventPreTickLoop(
+                timer.elapsedTicks,
+                timer.renderPartialTicks
+        ));
     }
 
     @Inject(
