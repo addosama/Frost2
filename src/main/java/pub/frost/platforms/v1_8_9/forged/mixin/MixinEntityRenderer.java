@@ -119,7 +119,12 @@ public class MixinEntityRenderer {
                 float f1 = entity1.getCollisionBorderSize();
 
                 EventTestPlayerLookingEntity event = new EventTestPlayerLookingEntity(
-                        partialTicks, entity1, Wrappers.Entity.getPositionEyes(entity1, partialTicks),
+                        partialTicks,
+                        entity,
+                        entity1,
+                        new Vector3d(vec3.xCoord, vec3.yCoord, vec3.zCoord),
+                        new Vector3d(vec31.xCoord, vec31.yCoord, vec31.zCoord),
+                        d0,
                         Wrappers.Entity.getBoundingBox(entity1).expand(f1, f1, f1)
                 );
                 FrostCore.getEventBus().call(event);

@@ -90,7 +90,8 @@ public class EntityUtils implements Wrappers {
             EventTestPlayerLookingEntity event;
             {
                 event = new EventTestPlayerLookingEntity(
-                        tickDelta, entity, eyePos,
+                        tickDelta, instance, entity, eyePos,
+                        lookingVec, reachDistance,
                         Entity.getBoundingBox(entity).expand(f1, f1, f1)
                 );
                 if (callEvent) FrostCore.getEventBus().call(event);
