@@ -5,6 +5,7 @@ import net.minecraft.util.*;
 import pub.frost.base.wrapping.Wrapper;
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
+import pub.frost.utils.EntityUtils;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.BlockPosition;
@@ -232,80 +233,11 @@ public class WEntity extends Wrapper implements FakeInstanceWrapper<Entity>, Wra
         return cast(instance, Entity.class).getCollisionBorderSize();
     }
 
+    @Deprecated
     public HitResult rayTrace(Object instance, Vector3d lookingVec, double reachDistance, float partialTicks) {
-        HitResult objectMouseOver;
-        Object pointedEntity = null;
-
-        Vector3d eyePos = getPositionEyes(instance, partialTicks);
-        objectMouseOver = raytraceBlocks(instance, eyePos, lookingVec, reachDistance);
-
-        double d1 = reachDistance;
-        boolean flag = reachDistance > 3.0D;
-
-        if (objectMouseOver != null) {
-            d1 = objectMouseOver.getHitVec().distance(eyePos);
-        }
-
-        Vector3d vec32 = new Vector3d(eyePos).add(
-                lookingVec.x() * reachDistance,
-                lookingVec.y() * reachDistance,
-                lookingVec.z() * reachDistance
+        return EntityUtils.getLookingObject(
+                instance, lookingVec, reachDistance, partialTicks
         );
-        Vector3d vec33 = null;
-        float f = 1.0F;
-        List<Object> list = World.getEntitiesInAABBExcluding(
-                getWorld(instance),
-                instance,
-                this.getBoundingBox(instance).addCoord(
-                        lookingVec.x() * reachDistance,
-                        lookingVec.y() * reachDistance,
-                        lookingVec.z() * reachDistance
-                ).expand(f, f, f),
-                en -> EntitySelectors.NOT_SPECTATING.apply((Entity) en) && canBeCollidedWith(en)
-        );
-        double d2 = d1;
-
-        for (Object entity : list) {
-            float f1 = getCollisionBorderSize(entity);
-            BoundingBox boundingBox = getBoundingBox(entity).expand(f1, f1, f1);
-            HitResult hitResult = boundingBox.calculateIntercept(eyePos, vec32);
-            if (boundingBox.isVecInside(eyePos)) {
-                if (d2 >= 0.0D) {
-                    pointedEntity = entity;
-                    vec33 = hitResult == null ? eyePos : hitResult.getHitVec();
-                    d2 = 0.0D;
-                }
-            } else if (hitResult != null) {
-                double d3 = eyePos.distance(hitResult.getHitVec());
-                if (d3 < d2 || d2 == 0.0D) {
-                    if (entity == this.getRidingEntity(instance) && !this.canRiderInteract(instance)) {
-                        if (d2 == 0.0D) {
-                            pointedEntity = entity;
-                            vec33 = hitResult.getHitVec();
-                        }
-                    } else {
-                        pointedEntity = entity;
-                        vec33 = hitResult.getHitVec();
-                        d2 = d3;
-                    }
-                }
-            }
-        }
-
-        if (pointedEntity != null && flag && eyePos.distance(vec33) > 3.0D) {
-            pointedEntity = null;
-            objectMouseOver = HitResult.buildMissHit(new BlockPosition(vec33), null, vec33);
-        }
-
-        if (pointedEntity != null && (d2 < d1 || objectMouseOver == null)) {
-            objectMouseOver = HitResult.buildEntityHit(
-                    pointedEntity,
-                    null, null,
-                    vec33
-            );
-        }
-
-        return objectMouseOver;
     }
 
     public Object getRidingEntity(Object instance) {

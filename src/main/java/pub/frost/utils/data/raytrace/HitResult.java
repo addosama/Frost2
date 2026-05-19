@@ -21,6 +21,15 @@ public class HitResult {
         MISS
     }
 
+    public int getTypeIndex() {
+        switch (type) {
+            case ENTITY: return 0;
+            case BLOCK: return 1;
+            case MISS: return 2;
+        }
+        return -1;
+    }
+
     public static EntityHitResult buildEntityHit(Object entity, BlockPosition blockPos, EnumDirection hitDirection, Vector3d hitVec) {
         return new EntityHitResult(blockPos, hitDirection, hitVec, entity);
     }
