@@ -9,6 +9,16 @@ public class ColorUtils {
         alpha = Math.max(0, Math.min(255, alpha));
         return (colorABGR & 0x00FFFFFF) | (alpha << 24);
     }
+
+    public static int getRed(int colorXXXR) {
+        return colorXXXR & 0xFF;
+    }
+    public static int getGreen(int colorXXGX) {
+        return (colorXXGX >> 8) & 0xFF;
+    }
+    public static int getBlue(int colorXBXX) {
+        return (colorXBXX >> 16) & 0xFF;
+    }
     public static int getAlpha(int colorAXXX) {
         return (colorAXXX >> 24) & 0xFF;
     }
@@ -87,5 +97,63 @@ public class ColorUtils {
     public static float[] BGRtoHSB(int colorABGR) {
         int[] rgba = toRGBA(colorABGR);
         return Color.RGBtoHSB(rgba[0], rgba[1], rgba[2], null);
+    }
+
+    public static int getMultiGradient(int index, int speed, int range, int... colors) {
+        if (colors == null || colors.length == 0) return -1;
+        if (colors.length == 1) return colors[0];
+
+        range = Math.max(1, range);
+        speed = MathUtils.clamp(speed, 1, range);
+
+        long now = System.currentTimeMillis();
+
+        // 时间驱动的全局进度 [0, 1)
+        float timeProgress = (now % (long)(speed * 16L * range)) / (float)(speed * 16L * range);
+
+        // index 作为空间偏移，单独加到进度上，再取模归一化
+        float progress = (timeProgress + (float) index / range) % 1.0f;
+
+        // 映射到颜色段
+        float scaled = progress * colors.length;
+        int seg = (int) Math.floor(scaled) % colors.length;
+        int next = (seg + 1) % colors.length;
+
+        float ratio = smoothStep(scaled - (float) Math.floor(scaled));
+
+        return interpolateColor(colors[seg], colors[next], ratio);
+    }
+
+    private static float smoothStep(float t) {
+        t = Math.max(0f, Math.min(1f, t));
+        return t * t * (3f - 2f * t);
+    }
+
+    static Double interpolate(double oldValue, double newValue, double interpolationValue){
+        return (oldValue + (newValue - oldValue) * interpolationValue);
+    }
+
+    static int interpolateInt(int oldValue, int newValue, double interpolationValue){
+        return interpolate(oldValue, newValue, (float) interpolationValue).intValue();
+    }
+
+
+    public static int interpolateColor(int color1, int color2, float ratio) {
+        int a1 = getAlpha(color1);
+        int r1 = getRed(color1);
+        int g1 = getGreen(color1);
+        int b1 = getBlue(color1);
+
+        int a2 = getAlpha(color2);
+        int r2 = getRed(color2);
+        int g2 = getGreen(color2);
+        int b2 = getBlue(color2);
+
+        int a = (int) (a1 + (a2 - a1) * ratio);
+        int r = (int) (r1 + (r2 - r1) * ratio);
+        int g = (int) (g1 + (g2 - g1) * ratio);
+        int b = (int) (b1 + (b2 - b1) * ratio);
+
+        return (a << 24) | (b << 16) | (g << 8) | r;
     }
 }
