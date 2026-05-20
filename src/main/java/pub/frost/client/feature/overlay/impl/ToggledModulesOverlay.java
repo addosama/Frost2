@@ -1,6 +1,5 @@
 package pub.frost.client.feature.overlay.impl;
 
-import imgui.ImColor;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
@@ -10,10 +9,12 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.client.property.preset.ColorSetting;
 import pub.frost.utils.ImTextRenderer;
 
 @TranslationKey("modules.hud.props.toggledmodules.name")
@@ -32,19 +33,28 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
     @Property("VerticalPadding")
     public final IntegerProperty verticalPadding = new IntegerProperty(0, 10, 1, 4);
 
+    @InsertProperty("TextColor")
+    public final ColorSetting textColor = new ColorSetting(0xFFFFEAE5, false);
+    @Property("TextShadow")
+    public final BooleanProperty textShadow = new BooleanProperty(false);
+
+    @Property("Background")
+    public final BooleanProperty background = new BooleanProperty(true);
+    @InsertProperty("BackgroundColor")
+    public final ColorSetting backgroundColor = new ColorSetting(0xCC331914, true, background::get);
+
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
+    @Property("SidebarFollowTextColor")
+    public final BooleanProperty sidebarFollowTextColor = new BooleanProperty(true).setVisibilitySupplier(sidebar::get);
+    @InsertProperty("SidebarColor")
+    public final ColorSetting sidebarColor = new ColorSetting(0xFFFFEAE5, true, () -> sidebar.get() && !sidebarFollowTextColor.get());
     @Property("SidebarWidth")
     public final IntegerProperty sidebarWidth = new IntegerProperty(1, 10, 1, 4).setVisibilitySupplier(sidebar::get);
     @Property("SidebarGradient")
     public final BooleanProperty sidebarGradient = new BooleanProperty(true).setVisibilitySupplier(sidebar::get);
     @Property("SidebarShadow")
     public final BooleanProperty sidebarShadow = new BooleanProperty(false).setVisibilitySupplier(sidebar::get);
-
-    @Property("Background")
-    public final BooleanProperty background = new BooleanProperty(true);
-    @Property("TextShadow")
-    public final BooleanProperty textShadow = new BooleanProperty(false);
 
     @Override
     protected void doRender(ImVec2 pos, ImVec2 normalizedOffset, ImDrawList draws, boolean input, float tickDelta) {
@@ -54,6 +64,8 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
 
         float maxWidth = 0;
         float yOffset = 0;
+
+        int index = 0;
         for (
                 AbstractModule module :
                 FrostCore.getInstance().getModuleManager().getModules(AbstractModule::isEnabled, (m1, m2) -> {
@@ -71,9 +83,10 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
                     pos.plus(0, yOffset), draws,
                     textRendering, sidebarWidth, predicatedW, predicatedH,
                     hPadding, vPadding,
-                    normalizedOffset, module
+                    normalizedOffset, module, index
             );
             yOffset += predicatedH * normalizedOffset.y;
+            index ++;
         }
 
         ImGui.popFont();
@@ -83,9 +96,11 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
             ImVec2 pos, ImDrawList draws,
             String text, float sidebarWidth, float predicatedW, float predicatedH,
             int hPadding, int vPadding,
-            ImVec2 normalizedOffset, AbstractModule module
+            ImVec2 normalizedOffset, AbstractModule module, int index
     ) {
-        final int bgColor = ImColor.rgba("#141933CC"), sidebarColor = ImColor.rgba("#E5EAFFFF"), textColor = ImColor.rgba("#E5EAFFFF");
+        final int bgColor = this.backgroundColor.getColorABGR(index),
+                textColor = this.textColor.getColorABGR(index),
+                sidebarColor = this.sidebarFollowTextColor.get()? textColor : this.sidebarColor.getColorABGR(index);
 
         if (background.get()) {
             draws.addRectFilled(

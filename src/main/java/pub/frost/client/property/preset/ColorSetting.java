@@ -52,10 +52,16 @@ public class ColorSetting implements Supplier<Boolean>, ManualDescriptorProvider
         }
     }
 
+    public ColorSetting(int defaultColor, boolean allowAlpha) {
+        this(defaultColor, allowAlpha, () -> true);
+    }
     public ColorSetting(boolean allowAlpha, Supplier<Boolean> visibility) {
+        this(0xFFFFFFFF, allowAlpha, visibility);
+    }
+    public ColorSetting(int defaultColor, boolean allowAlpha, Supplier<Boolean> visibility) {
         this.visibility = visibility;
 
-        colors[0] = new ColorProperty(0xFFFFFFFF, allowAlpha).setVisibilitySupplier(() -> type.is(EnumColorType.STATIC));
+        colors[0] = new ColorProperty(defaultColor, allowAlpha).setVisibilitySupplier(() -> type.is(EnumColorType.STATIC));
         for (int i = 1; i <= 6; i++) {
             final int colorIndex = i;
             colors[i] = new ColorProperty(0xFFFFFFFF, allowAlpha).setVisibilitySupplier(
