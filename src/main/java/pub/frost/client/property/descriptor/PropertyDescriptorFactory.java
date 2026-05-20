@@ -96,7 +96,17 @@ public class PropertyDescriptorFactory {
             Consumer<AbstractProperty<?, ?>> onMainPropertyFound
     ) {
         if (object instanceof ManualDescriptorProvider) {
-            return ((ManualDescriptorProvider) object).provideDescriptors(keyPrefix, onMainPropertyFound);
+            return ((ManualDescriptorProvider) object).provideDescriptors(
+                    keyPrefix,
+                    onMainPropertyFound,
+                    p -> {
+                        PropertyDescriptor descriptor = flattenedDescriptorMap.put(p.getKey(), p);
+                        if (descriptor != null && descriptor != p) {
+                            throw new RuntimeException(descriptor.getKey() + " is already defined!");
+                        }
+                        return p;
+                    }
+            );
         }
 
         int[] unnamedIndex = {0};
