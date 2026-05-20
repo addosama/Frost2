@@ -93,8 +93,12 @@ public class PropertyDescriptorFactory {
     private List<PropertyDescriptor> processObject(
             Object object,
             String keyPrefix,
-            Consumer<AbstractProperty> onMainPropertyFound
+            Consumer<AbstractProperty<?, ?>> onMainPropertyFound
     ) {
+        if (object instanceof ManualDescriptorProvider) {
+            return ((ManualDescriptorProvider) object).provideDescriptors(keyPrefix, onMainPropertyFound);
+        }
+
         int[] unnamedIndex = {0};
 
         List<PropertyDescriptor> currentList = new ArrayList<>();
@@ -129,7 +133,7 @@ public class PropertyDescriptorFactory {
                         : groupStack.peek().children;
 
                 if (isPropertyField) {
-                    AbstractProperty prop = (AbstractProperty) field.get(object);
+                    AbstractProperty<?, ?> prop = (AbstractProperty<?, ?>) field.get(object);
                     Property anno = field.getAnnotation(Property.class);
                     if (anno.allowOverriding()) prop.enableOverriding();
 
@@ -158,7 +162,7 @@ public class PropertyDescriptorFactory {
                         // If this insert opened a group, its mainProperty lives in
                         // the top GroupContext.  If there is no surrounding group
                         // (plain insert without a key), propagate further upward.
-                        Consumer<AbstractProperty> mainCallback = !groupStack.isEmpty()
+                        Consumer<AbstractProperty<?, ?>> mainCallback = !groupStack.isEmpty()
                                 ? mp -> groupStack.peek().mainProperty = mp
                                 : onMainPropertyFound;
 
@@ -335,7 +339,7 @@ public class PropertyDescriptorFactory {
         final String translationKey;
         final Supplier<Boolean> visibilitySupplier;
         final List<PropertyDescriptor> children;
-        AbstractProperty mainProperty;  // set when @PropertyGroupMain is encountered
+        AbstractProperty<?, ?> mainProperty;  // set when @PropertyGroupMain is encountered
 
         GroupContext(
                 String groupKey,
