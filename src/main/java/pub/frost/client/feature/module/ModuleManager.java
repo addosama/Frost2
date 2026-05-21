@@ -37,7 +37,8 @@ public class ModuleManager {
                 new ChestStealer(),
                 new InvManager(),
                 new ChestESP(),
-                new Hitbox()
+                new Hitbox(),
+                new Scaffold()
         );
         moduleMap.values().forEach(
                 AbstractModule::initialize
