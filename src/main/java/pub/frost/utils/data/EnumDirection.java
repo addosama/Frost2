@@ -3,6 +3,7 @@ package pub.frost.utils.data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.joml.Vector3i;
+import org.joml.Vector3ic;
 
 @Getter
 @RequiredArgsConstructor
@@ -16,7 +17,7 @@ public enum EnumDirection {
 
     final int index;
     final int oppositeIndex;
-    final Vector3i normalizedVec;
+    final Vector3ic normalizedVec;
 
     public EnumDirection getOpposite() {
         return EnumDirection.values()[getOppositeIndex()];

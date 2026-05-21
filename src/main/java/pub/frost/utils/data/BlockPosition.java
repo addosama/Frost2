@@ -1,7 +1,8 @@
 package pub.frost.utils.data;
 
-import org.joml.Vector3d;
+import org.joml.Vector3dc;
 import org.joml.Vector3i;
+import org.joml.Vector3ic;
 
 public class BlockPosition extends Vector3i {
     public BlockPosition(int x, int y, int z) {
@@ -10,15 +11,15 @@ public class BlockPosition extends Vector3i {
     public BlockPosition(double x, double y, double z) {
         super((int) x, (int) y, (int) z);
     }
-    public BlockPosition(Vector3d vec) {
-        this(vec.x, vec.y, vec.z);
+    public BlockPosition(Vector3dc vec) {
+        this(vec.x(), vec.y(), vec.z());
     }
-    public BlockPosition(Vector3i vec3i) {
+    public BlockPosition(Vector3ic vec3i) {
         super(vec3i);
     }
 
     public BlockPosition offset(EnumDirection direction, int value) {
-        this.add(direction.getNormalizedVec().mul(value));
+        this.add(direction.getNormalizedVec().mul(value, new Vector3i()));
         return this;
     }
     public BlockPosition offset(EnumDirection direction) {
