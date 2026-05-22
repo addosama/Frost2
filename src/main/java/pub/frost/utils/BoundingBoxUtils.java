@@ -20,6 +20,17 @@ public class BoundingBoxUtils implements Wrappers {
                 )
         );
     }
+    public static BoundingBox getFaceBoundingBox(BoundingBox box, EnumDirection direction) {
+        switch (direction) {
+            case DOWN  : return new BoundingBox(box.minX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ);
+            case UP    : return new BoundingBox(box.minX, box.maxY, box.minZ, box.maxX, box.maxY, box.maxZ);
+            case NORTH : return new BoundingBox(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.minZ);
+            case SOUTH : return new BoundingBox(box.minX, box.minY, box.maxZ, box.maxX, box.maxY, box.maxZ);
+            case WEST  : return new BoundingBox(box.minX, box.minY, box.minZ, box.minX, box.maxY, box.maxZ);
+            case EAST  : return new BoundingBox(box.maxX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+        }
+        return box;
+    }
 
     public static List<EnumDirection> getAllPossibleHitFacesByEyePos(Vector3d eyePos, BoundingBox blockBoundingBox) {
         List<EnumDirection> list = new ArrayList<>();

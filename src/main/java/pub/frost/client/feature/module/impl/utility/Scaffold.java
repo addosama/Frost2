@@ -16,12 +16,14 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.RotationSetting;
 import pub.frost.utils.BlockUtils;
 import pub.frost.utils.BoundingBoxUtils;
 import pub.frost.utils.PathfindingUtils;
 import pub.frost.utils.data.*;
+import pub.frost.utils.raycast.RayCastUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +47,8 @@ public class Scaffold extends AbstractModule {
     public final RotationSetting rotationSetting = new RotationSetting();
     @Property("SnapRotation")
     public final BooleanProperty snapRotation = new BooleanProperty(false);
+    @Property("RayCast")
+    public final BooleanProperty rayCast = new BooleanProperty(true);
 
     private final BasicRotationProvider rotationProvider = new BasicRotationProvider();
 
@@ -148,27 +152,43 @@ public class Scaffold extends AbstractModule {
 
     @EventHandler(priority = 40)
     private void onProcessInteract(EventPreProcessInteract event) {
+        Object player = Minecraft.getPlayer(mc);
+        net.minecraft.item.ItemStack stack = net.minecraft.client.Minecraft.getMinecraft().thePlayer.getHeldItem();
+        if (stack == null) return;
+        if (!(stack.getItem() instanceof ItemBlock)) return;
+
         final int maxPlace = maxPlacePerTick.get();
         int placed = 0;
         while (!placeDeque.isEmpty() && placed < maxPlace) {
-            net.minecraft.item.ItemStack stack = net.minecraft.client.Minecraft.getMinecraft().thePlayer.getHeldItem();
-            if (stack == null) return;
-            if (!(stack.getItem() instanceof ItemBlock)) return;
-
             BlockPlacementInfo data = placeDeque.poll();
-            if (data == null) return;
+            if (data == null) continue;
+            placed++;
 
-            Vector3d faceCenter = BoundingBoxUtils.getFaceCenter(
-                    new BoundingBox(
-                            data.getBlockToUse().x,
-                            data.getBlockToUse().y,
-                            data.getBlockToUse().z,
-                            data.getBlockToUse().x + 1,
-                            data.getBlockToUse().y + 1,
-                            data.getBlockToUse().z + 1
-                    ),
+            BoundingBox blockBB = new BoundingBox(
+                    data.getBlockToUse().x,
+                    data.getBlockToUse().y,
+                    data.getBlockToUse().z,
+                    data.getBlockToUse().x + 1,
+                    data.getBlockToUse().y + 1,
+                    data.getBlockToUse().z + 1
+            );
+            Vector3d hitVec = BoundingBoxUtils.getFaceCenter(
+                    blockBB,
                     data.getFaceToUse()
             );
+
+            if (rayCast.get()) {
+                Map.Entry<Boolean, Vector3d> result = RayCastUtils.getSimpleHitResult(
+                        Entity.getPositionEyes(player, 1),
+                        Entity.getYaw(player),
+                        Entity.getPitch(player),
+                        BoundingBoxUtils.getFaceBoundingBox(
+                                blockBB, data.getFaceToUse()
+                        )
+                );
+                if (!result.getKey()) continue;
+                hitVec = result.getValue();
+            }
 
             EntityClientPlayer.swingItem(Minecraft.getPlayer(mc));
             net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
@@ -177,9 +197,8 @@ public class Scaffold extends AbstractModule {
                     stack,
                     new BlockPos(data.getBlockToUse().x, data.getBlockToUse().y, data.getBlockToUse().z),
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
-                    new Vec3(faceCenter.x, faceCenter.y, faceCenter.z)
+                    new Vec3(hitVec.x, hitVec.y, hitVec.z)
             );
-            placed++;
         }
     }
 
