@@ -40,7 +40,7 @@ public class Scaffold extends AbstractModule {
     @Property("Telly")
     public final BooleanProperty telly = new BooleanProperty(false);
     @Property("AirTicks")
-    public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3);
+    public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3).setVisibilitySupplier(telly::get);
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
     @Property("SnapRotation")
