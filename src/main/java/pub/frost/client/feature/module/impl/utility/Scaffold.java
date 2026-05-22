@@ -7,9 +7,8 @@ import net.minecraft.util.Vec3;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventPreProcessInteract;
-import pub.frost.base.event.impl.events.EventPreTickLoop;
-import pub.frost.base.event.impl.events.EventRotation;
+import pub.frost.base.event.impl.events.*;
+import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.feature.helper.player.rotation.providers.impl.BasicRotationProvider;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -38,6 +37,10 @@ public class Scaffold extends AbstractModule {
     public final IntegerProperty maxPlacePerTick = new IntegerProperty(1, 10, 1, 1);
     @Property("KeepY")
     public final BooleanProperty keepY = new BooleanProperty(false);
+    @Property("Telly")
+    public final BooleanProperty telly = new BooleanProperty(false);
+    @Property("AirTicks")
+    public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3);
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
     @Property("SnapRotation")
@@ -52,6 +55,10 @@ public class Scaffold extends AbstractModule {
     private final Deque<BlockPlacementInfo> placeDeque = new ArrayDeque<>();
 
     private int lastOnGroundY;
+
+    private int ticksSinceJump;
+    private boolean upTelly;
+
     private Rotation lastProvidedRotation = null;
 
     @EventHandler
@@ -63,11 +70,19 @@ public class Scaffold extends AbstractModule {
         }
 
         Vector3dc playerPos = Entity.getPositionVector(player);
-        if (Entity.isOnGround(player)) lastOnGroundY = (int) playerPos.y();
+        if (Entity.isOnGround(player)) {
+            lastOnGroundY = (int) playerPos.y();
+            ticksSinceJump = -1;
+        }
+
+        if (telly.get() && (!upTelly && ticksSinceJump >= 0 && ticksSinceJump <= airTicks.get())) {
+            placeDeque.clear();
+            return;
+        }
 
         BlockPosition targetBlock = new BlockPosition(
                 (int) Math.floor(playerPos.x()),
-                keepY.get()? lastOnGroundY : (int) Math.floor(playerPos.y()),
+                (keepY.get() || (telly.get() && !upTelly))? lastOnGroundY : (int) Math.floor(playerPos.y()),
                 (int) Math.floor(playerPos.z())
         ).offset(EnumDirection.DOWN);
 
@@ -98,25 +113,29 @@ public class Scaffold extends AbstractModule {
     @EventHandler(priority = 40)
     private void onRotation(EventRotation event) {
         Rotation rotation = null;
-        if (!placeDeque.isEmpty()) {
-            BlockPlacementInfo data = placeDeque.peekFirst();
-            if (data == null) return;
-            rotation = rotationProvider.getRotation(
-                    Entity.getPositionEyes(Minecraft.getPlayer(mc), 1),
-                    new BoundingBox(BoundingBoxUtils.getFaceCenter(
-                            new BoundingBox(
-                                    data.getBlockToUse().x,
-                                    data.getBlockToUse().y,
-                                    data.getBlockToUse().z,
-                                    data.getBlockToUse().x + 1,
-                                    data.getBlockToUse().y + 1,
-                                    data.getBlockToUse().z + 1
-                            ),
-                            data.getFaceToUse()
-                    ), 0.01, 0.01, 0.01),
-                    null, r -> true, true
-            );
-        } else if (!snapRotation.get()) rotation = lastProvidedRotation;
+        boolean tellyFlag = telly.get() && !upTelly && ticksSinceJump <= airTicks.get();
+        if (!tellyFlag) {
+            if (!placeDeque.isEmpty()) {
+                BlockPlacementInfo data = placeDeque.peekFirst();
+                if (data == null) return;
+                rotation = rotationProvider.getRotation(
+                        Entity.getPositionEyes(Minecraft.getPlayer(mc), 1),
+                        new BoundingBox(BoundingBoxUtils.getFaceCenter(
+                                new BoundingBox(
+                                        data.getBlockToUse().x,
+                                        data.getBlockToUse().y,
+                                        data.getBlockToUse().z,
+                                        data.getBlockToUse().x + 1,
+                                        data.getBlockToUse().y + 1,
+                                        data.getBlockToUse().z + 1
+                                ),
+                                data.getFaceToUse()
+                        ), 0.01, 0.01, 0.01),
+                        null, r -> true, true
+                );
+            }
+            else if (!snapRotation.get()) rotation = lastProvidedRotation;
+        }
         if (rotation != null) {
             event.setYaw(rotation.getYaw());
             event.setPitch(rotation.getPitch());
@@ -161,6 +180,28 @@ public class Scaffold extends AbstractModule {
                     new Vec3(faceCenter.x, faceCenter.y, faceCenter.z)
             );
             placed++;
+        }
+    }
+
+    @EventHandler
+    private void onPostTick(EventGameTick event) {
+        if (event.getType() == TickType.POST) {
+            if (ticksSinceJump >= 0) ticksSinceJump++;
+        }
+    }
+
+    @EventHandler(priority = 8)
+    private void onMovementInput(EventUpdateMovementInput event) {
+        upTelly = false;
+        boolean onGround = Entity.isOnGround(Minecraft.getPlayer(mc));
+        if (telly.get()) {
+            if (onGround && Math.max(Math.abs(event.getMoveForward()), Math.abs(event.getMoveStrafe())) > 0.01) {
+                event.setJump(true);
+            }
+            if (event.isJump()) {
+                if (!onGround) upTelly = true;
+                ticksSinceJump = 0;
+            }
         }
     }
 }
