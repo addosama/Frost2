@@ -37,12 +37,17 @@ public class Scaffold extends AbstractModule {
     public final IntegerProperty searchRange = new IntegerProperty(1, 4, 1, 3);
     @Property("MaxPlacePerTick")
     public final IntegerProperty maxPlacePerTick = new IntegerProperty(1, 10, 1, 1);
+
     @Property("KeepY")
     public final BooleanProperty keepY = new BooleanProperty(false);
     @Property("Telly")
     public final BooleanProperty telly = new BooleanProperty(false);
     @Property("AirTicks")
     public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3).setVisibilitySupplier(telly::get);
+
+    @Property("RandomizeHitPoint")
+    public final BooleanProperty randomizeHitPoint = new BooleanProperty(true);
+
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
     @Property("SnapRotation")
@@ -90,10 +95,10 @@ public class Scaffold extends AbstractModule {
                 (int) Math.floor(playerPos.z())
         ).offset(EnumDirection.DOWN);
 
-        if (!placeDeque.isEmpty()) {
-            BlockPlacementInfo data = placeDeque.peekLast();
-            if (new BlockPosition(data.getBlockToUse()).offset(data.getFaceToUse()).equals(targetBlock)) return;
-        }
+//        if (!placeDeque.isEmpty()) {
+//            BlockPlacementInfo data = placeDeque.peekLast();
+//            if (new BlockPosition(data.getBlockToUse()).offset(data.getFaceToUse()).equals(targetBlock)) return;
+//        }
 
         final int searchRange = this.searchRange.get();
         List<BlockPosition> usableBlocks = BlockUtils.getBlocksInRange(targetBlock, searchRange, world)
@@ -141,10 +146,7 @@ public class Scaffold extends AbstractModule {
                 else rotation = rotationProvider.getRotation(
                         eyePos,
                         faceBB,
-                        BoundingBoxUtils.getFaceCenter(
-                                blockBB,
-                                data.getFaceToUse()
-                        ),
+                        getHitPoint(faceBB, data.getFaceToUse()),
                         r -> true, true
                 );
             }
@@ -239,5 +241,20 @@ public class Scaffold extends AbstractModule {
                 position.y + 1,
                 position.z + 1
         );
+    }
+    private Vector3d getHitPoint(BoundingBox faceBB, EnumDirection direction) {
+        if (!randomizeHitPoint.get()) return BoundingBoxUtils.getFaceCenter(faceBB, direction);
+        else return new BoundingBox(
+                faceBB.getMinVector().add(
+                        Math.random() * faceBB.getSizeX(),
+                        Math.random() * faceBB.getSizeY(),
+                        Math.random() * faceBB.getSizeZ()
+                ),
+                faceBB.getMaxVector().sub(
+                        Math.random() * faceBB.getSizeX(),
+                        Math.random() * faceBB.getSizeY(),
+                        Math.random() * faceBB.getSizeZ()
+                )
+        ).getCenter();
     }
 }
