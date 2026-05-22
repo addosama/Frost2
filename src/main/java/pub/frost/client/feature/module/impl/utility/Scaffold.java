@@ -16,7 +16,6 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
-import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.RotationSetting;
 import pub.frost.utils.BlockUtils;
@@ -25,6 +24,7 @@ import pub.frost.utils.PathfindingUtils;
 import pub.frost.utils.data.*;
 import pub.frost.utils.raycast.RayCastUtils;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -122,20 +122,30 @@ public class Scaffold extends AbstractModule {
             if (!placeDeque.isEmpty()) {
                 BlockPlacementInfo data = placeDeque.peekFirst();
                 if (data == null) return;
-                rotation = rotationProvider.getRotation(
-                        Entity.getPositionEyes(Minecraft.getPlayer(mc), 1),
-                        new BoundingBox(BoundingBoxUtils.getFaceCenter(
-                                new BoundingBox(
-                                        data.getBlockToUse().x,
-                                        data.getBlockToUse().y,
-                                        data.getBlockToUse().z,
-                                        data.getBlockToUse().x + 1,
-                                        data.getBlockToUse().y + 1,
-                                        data.getBlockToUse().z + 1
-                                ),
+                Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
+                BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
+                BoundingBox faceBB = BoundingBoxUtils.getFaceBoundingBox(
+                        blockBB,
+                        data.getFaceToUse()
+                );
+                if (
+                        lastProvidedRotation != null
+                        && RayCastUtils.getSimpleHitResult(
+                                eyePos,
+                                lastProvidedRotation.getYaw(), lastProvidedRotation.getPitch(),
+                                faceBB
+                        ).getKey()
+                ) {
+                    rotation = lastProvidedRotation;
+                }
+                else rotation = rotationProvider.getRotation(
+                        eyePos,
+                        faceBB,
+                        BoundingBoxUtils.getFaceCenter(
+                                blockBB,
                                 data.getFaceToUse()
-                        ), 0.01, 0.01, 0.01),
-                        null, r -> true, true
+                        ),
+                        r -> true, true
                 );
             }
             else if (!snapRotation.get()) rotation = lastProvidedRotation;
@@ -160,18 +170,11 @@ public class Scaffold extends AbstractModule {
         final int maxPlace = maxPlacePerTick.get();
         int placed = 0;
         while (!placeDeque.isEmpty() && placed < maxPlace) {
-            BlockPlacementInfo data = placeDeque.poll();
-            if (data == null) continue;
             placed++;
+            BlockPlacementInfo data = placeDeque.peek();
+            if (data == null) continue;
 
-            BoundingBox blockBB = new BoundingBox(
-                    data.getBlockToUse().x,
-                    data.getBlockToUse().y,
-                    data.getBlockToUse().z,
-                    data.getBlockToUse().x + 1,
-                    data.getBlockToUse().y + 1,
-                    data.getBlockToUse().z + 1
-            );
+            BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
             Vector3d hitVec = BoundingBoxUtils.getFaceCenter(
                     blockBB,
                     data.getFaceToUse()
@@ -190,6 +193,8 @@ public class Scaffold extends AbstractModule {
                 hitVec = result.getValue();
             }
 
+            System.out.println(hitVec.toString(new DecimalFormat("0.0000")));
+
             EntityClientPlayer.swingItem(Minecraft.getPlayer(mc));
             net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
@@ -199,6 +204,7 @@ public class Scaffold extends AbstractModule {
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
                     new Vec3(hitVec.x, hitVec.y, hitVec.z)
             );
+            placeDeque.poll();
         }
     }
 
@@ -222,5 +228,16 @@ public class Scaffold extends AbstractModule {
                 ticksSinceJump = 0;
             }
         }
+    }
+
+    private BoundingBox getBlockBoundingBox(BlockPosition position) {
+        return new BoundingBox(
+                position.x,
+                position.y,
+                position.z,
+                position.x + 1,
+                position.y + 1,
+                position.z + 1
+        );
     }
 }
