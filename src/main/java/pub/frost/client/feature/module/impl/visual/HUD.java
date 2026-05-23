@@ -2,8 +2,10 @@ package pub.frost.client.feature.module.impl.visual;
 
 import imgui.*;
 import pub.frost.base.event.api.annotations.EventHandler;
+import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventRender2D;
+import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -11,8 +13,6 @@ import pub.frost.client.feature.overlay.ClientOverlay;
 import pub.frost.client.feature.overlay.impl.ToggledModulesOverlay;
 import pub.frost.client.feature.overlay.impl.WatermarkOverlay;
 import pub.frost.client.property.annotations.InsertProperty;
-import pub.frost.client.property.annotations.Property;
-import pub.frost.client.property.impl.color.ColorProperty;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +32,11 @@ public class HUD extends AbstractModule {
             watermark, toggledModules
     );
 
+    @EventHandler(priority = 120)
+    public void onPreTick(EventGameTick event) {
+        if (event.getType() == TickType.PRE) overlayList.forEach(ClientOverlay::tick);
+    }
+
     @EventHandler(priority = -50)
     public void onRender(EventRender2D e) {
         overlayList.forEach(o -> o.render(false, isInChatHud(), e.getTickDelta()));
@@ -43,7 +48,7 @@ public class HUD extends AbstractModule {
     }
 
     private boolean isInChatHud() {
-        Object currentScreen = mcWrapper.getCurrentScreen(mc);
+        Object currentScreen = Minecraft.getCurrentScreen(mc);
         return currentScreen != null && GuiChat.isTarget(currentScreen);
     }
 }

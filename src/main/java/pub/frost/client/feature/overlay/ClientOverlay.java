@@ -16,8 +16,7 @@ import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public abstract class ClientOverlay {
-    private final String key;
-    private final String icon;
+    private final String key, icon;
     private final Supplier<String> nameSupplier;
 
     public ClientOverlay(String key) {
@@ -32,12 +31,17 @@ public abstract class ClientOverlay {
     }
 
     protected final int DEFAULT_WINDOW_FLAGS = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize;
-    
+
+    public void tick() {}
     public final void render(boolean dummy, boolean input, float tickDelta) {
         if (!isVisible()) return;
-        ImVec2[] contentRenderData = preRender(dummy, input);
+        final ImVec2 renderPos, normalizedOffset; {
+            ImVec2[] contentRenderData = preRender(dummy, input);
+            renderPos = contentRenderData[0];
+            normalizedOffset = contentRenderData[1];
+        }
         if (!dummy) {
-            doRender(contentRenderData[0], contentRenderData[1], ImGui.getBackgroundDrawList(), input, tickDelta);
+            doRender(renderPos, normalizedOffset, ImGui.getBackgroundDrawList(), input, tickDelta);
         }
         postRender(dummy, input);
     }
@@ -61,7 +65,7 @@ public abstract class ClientOverlay {
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 12f);
-        ImGui.pushStyleColor(ImGuiCol.WindowBg, 0xCC331914);
+        ImGui.pushStyleColor(ImGuiCol.WindowBg, 0xFF33221F);
 
         ImGui.setNextWindowSize(200, 30);
         ImGui.begin(this.toString(), windowFlags);
