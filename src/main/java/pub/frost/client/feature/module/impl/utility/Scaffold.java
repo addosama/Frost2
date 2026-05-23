@@ -70,6 +70,12 @@ public class Scaffold extends AbstractModule {
 
     private Rotation lastProvidedRotation = null;
 
+    @Override
+    protected void onEnabled() {
+        lastProvidedRotation = null;
+        ticksSinceJump = -1;
+    }
+
     @EventHandler
     private void onPreTickLoop(EventPreTickLoop event) {
         final Object player = Minecraft.getPlayer(mc), world = Minecraft.getWorld(mc);
@@ -84,7 +90,7 @@ public class Scaffold extends AbstractModule {
             ticksSinceJump = -1;
         }
 
-        if (telly.get() && (!upTelly && ticksSinceJump >= 0 && ticksSinceJump <= airTicks.get())) {
+        if (telly.get() && (ticksSinceJump > 0 && ticksSinceJump <= airTicks.get())) {
             placeDeque.clear();
             return;
         }
@@ -122,7 +128,9 @@ public class Scaffold extends AbstractModule {
     @EventHandler(priority = 40)
     private void onRotation(EventRotation event) {
         Rotation rotation = null;
-        boolean tellyFlag = telly.get() && !upTelly && ticksSinceJump <= airTicks.get();
+        boolean telly = this.telly.get();
+        int airTicks = this.airTicks.get();
+        boolean tellyFlag = telly && !upTelly && ticksSinceJump > 0 && ticksSinceJump <= airTicks;
         if (!tellyFlag) {
             if (!placeDeque.isEmpty()) {
                 BlockPlacementInfo data = placeDeque.peekFirst();
@@ -150,7 +158,7 @@ public class Scaffold extends AbstractModule {
                         r -> true, true
                 );
             }
-            else if (!snapRotation.get()) rotation = lastProvidedRotation;
+            else if (!snapRotation.get() && (!telly || ticksSinceJump > airTicks)) rotation = lastProvidedRotation;
         }
         if (rotation != null) {
             event.setYaw(rotation.getYaw());
@@ -195,7 +203,7 @@ public class Scaffold extends AbstractModule {
                 hitVec = result.getValue();
             }
 
-            System.out.println(hitVec.toString(new DecimalFormat("0.0000")));
+//            System.out.println(hitVec.toString(new DecimalFormat("0.0000")));
 
             EntityClientPlayer.swingItem(Minecraft.getPlayer(mc));
             net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
@@ -227,7 +235,7 @@ public class Scaffold extends AbstractModule {
             }
             if (event.isJump()) {
                 if (!onGround) upTelly = true;
-                ticksSinceJump = 0;
+                else ticksSinceJump = 0;
             }
         }
     }
