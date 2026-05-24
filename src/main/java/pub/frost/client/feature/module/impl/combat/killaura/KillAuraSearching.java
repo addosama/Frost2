@@ -63,7 +63,12 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
     }
     private void sortEntityListByPriority(List<Object> list) {
         EnumEntityTargetPriority value = getParent().targeting.priority.getValue();
-        Comparator<Object> comparator = value.getComparator().apply(Minecraft.getPlayer(mc));
+        Comparator<Object> comparator = Comparator.comparingInt(
+                en -> Entity.distanceTo(
+                        Minecraft.getPlayer(mc), Entity.getPositionVector(en)
+                ) > getParent().attacking.getRealAttackRange()? 1 : -1
+        );
+        comparator = comparator.thenComparing(value.getComparator().apply(Minecraft.getPlayer(mc)));
         for (EnumEntityTargetPriority p : EnumEntityTargetPriority.values()) {
             if (p == value) continue;
             comparator = comparator.thenComparing(p.getComparator().apply(Minecraft.getPlayer(mc)));
