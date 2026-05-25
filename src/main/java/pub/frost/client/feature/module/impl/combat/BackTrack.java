@@ -66,21 +66,21 @@ public class BackTrack extends AbstractModule {
     private void onPacket(EventPacket event) {
         Object packet = event.getPacket();
         Object world = mcWrapper.getWorld(mc);
-        if (event.getType() == PacketType.IN && active) {
 
+        if (EntityPacket.isTarget(packet)) {
+            Object entity = EntityPacket.getEntity(packet, world);
+            if (entity == getPlayer()) return;
+            Vector3d entityPos = Entity.getPositionVector(entity);
+            updateEntity(entity, entityPos, packet);
+        } else if (EntityTeleportPacket.isTarget(packet)) {
+            Object entity = World.getEntityById(world, EntityTeleportPacket.getEntityId(packet, world));
+            if (entity == getPlayer()) return;
+            resetEntity(entity, packet);
+        }
+
+        if (event.getType() == PacketType.IN && active) {
             packets.add(new PacketData(packet, System.currentTimeMillis()));
             event.setCancelled(true);
-
-            if (EntityPacket.isTarget(packet)) {
-                Object entity = EntityPacket.getEntity(packet, world);
-                if (entity == getPlayer()) return;
-                Vector3d entityPos = Entity.getPositionVector(entity);
-                updateEntity(entity, entityPos, packet);
-            } else if (EntityTeleportPacket.isTarget(packet)) {
-                Object entity = World.getEntityById(world, EntityTeleportPacket.getEntityId(packet, world));
-                if (entity == getPlayer()) return;
-                resetEntity(entity, packet);
-            }
         }
     }
 
