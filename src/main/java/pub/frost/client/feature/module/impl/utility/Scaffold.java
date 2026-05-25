@@ -24,7 +24,6 @@ import pub.frost.utils.PathfindingUtils;
 import pub.frost.utils.data.*;
 import pub.frost.utils.raycast.RayCastUtils;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +47,13 @@ public class Scaffold extends AbstractModule {
     @Property("RandomizeHitPoint")
     public final BooleanProperty randomizeHitPoint = new BooleanProperty(true);
 
+    @Property("SlowRotationAfterPlace")
+    public final BooleanProperty slowRotationAfterPlace = new BooleanProperty(true);
+    @Property("SlowTicks")
+    public final IntegerProperty slowTicks = new IntegerProperty(1, 10, 1, 2);
+    @Property("SlowRotationSpeed")
+    public final IntegerProperty slowRotationSpeed = new IntegerProperty(1, 180, 1, 15)
+            .setVisibilitySupplier(slowRotationAfterPlace::get);
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
     @Property("SnapRotation")
@@ -65,6 +71,7 @@ public class Scaffold extends AbstractModule {
 
     private int lastOnGroundY;
 
+    private int ticksSincePlace;
     private int ticksSinceJump;
     private boolean upTelly;
 
@@ -73,6 +80,7 @@ public class Scaffold extends AbstractModule {
     @Override
     protected void onEnabled() {
         lastProvidedRotation = null;
+        ticksSincePlace = -1;
         ticksSinceJump = -1;
     }
 
@@ -160,11 +168,13 @@ public class Scaffold extends AbstractModule {
             }
             else if (!snapRotation.get() && (!telly || ticksSinceJump > airTicks)) rotation = lastProvidedRotation;
         }
+        float rotationSpeed = rotationSetting.getSpeed();
+        if (slowRotationAfterPlace.get() && ticksSincePlace > 0 && ticksSincePlace <= slowTicks.get()) rotationSpeed = slowRotationSpeed.get();
         if (rotation != null) {
             event.setYaw(rotation.getYaw());
             event.setPitch(rotation.getPitch());
         }
-        event.setSpeed(rotationSetting.getSpeed());
+        event.setSpeed(rotationSpeed);
         event.setLockView(rotationSetting.isLockViewEnabled());
         event.setProcessors(rotationSetting.getEnabledProcessors());
         lastProvidedRotation = rotation;
@@ -215,6 +225,7 @@ public class Scaffold extends AbstractModule {
                     new Vec3(hitVec.x, hitVec.y, hitVec.z)
             );
             placeDeque.poll();
+            ticksSincePlace = 0;
         }
     }
 
@@ -222,6 +233,7 @@ public class Scaffold extends AbstractModule {
     private void onPostTick(EventGameTick event) {
         if (event.getType() == TickType.POST) {
             if (ticksSinceJump >= 0) ticksSinceJump++;
+            if (ticksSincePlace >= 0) ticksSincePlace++;
         }
     }
 

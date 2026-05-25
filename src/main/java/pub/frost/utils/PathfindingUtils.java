@@ -74,8 +74,18 @@ public class PathfindingUtils {
 
         while (!queue.isEmpty()) {
             BlockPosition currentBlock = queue.poll();
+            BlockPlacementInfo parentStep = parentStepMap.get(currentBlock);
+
+            EnumDirection preferredFace =
+                    parentStep != null ? parentStep.getFaceToUse() : null;
+
+            List<EnumDirection> prioritizedDirections =
+                    buildPreferredDirections(preferredFace, allowedDirections);
+
             List<BlockPlacementInfo> nextSteps = getBlockPlacingSolution(
-                    currentBlock, allowedDirections, blockAvailablePredicate
+                    currentBlock,
+                    prioritizedDirections,
+                    blockAvailablePredicate
             );
 
             for (BlockPlacementInfo nextStep : nextSteps) {
@@ -126,6 +136,29 @@ public class PathfindingUtils {
         }
 
         return path;
+    }
+
+    private static List<EnumDirection> buildPreferredDirections(
+            EnumDirection preferredFace,
+            List<EnumDirection> allowedDirections
+    ) {
+        if (preferredFace == null) {
+            return allowedDirections;
+        }
+
+        ArrayList<EnumDirection> result = new ArrayList<>(allowedDirections.size());
+
+        if (allowedDirections.contains(preferredFace)) {
+            result.add(preferredFace);
+        }
+
+        for (EnumDirection direction : allowedDirections) {
+            if (direction != preferredFace) {
+                result.add(direction);
+            }
+        }
+
+        return result;
     }
 
     private static BlockPosition getPlacedBlock(BlockPlacementInfo info) {
