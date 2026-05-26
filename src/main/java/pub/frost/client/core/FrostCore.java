@@ -29,6 +29,9 @@ public final class FrostCore implements Initializer {
     }
 
     public static final boolean DEBUG = true;
+    public static void debugAssert(boolean condition, String... failStr) {
+        if (DEBUG) assert condition : failStr[0] == null || failStr[0].isEmpty()? "No information provided" : failStr[0];
+    }
 
     private static @Getter FrostCore instance;
 

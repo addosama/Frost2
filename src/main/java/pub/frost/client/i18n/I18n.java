@@ -42,7 +42,7 @@ public class I18n {
         return localizerMap.computeIfAbsent(language, key -> {
             Properties properties = new Properties();
             InputStream stream = ResourceGetter.getClientResourceAsStream("lang/" + fileName + ".properties");
-            if (FrostCore.DEBUG) assert stream != null : "Language not found: " + fileName;
+            FrostCore.debugAssert(stream != null, "Language not found: " + fileName);
             try {
                 properties.load(stream);
                 return new Localizer(properties);

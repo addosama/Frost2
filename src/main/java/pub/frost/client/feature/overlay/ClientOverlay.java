@@ -24,7 +24,7 @@ public abstract class ClientOverlay {
     }
     public ClientOverlay(String key, String icon) {
         this(key, icon, () -> key);
-        if (FrostCore.DEBUG) assert this instanceof Named;
+        FrostCore.debugAssert(this instanceof Named);
     }
     public ClientOverlay(String key, Supplier<String> nameSupplier) {
         this(key, "", nameSupplier);

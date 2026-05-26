@@ -33,7 +33,7 @@ public class AbstractModule implements Wrappers, Named, Described {
 
     public AbstractModule() {
         Module annotation = this.getClass().getAnnotation(Module.class);
-        if (FrostCore.DEBUG) assert annotation != null : "Missing @Module annotation";
+        FrostCore.debugAssert(annotation != null, "Missing @Module annotation");
 
         this.key = annotation.key().toLowerCase();
         this.category = annotation.category();
@@ -77,7 +77,7 @@ public class AbstractModule implements Wrappers, Named, Described {
     }
 
     private void registerProperties() {
-        if (FrostCore.DEBUG) assert propertyMap.isEmpty();
+        FrostCore.debugAssert(propertyMap.isEmpty(), "PropertyMap not empty");
         final String propKeyPrefix = getTranslationKey() + ".props.";
 
         {

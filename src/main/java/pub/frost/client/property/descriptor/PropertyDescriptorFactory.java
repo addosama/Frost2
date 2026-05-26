@@ -56,12 +56,12 @@ public class PropertyDescriptorFactory {
     // ── public accessors ──────────────────────────────────────────────────────
 
     public Map<String, PropertyDescriptor> getDescriptorMap() {
-        if (FrostCore.DEBUG) assert built : "call build() first";
+        FrostCore.debugAssert(built, "call build() first");
         return descriptorMap;
     }
 
     public Map<String, PropertyDescriptor> getFlattenedDescriptorMap() {
-        if (FrostCore.DEBUG) assert built : "call build() first";
+        FrostCore.debugAssert(built, "call build() first");
         return flattenedDescriptorMap;
     }
 

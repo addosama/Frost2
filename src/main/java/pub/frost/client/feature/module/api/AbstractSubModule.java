@@ -27,7 +27,7 @@ public class AbstractSubModule<PARENT extends AbstractModule> implements Wrapper
 
     public AbstractSubModule() {
         SubModule annotation = this.getClass().getAnnotation(SubModule.class);
-        if (FrostCore.DEBUG) assert annotation != null;
+        FrostCore.debugAssert(annotation != null, "Missing @SubModule annotation");
         this.parent = null;
     }
 
