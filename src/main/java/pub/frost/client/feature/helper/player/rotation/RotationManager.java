@@ -36,7 +36,7 @@ public class RotationManager {
         float nextSilentYaw = getSilentYaw(), nextSilentPitch = getSilentPitch();
 
         if (speed > 0) {
-            float deltaYaw = targetYaw - nextSilentYaw;
+            float deltaYaw = RotationUtils.wrapYawTo180(targetYaw - nextSilentYaw);
             float deltaPitch = targetPitch - nextSilentPitch;
             nextSilentYaw += MathUtils.clamp(deltaYaw, -speed, speed);
             nextSilentPitch += MathUtils.clamp(deltaPitch, -speed, speed);

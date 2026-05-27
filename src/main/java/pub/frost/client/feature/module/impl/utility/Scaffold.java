@@ -16,12 +16,16 @@ import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
+import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.RotationSetting;
 import pub.frost.utils.BlockUtils;
 import pub.frost.utils.BoundingBoxUtils;
+import pub.frost.utils.EntityUtils;
 import pub.frost.utils.PathfindingUtils;
 import pub.frost.utils.data.*;
+import pub.frost.utils.data.raytrace.HitResult;
+import pub.frost.utils.raycast.EnumRaycastType;
 import pub.frost.utils.raycast.RayCastUtils;
 
 import java.util.*;
@@ -39,10 +43,21 @@ public class Scaffold extends AbstractModule {
 
     @Property("KeepY")
     public final BooleanProperty keepY = new BooleanProperty(false);
+
+    @Property("ForceUp")
+    public final BooleanProperty forceUp = new BooleanProperty(false);
+    @Property("ForceUpAfterBlocks")
+    public final IntegerProperty forceUpAfterBlocks = new IntegerProperty(1, 10, 1, 1)
+            .setVisibilitySupplier(forceUp::get);
+
     @Property("Telly")
     public final BooleanProperty telly = new BooleanProperty(false);
     @Property("AirTicks")
-    public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3).setVisibilitySupplier(telly::get);
+    public final IntegerProperty airTicks = new IntegerProperty(1, 7, 1, 3)
+            .setVisibilitySupplier(telly::get);
+    @Property("DisableUpTelly")
+    public final BooleanProperty disableUpTelly = new BooleanProperty(false)
+            .setVisibilitySupplier(telly::get);
 
     @Property("RandomizeHitPoint")
     public final BooleanProperty randomizeHitPoint = new BooleanProperty(true);
@@ -59,7 +74,7 @@ public class Scaffold extends AbstractModule {
     @Property("SnapRotation")
     public final BooleanProperty snapRotation = new BooleanProperty(false);
     @Property("RayCast")
-    public final BooleanProperty rayCast = new BooleanProperty(true);
+    public final ModeProperty<EnumRaycastType> rayCast = new ModeProperty<>(EnumRaycastType.DEFAULT);
 
     private final BasicRotationProvider rotationProvider = new BasicRotationProvider();
 
@@ -73,6 +88,9 @@ public class Scaffold extends AbstractModule {
 
     private int ticksSincePlace;
     private int ticksSinceJump;
+
+    private int blocksPlacedSinceJump;
+
     private boolean upTelly;
 
     private Rotation lastProvidedRotation = null;
@@ -80,6 +98,7 @@ public class Scaffold extends AbstractModule {
     @Override
     protected void onEnabled() {
         lastProvidedRotation = null;
+        blocksPlacedSinceJump = 0;
         ticksSincePlace = -1;
         ticksSinceJump = -1;
     }
@@ -98,14 +117,18 @@ public class Scaffold extends AbstractModule {
             ticksSinceJump = -1;
         }
 
-        if (telly.get() && (ticksSinceJump > 0 && ticksSinceJump <= airTicks.get())) {
-            placeDeque.clear();
-            return;
+        if (telly.get()) {
+            if (!upTelly || !disableUpTelly.get()) {
+                if (ticksSinceJump > 0 && ticksSinceJump <= airTicks.get()) {
+                    placeDeque.clear();
+                    return;
+                }
+            }
         }
 
         BlockPosition targetBlock = new BlockPosition(
                 (int) Math.floor(playerPos.x()),
-                (keepY.get() || (telly.get() && !upTelly))? lastOnGroundY : (int) Math.floor(playerPos.y()),
+                (shouldKeepY() || (telly.get() && !upTelly && !shouldForceJump()))? lastOnGroundY : (int) Math.floor(playerPos.y()),
                 (int) Math.floor(playerPos.z())
         ).offset(EnumDirection.DOWN);
 
@@ -193,6 +216,7 @@ public class Scaffold extends AbstractModule {
             placed++;
             BlockPlacementInfo data = placeDeque.peek();
             if (data == null) continue;
+            if (placed == 0 && World.isAirBlock(Minecraft.getWorld(mc), data.getBlockToUse())) continue;
 
             BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
             Vector3d hitVec = BoundingBoxUtils.getFaceCenter(
@@ -200,32 +224,45 @@ public class Scaffold extends AbstractModule {
                     data.getFaceToUse()
             );
 
-            if (rayCast.get()) {
-                Map.Entry<Boolean, Vector3d> result = RayCastUtils.getSimpleHitResult(
-                        Entity.getPositionEyes(player, 1),
-                        Entity.getYaw(player),
-                        Entity.getPitch(player),
-                        BoundingBoxUtils.getFaceBoundingBox(
-                                blockBB, data.getFaceToUse()
-                        )
-                );
-                if (!result.getKey()) continue;
-                hitVec = result.getValue();
+            if (rayCast.get() != EnumRaycastType.DISABLED) {
+                if (rayCast.is(EnumRaycastType.LEGIT)) {
+                    HitResult result = EntityUtils.getLookingObject(
+                            player,
+                            Entity.getLook(player, 1),
+                            3, 1
+                    );
+                    if (
+                            result.getType() == HitResult.EnumHitType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())
+                    ) {
+                        hitVec = result.getHitVec();
+                    } else continue;
+                } else {
+                    Map.Entry<Boolean, Vector3d> result = RayCastUtils.getSimpleHitResult(
+                            Entity.getPositionEyes(player, 1),
+                            Entity.getYaw(player),
+                            Entity.getPitch(player),
+                            BoundingBoxUtils.getFaceBoundingBox(
+                                    blockBB, data.getFaceToUse()
+                            )
+                    );
+                    if (!result.getKey()) continue;
+                    hitVec = result.getValue();
+                }
             }
 
-//            System.out.println(hitVec.toString(new DecimalFormat("0.0000")));
-
-            EntityClientPlayer.swingItem(Minecraft.getPlayer(mc));
-            net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
+            if (net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
                     net.minecraft.client.Minecraft.getMinecraft().theWorld,
                     stack,
                     new BlockPos(data.getBlockToUse().x, data.getBlockToUse().y, data.getBlockToUse().z),
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
                     new Vec3(hitVec.x, hitVec.y, hitVec.z)
-            );
+            )) EntityClientPlayer.swingItem(player);
             placeDeque.poll();
             ticksSincePlace = 0;
+            if (data.getBlockToUse().y() <= lastOnGroundY) {
+                blocksPlacedSinceJump++;
+            }
         }
     }
 
@@ -241,14 +278,23 @@ public class Scaffold extends AbstractModule {
     private void onMovementInput(EventUpdateMovementInput event) {
         upTelly = false;
         boolean onGround = Entity.isOnGround(Minecraft.getPlayer(mc));
-        if (telly.get()) {
-            if (onGround && Math.max(Math.abs(event.getMoveForward()), Math.abs(event.getMoveStrafe())) > 0.01) {
-                event.setJump(true);
+        if (onGround) {
+            if (forceUp.get()) {
+                if (shouldForceJump()) {
+                    event.setJump(true);
+                }
             }
-            if (event.isJump()) {
-                if (!onGround) upTelly = true;
-                else ticksSinceJump = 0;
+            if (telly.get()) {
+                if (Math.max(Math.abs(event.getMoveForward()), Math.abs(event.getMoveStrafe())) > 0.01) {
+                    event.setJump(true);
+                }
             }
+        }
+
+        if (event.isJump()) {
+            blocksPlacedSinceJump = 0;
+            if (!onGround) upTelly = true;
+            else ticksSinceJump = 0;
         }
     }
 
@@ -276,5 +322,12 @@ public class Scaffold extends AbstractModule {
                         Math.random() * faceBB.getSizeZ()
                 )
         ).getCenter();
+    }
+
+    public boolean shouldKeepY() {
+        return !forceUp.get() && keepY.get();
+    }
+    public boolean shouldForceJump() {
+        return forceUp.get() && blocksPlacedSinceJump >= forceUpAfterBlocks.get();
     }
 }
