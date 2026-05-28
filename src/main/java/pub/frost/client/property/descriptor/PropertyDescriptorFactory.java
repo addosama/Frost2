@@ -8,10 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.AbstractProperty;
-import pub.frost.client.property.annotations.InsertProperty;
-import pub.frost.client.property.annotations.Property;
-import pub.frost.client.property.annotations.PropertyGroupHead;
-import pub.frost.client.property.annotations.PropertyGroupMain;
+import pub.frost.client.property.annotations.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -116,6 +113,7 @@ public class PropertyDescriptorFactory {
 
         for (Field field : object.getClass().getDeclaredFields()) {
             try {
+                if (field.isAnnotationPresent(ExcludeProperty.class)) continue;
                 if (skipDeprecated && field.isAnnotationPresent(Deprecated.class)) continue;
 
                 boolean isPropertyField  = AbstractProperty.isPropertyField(field);
