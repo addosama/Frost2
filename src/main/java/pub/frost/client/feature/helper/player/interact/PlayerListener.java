@@ -7,25 +7,35 @@ import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.base.wrapping.Wrappers;
+import pub.frost.utils.api.Tickable;
+import pub.frost.utils.recorder.Recorder;
+import pub.frost.utils.recorder.impl.state.SingleTickStateRecorder;
+import pub.frost.utils.recorder.impl.state.TickableStateRecorder;
 import pub.frost.wrappers.shared.network.packet.impl.play.c2s.WPlayerDiggingPacket;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
-public class PlayerListener implements Wrappers {
+public class PlayerListener implements Wrappers, IPlayerListener {
     private final Object mc = Minecraft.getInstance();
-    private boolean digging;
 
-    private boolean startDiggingTick;
-    private boolean stopDiggingTick;
+    private final TickableStateRecorder diggingStateRecorder = new TickableStateRecorder();
+    private final SingleTickStateRecorder heldItemChangeRecorder = new SingleTickStateRecorder();
 
-    private int ticksSinceHeldItemChange;
+    private final List<Tickable> tickableList = Arrays.asList(
+            diggingStateRecorder,
+            heldItemChangeRecorder
+    );
+    private final List<Recorder<?>> recorderList = Arrays.asList(
+            diggingStateRecorder,
+            heldItemChangeRecorder
+    );
 
     @EventHandler(priority = -1)
     public void preGameTick(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
             if (Minecraft.getWorld(mc) == null) resetAllStates();
-            else {
-                ticksSinceHeldItemChange++;
-            }
         }
     }
 
@@ -35,35 +45,49 @@ public class PlayerListener implements Wrappers {
         if (e.getType() == PacketType.OUT) {
             Object packet = e.getPacket();
             if (PlayerPacket.isTarget(packet)) {
-                resetTickStates();
-            } else {
+                tickableList.forEach(Tickable::tick);
+            }
+            else {
                 if (PlayerDiggingPacket.isTarget(packet)) {
                     if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.START_DESTROY_BLOCK) {
-                        startDiggingTick = true;
-                        digging = true;
+                        diggingStateRecorder.setValue(true);
                     }
                     if (PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.ABORT_DESTROY_BLOCK
                             || PlayerDiggingPacket.getStatus(packet) == WPlayerDiggingPacket.STOP_DESTROY_BLOCK
                     ) {
-                        stopDiggingTick = true;
-                        digging = false;
+                        diggingStateRecorder.setValue(false);
                     }
                 }
                 else if (HeldItemChangePacket.isTarget(packet)) {
-                    ticksSinceHeldItemChange = 0;
+                    heldItemChangeRecorder.setValue(true);
                 }
             }
         }
     }
 
-    private void resetTickStates() {
-        startDiggingTick = false;
-        stopDiggingTick = false;
+    private void resetAllStates() {
+        recorderList.forEach(Recorder::reset);
     }
 
-    private void resetAllStates() {
-        digging = false;
-        resetTickStates();
-        ticksSinceHeldItemChange = 0;
+    @Override
+    public boolean isDigging() {
+        return diggingStateRecorder.getValue();
+    }
+    @Override
+    public boolean isStartDiggingTick() {
+        return diggingStateRecorder.getTicksSinceTrue() == 0;
+    }
+    @Override
+    public boolean isStopDiggingTick() {
+        return diggingStateRecorder.getTicksSinceFalse() == 0;
+    }
+
+    @Override
+    public boolean isHeldItemChangeTick() {
+        return heldItemChangeRecorder.getValue();
+    }
+    @Override
+    public int getTicksSinceHeldItemChange() {
+        return heldItemChangeRecorder.getTicksSinceTrue();
     }
 }
