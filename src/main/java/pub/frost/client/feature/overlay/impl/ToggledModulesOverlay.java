@@ -14,7 +14,7 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
-import pub.frost.client.property.preset.ColorSetting;
+import pub.frost.client.property.preset.impl.ColorSetting;
 import pub.frost.utils.ImTextRenderer;
 
 @TranslationKey("modules.hud.props.toggledmodules.name")

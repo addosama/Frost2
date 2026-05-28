@@ -18,7 +18,7 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
-import pub.frost.client.property.preset.RotationSetting;
+import pub.frost.client.property.preset.legacy.RotationSetting;
 import pub.frost.utils.BlockUtils;
 import pub.frost.utils.BoundingBoxUtils;
 import pub.frost.utils.EntityUtils;

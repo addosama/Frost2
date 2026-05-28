@@ -18,7 +18,7 @@ import pub.frost.client.feature.module.impl.visual.esp.NameTagESP;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
-import pub.frost.client.property.preset.TargetSetting;
+import pub.frost.client.property.preset.legacy.TargetSetting;
 import pub.frost.utils.EntityUtils;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.RenderUtils;

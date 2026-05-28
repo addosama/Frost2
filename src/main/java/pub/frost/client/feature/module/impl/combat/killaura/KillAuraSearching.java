@@ -9,7 +9,7 @@ import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
-import pub.frost.client.property.preset.TargetSetting;
+import pub.frost.client.property.preset.legacy.TargetSetting;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.targeting.EnumEntityTarget;

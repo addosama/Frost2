@@ -1,4 +1,4 @@
-package pub.frost.client.property.preset;
+package pub.frost.client.property.preset.legacy;
 
 import lombok.RequiredArgsConstructor;
 import pub.frost.client.feature.helper.player.rotation.processors.post.EnumRotationPostProcessor;

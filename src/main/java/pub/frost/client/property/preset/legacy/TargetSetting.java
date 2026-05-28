@@ -1,4 +1,4 @@
-package pub.frost.client.property.preset;
+package pub.frost.client.property.preset.legacy;
 
 import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.feature.module.impl.utility.Teams;
