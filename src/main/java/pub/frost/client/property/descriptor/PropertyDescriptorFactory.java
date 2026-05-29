@@ -35,6 +35,7 @@ public class PropertyDescriptorFactory {
     private final Map<String, List<PropertyDescriptor>> descriptorListMap = new HashMap<>();
     private final Map<String, AbstractProperty<?, ?>> groupMainPropMap = new HashMap<>();
     private final Map<String, VisibilitySupplier> groupVisibilityMap = new HashMap<>();
+    private final Map<String, String> groupTranslationKeyMap = new HashMap<>();
 
     public PropertyDescriptorFactory build() {
         descriptorListMap.put("", new ArrayList<>(topLevelDescriptorList));
@@ -52,11 +53,15 @@ public class PropertyDescriptorFactory {
     ) {
         if (object instanceof ManualDescriptorProvider) {
             String keyPrefix = getCurrentPrefix();
-            return ((ManualDescriptorProvider) object).provideDescriptors(
-                    keyPrefix,
-                    p -> groupMainPropMap.put(keyPrefix, p),
-                    p -> p
+            List<PropertyDescriptor> contextList = descriptorListMap.get(keyPrefix);
+            contextList.addAll(
+                    ((ManualDescriptorProvider) object).provideDescriptors(
+                            keyPrefix,
+                            p -> groupMainPropMap.put(keyPrefix, p),
+                            p -> p
+                    )
             );
+            return contextList;
         }
 
         for (Field field : object.getClass().getDeclaredFields()) {
@@ -123,6 +128,9 @@ public class PropertyDescriptorFactory {
                     TranslationKey annotation = field.getAnnotation(TranslationKey.class);
                     if (annotation != null) translationKey = annotation.value();
                     else translationKey = translationKeyFormat;
+                    if (startGroup) {
+                        groupTranslationKeyMap.put(keyPrefix, translationKey);
+                    }
                 }
 
                 if (isPropertyField) {
@@ -138,7 +146,7 @@ public class PropertyDescriptorFactory {
                             Localizable.format(translationKey, propKey)
                     ));
                 } else if (isInsertField) {
-                    processObject(field.get(object), translationKey);
+                    processObject(field.get(object), translationKeyFormat);
                 }
 
                 if (endGroup) {
@@ -149,7 +157,7 @@ public class PropertyDescriptorFactory {
                             groupMainPropMap.get(keyPrefix),
                             contextList,
                             groupVisibilityMap.get(keyPrefix)::isVisible,
-                            Localizable.format(translationKey, groupKey)
+                            Localizable.format(groupTranslationKeyMap.get(keyPrefix), groupKey)
                     ));
                 }
 

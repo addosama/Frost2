@@ -31,25 +31,25 @@ import java.util.List;
         category = ModuleCategory.VISUAL
 )
 public class ChestESP extends AbstractModule {
-    @TranslationKey("modules.esp.props.box.subprops.mode")
+    @TranslationKey("modules.esp.props.box.mode")
     @Property("mode")
     public final ModeProperty<EnumBoxRenderType> mode = new ModeProperty<>(EnumBoxRenderType.BOX_2D);
 
-    @TranslationKey("modules.esp.props.box.subprops.expand")
+    @TranslationKey("modules.esp.props.box.expand")
     @Property("expand")
     public final FloatProperty expand = new FloatProperty(0, 1, 0.1f, 0.1f);
 
-    @TranslationKey("modules.esp.props.box.subprops.thickness")
+    @TranslationKey("modules.esp.props.box.thickness")
     @Property("thickness")
     public final FloatProperty thickness = new FloatProperty(0.5f, 3f, 0.5f, 1f);
-    @TranslationKey("modules.esp.props.box.subprops.shadow")
+    @TranslationKey("modules.esp.props.box.shadow")
     @Property("shadow")
     public final BooleanProperty shadow = new BooleanProperty(true).setVisibilitySupplier(() -> !mode.is(EnumBoxRenderType.RECT));
 
-    @TranslationKey("modules.esp.props.box.subprops.boxcolor")
+    @TranslationKey("modules.esp.props.box.boxcolor")
     @Property("BoxColor")
     public final ColorProperty boxColor = new ColorProperty(0xFFFFFFFF, true);
-    @TranslationKey("modules.esp.props.box.subprops.shadowcolor")
+    @TranslationKey("modules.esp.props.box.shadowcolor")
     @Property("ShadowColor")
     public final ColorProperty shadowColor = new ColorProperty(0x33000000, true).setVisibilitySupplier(shadow::get);
     

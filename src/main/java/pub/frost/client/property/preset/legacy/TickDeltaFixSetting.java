@@ -24,7 +24,7 @@ public class TickDeltaFixSetting {
     @Property("Mode")
     public ModeProperty<EnumTickDeltaFix> mode = new ModeProperty<>(EnumTickDeltaFix.FULL);
 
-    @TranslationKey("strings.settings.tickdeltafix.subprops.customvalue")
+    @TranslationKey("strings.settings.tickdeltafix.customvalue")
     @Property(value = "CustomValue", endGroup = true)
     public FloatProperty customValue = new FloatProperty(0, 1, 0.01f, 1f).setVisibilitySupplier(() -> mode.is(EnumTickDeltaFix.CUSTOM));
 
