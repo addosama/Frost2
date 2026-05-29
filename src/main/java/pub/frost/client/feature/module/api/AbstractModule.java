@@ -7,7 +7,7 @@ import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.i18n.interfaces.Described;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.descriptor.LegacyPropertyDescriptorFactory;
+import pub.frost.client.property.descriptor.PropertyDescriptorFactory;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.wrappers.shared.client.WMinecraft;
 
@@ -86,9 +86,9 @@ public class AbstractModule implements Wrappers, Named, Described {
             regProperty(new PropertyDescriptor(propKeyPrefix + "enabled", enabledProperty, "strings.enabled"));
         }
 
-        LegacyPropertyDescriptorFactory factory = LegacyPropertyDescriptorFactory
-                .create(this)
-                .setKeyPrefix(propKeyPrefix)
+        PropertyDescriptorFactory factory = PropertyDescriptorFactory
+                .createForObject(this)
+                .setTranslationKeyFormat(propKeyPrefix + "~")
                 .build();
         propertyMap.putAll(factory.getDescriptorMap());
         flattenedPropertyMap.putAll(factory.getFlattenedDescriptorMap());

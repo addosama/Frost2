@@ -39,7 +39,7 @@ public class PropertyComponent<T> extends PanelComponent {
         super(gui);
         this.descriptor = descriptor;
 
-        prop = descriptor.getProperty();
+        prop = (AbstractProperty<T, ?>) descriptor.getProperty();
         if (prop != null && prop.isOverridingEnabled()) {
             overridePopup = new OverridePopupComponent<>(
                     gui,
