@@ -19,12 +19,12 @@ import java.util.function.Supplier;
 
 @Accessors(chain = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class PropertyDescriptorFactory {
+public class LegacyPropertyDescriptorFactory {
 
     private final Object target;
 
-    public static PropertyDescriptorFactory create(Object target) {
-        return new PropertyDescriptorFactory(target);
+    public static LegacyPropertyDescriptorFactory create(Object target) {
+        return new LegacyPropertyDescriptorFactory(target);
     }
 
     // ── output ────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ public class PropertyDescriptorFactory {
     // Build
     // ═════════════════════════════════════════════════════════════════════════
 
-    public PropertyDescriptorFactory build() {
+    public LegacyPropertyDescriptorFactory build() {
         List<PropertyDescriptor> topLevel = processObject(target, keyPrefix);
         for (PropertyDescriptor d : topLevel) {
             descriptorMap.put(d.getKey(), d);
