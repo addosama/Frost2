@@ -23,6 +23,7 @@ import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
+import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.preset.legacy.RotationSetting;
 import pub.frost.client.property.preset.legacy.TickDeltaFixSetting;
 import pub.frost.utils.RotationUtils;
@@ -58,6 +59,11 @@ public class KillAura extends AbstractModule {
     public final ModeProperty<EnumRaycastType> rayCast = new ModeProperty<>(EnumRaycastType.DEFAULT).setVisibilitySupplier(() -> attacking.mode.is(EnumInteractType.PACKET));
     @Property("WallsCheck")
     public final BooleanProperty wallsCheck = new BooleanProperty(true).setVisibilitySupplier(() -> attacking.mode.is(EnumInteractType.PACKET));
+    @Property("Prediction")
+    public final BooleanProperty prediction = new BooleanProperty(false);
+    @Property("PredictionValue")
+    public final FloatProperty predictionValue = new FloatProperty(0, 2, 0.01f, 0.5f)
+            .setVisibilitySupplier(prediction::get);
 
     @InsertProperty
     public final RotationSetting rotationSetting = new RotationSetting();
@@ -132,7 +138,8 @@ public class KillAura extends AbstractModule {
     }
 
     public Rotation getRotation(Object target, float tickDelta) {
-        BoundingBox box = Entity.getBoundingBox(target);
+        tickDelta += prediction.get()? predictionValue.get(): 0;
+        BoundingBox box = prediction.get()? Entity.getLerpedBoundingBox(target, tickDelta) : Entity.getBoundingBox(target);
         Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), tickDelta);
         Vector3d targetEyePos = Entity.getPositionEyes(target, tickDelta);
         Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
@@ -145,9 +152,10 @@ public class KillAura extends AbstractModule {
             return new Rotation(rotationAimingEyePos.getYaw(), FrostCore.getHelpers().getRotationManager().getSilentPitch());
         }
         // search rotation that available to hit target
+        float finalTickDelta = tickDelta;
         return rotationProvider.getRotation(
                 eyePos, box, targetEyePos,
-                rot -> rayTraceTarget(target, rot, tickDelta),
+                rot -> rayTraceTarget(target, rot, finalTickDelta),
                 true
         );
     }
