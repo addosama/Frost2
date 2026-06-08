@@ -3,6 +3,7 @@ package pub.frost.platforms.v1_8_9.forged.mixin;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.entity.Entity;
@@ -202,5 +203,18 @@ public class MixinEntityRenderer {
             mc.mcProfiler.endSection();
         }
         return null;
+    }
+
+    @Redirect(
+            method = "updateCameraAndRender",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/entity/EntityPlayerSP;setAngles(FF)V"
+            )
+    )
+    private void onSetAngles(EntityPlayerSP instance, float yaw, float pitch) {
+        EventPreSetPlayerAngles event = new EventPreSetPlayerAngles(yaw, pitch);
+        FrostCore.getEventBus().call(event);
+        instance.setAngles(event.getYaw(), event.getPitch());
     }
 }
