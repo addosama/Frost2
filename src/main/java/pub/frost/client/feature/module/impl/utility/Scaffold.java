@@ -19,10 +19,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.legacy.RotationSetting;
-import pub.frost.utils.BlockUtils;
-import pub.frost.utils.BoundingBoxUtils;
-import pub.frost.utils.EntityUtils;
-import pub.frost.utils.PathfindingUtils;
+import pub.frost.utils.*;
 import pub.frost.utils.data.*;
 import pub.frost.utils.data.raytrace.HitResult;
 import pub.frost.utils.raycast.EnumRaycastType;
@@ -59,6 +56,13 @@ public class Scaffold extends AbstractModule {
     public final BooleanProperty disableUpTelly = new BooleanProperty(false)
             .setVisibilitySupplier(telly::get);
 
+    @Property("TryUsePresetYaws")
+    public final BooleanProperty tryUsePresetYaws = new BooleanProperty(true);
+    @Property("TryUsePresetPitches")
+    public final BooleanProperty tryUsePresetPitches = new BooleanProperty(true)
+            .setVisibilitySupplier(tryUsePresetYaws::get);
+    @Property("CalcEveryPitch")
+    public final BooleanProperty calcEveryPitch = new BooleanProperty(false);
     @Property("RandomizeHitPoint")
     public final BooleanProperty randomizeHitPoint = new BooleanProperty(true);
 
@@ -67,7 +71,8 @@ public class Scaffold extends AbstractModule {
     @Property("SlowRotationAfterPlace")
     public final BooleanProperty slowRotationAfterPlace = new BooleanProperty(true);
     @Property("SlowTicks")
-    public final IntegerProperty slowTicks = new IntegerProperty(1, 10, 1, 2);
+    public final IntegerProperty slowTicks = new IntegerProperty(1, 10, 1, 2)
+            .setVisibilitySupplier(slowRotationAfterPlace::get);
     @Property("SlowRotationSpeed")
     public final IntegerProperty slowRotationSpeed = new IntegerProperty(1, 180, 1, 15)
             .setVisibilitySupplier(slowRotationAfterPlace::get);
@@ -168,7 +173,8 @@ public class Scaffold extends AbstractModule {
             if (!placeDeque.isEmpty()) {
                 BlockPlacementInfo data = placeDeque.peekFirst();
                 if (data == null) return;
-                Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
+                Object player = Minecraft.getPlayer(mc);
+                Vector3d eyePos = Entity.getPositionEyes(player, 1);
                 BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
                 BoundingBox faceBB = BoundingBoxUtils.getFaceBoundingBox(
                         blockBB,
@@ -180,6 +186,7 @@ public class Scaffold extends AbstractModule {
                         getHitPoint(faceBB, data.getFaceToUse()),
                         r -> true, true
                 );
+
                 if (lastProvidedRotation != null) {
                     if (RayCastUtils.getSimpleHitResult(
                             eyePos,
@@ -195,7 +202,79 @@ public class Scaffold extends AbstractModule {
                         ).getKey()) rotation = rotWithPitchChange;
                     }
                 }
-                else rotation = bestRot;
+
+                if (rotation == null) {
+                    if (tryUsePresetYaws.get()) {
+                        Rotation lastRotation = lastProvidedRotation == null?
+                                new Rotation(Entity.getYaw(player), Entity.getPitch(player)) : lastProvidedRotation;
+
+                        Float[] yawArray = {
+                                -135F,
+                                -90F,
+                                -45F,
+                                0F,
+                                45F,
+                                90F,
+                                135F,
+                                180F,
+                                bestRot.getYaw()
+                        };
+                        Arrays.sort(
+                                yawArray, (a, b) -> Float.compare(
+                                        Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - a)),
+                                        Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - b))
+                                )
+                        );
+                        float[] pitchArray = {75.0F, 82.0F, 87.0F};
+                        boolean usePresetPitches = this.tryUsePresetPitches.get();
+
+                        for (float yaw : yawArray) {
+                            if (usePresetPitches) {
+                                for (float pitch : pitchArray) {
+                                    // random range -0.3 to 0.3
+                                    Rotation candidate = new Rotation(yaw, pitch);
+                                    boolean matches = RayCastUtils.getSimpleHitResult(
+                                            eyePos, yaw, pitch, faceBB
+                                    ).getKey();
+//                                    boolean matches = rayCast.is(EnumRaycastType.LEGIT)
+//                                            ? RayCastUtil.overBlock(candidate, pos)
+//                                            : RayCastUtil.overBlock(candidate, pos, direction);
+                                    if (matches) {
+                                        rotation = candidate;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (calcEveryPitch.get()) {
+                                for (int pitch = -90; pitch < 90; pitch++) {
+                                    Rotation candidate = new Rotation(yaw, pitch);
+                                    boolean matches = RayCastUtils.getSimpleHitResult(
+                                            eyePos, yaw, pitch, faceBB
+                                    ).getKey();
+//                                    boolean matches = rayCast.isMode("Normal")
+//                                            ? RayCastUtil.overBlock(candidate, pos)
+//                                            : RayCastUtil.overBlock(candidate, pos, direction);
+
+                                    if (matches) {
+                                        rotation = candidate;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                Rotation candidate = new Rotation(yaw, bestRot.getPitch());
+                                if (RayCastUtils.getSimpleHitResult(
+                                        eyePos, yaw, candidate.getPitch(), faceBB
+                                ).getKey()) {
+                                    rotation = candidate;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else rotation = bestRot;
+                }
             }
             else if (!snapRotation.get() && (!telly || ticksSinceJump > airTicks)) rotation = lastProvidedRotation;
         }
