@@ -62,6 +62,8 @@ public class Scaffold extends AbstractModule {
     @Property("RandomizeHitPoint")
     public final BooleanProperty randomizeHitPoint = new BooleanProperty(true);
 
+    @Property("PreferPitchChange")
+    public final BooleanProperty preferPitchChange = new BooleanProperty(false);
     @Property("SlowRotationAfterPlace")
     public final BooleanProperty slowRotationAfterPlace = new BooleanProperty(true);
     @Property("SlowTicks")
@@ -172,22 +174,28 @@ public class Scaffold extends AbstractModule {
                         blockBB,
                         data.getFaceToUse()
                 );
-                if (
-                        lastProvidedRotation != null
-                        && RayCastUtils.getSimpleHitResult(
-                                eyePos,
-                                lastProvidedRotation.getYaw(), lastProvidedRotation.getPitch(),
-                                faceBB
-                        ).getKey()
-                ) {
-                    rotation = lastProvidedRotation;
-                }
-                else rotation = rotationProvider.getRotation(
+                Rotation bestRot = rotationProvider.getRotation(
                         eyePos,
                         faceBB,
                         getHitPoint(faceBB, data.getFaceToUse()),
                         r -> true, true
                 );
+                if (lastProvidedRotation != null) {
+                    if (RayCastUtils.getSimpleHitResult(
+                            eyePos,
+                            lastProvidedRotation.getYaw(), lastProvidedRotation.getPitch(),
+                            faceBB
+                    ).getKey()) rotation = lastProvidedRotation;
+                    else if (preferPitchChange.get()) {
+                        Rotation rotWithPitchChange = new Rotation(lastProvidedRotation.getYaw(), bestRot.getPitch());
+                        if (RayCastUtils.getSimpleHitResult(
+                                eyePos,
+                                rotWithPitchChange.getYaw(), rotWithPitchChange.getPitch(),
+                                faceBB
+                        ).getKey()) rotation = rotWithPitchChange;
+                    }
+                }
+                else rotation = bestRot;
             }
             else if (!snapRotation.get() && (!telly || ticksSinceJump > airTicks)) rotation = lastProvidedRotation;
         }
