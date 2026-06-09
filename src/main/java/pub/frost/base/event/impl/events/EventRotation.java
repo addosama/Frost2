@@ -9,6 +9,7 @@ import pub.frost.base.event.api.interfaces.Event;
 public class EventRotation implements Event {
     private float yaw, pitch, speed;
     private boolean lockView;
+    private boolean noYawWrapping;
     private int processors;
 
     public void addProcessors(int processors) {

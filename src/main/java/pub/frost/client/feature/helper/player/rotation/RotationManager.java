@@ -30,13 +30,15 @@ public class RotationManager {
     private float targetYaw, targetPitch;
     private float speed;
     private boolean lockView;
+    private boolean disableYawWrapping;
     private int processors;
 
     private void processSilentRotation() {
         float nextSilentYaw = getSilentYaw(), nextSilentPitch = getSilentPitch();
 
         if (speed > 0) {
-            float deltaYaw = RotationUtils.wrapYawTo180(targetYaw - nextSilentYaw);
+            float deltaYaw = targetYaw - nextSilentYaw;
+            if (!disableYawWrapping) deltaYaw = RotationUtils.wrapYawTo180(deltaYaw);
             float deltaPitch = targetPitch - nextSilentPitch;
             nextSilentYaw += MathUtils.clamp(deltaYaw, -speed, speed);
             nextSilentPitch += MathUtils.clamp(deltaPitch, -speed, speed);
@@ -70,11 +72,11 @@ public class RotationManager {
 
     private boolean postRotationEvent() {
         Object player = mcWrapper.getPlayer(mc);
-        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false, 0);
+        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false, false, 0);
         FrostCore.getInstance().getEventBus().call(event);
         targetYaw = event.getYaw();
         targetPitch = event.getPitch();
-        speed = MathUtils.clamp(event.getSpeed(), 0f, 180f);
+        speed = event.getSpeed();
         lockView = event.isLockView();
         processors = event.getProcessors();
 
