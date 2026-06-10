@@ -58,8 +58,8 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
             boolean rayCastResult = getParent().rayTraceTarget(
                     target,
                     new Rotation(
-                            target.rotationYaw,
-                            target.rotationPitch
+                            player.rotationYaw,
+                            player.rotationPitch
                     ),
                     getRealAttackRange(),
                     false,

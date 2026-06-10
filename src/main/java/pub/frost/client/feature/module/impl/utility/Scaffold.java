@@ -154,10 +154,7 @@ public class Scaffold extends AbstractModule {
                 usableBlocks, targetBlock,
                 availableFaceList, pos -> world.isAirBlock(pos) && world.getCollidingBoundingBoxes(
                         player,
-                        new AxisAlignedBB(
-                                pos.getX(), pos.getY(), pos.getZ(),
-                                pos.getX() + 1, pos.getX() + 1, pos.getX() + 1
-                        )
+                        getBlockAxisAlignedBB(pos)
                 ).isEmpty()
         ));
     }
@@ -317,9 +314,7 @@ public class Scaffold extends AbstractModule {
                             player.getLook(1),
                             3, 1
                     );
-                    if (
-                            result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())
-                    ) {
+                    if (result != null && result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())) {
                         hitVec = result.hitVec;
                     } else continue;
                 } else {

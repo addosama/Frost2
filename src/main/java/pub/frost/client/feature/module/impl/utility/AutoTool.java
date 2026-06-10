@@ -93,7 +93,7 @@ public class AutoTool extends AbstractModule {
                 player.getLook(1),
                 3, 1
         );
-        if (hitResult.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
+        if (hitResult == null || hitResult.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
         Block block = player.worldObj.getBlockState(hitResult.getBlockPos()).getBlock();
 
