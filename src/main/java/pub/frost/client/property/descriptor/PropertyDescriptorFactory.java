@@ -57,8 +57,7 @@ public class PropertyDescriptorFactory {
             contextList.addAll(
                     ((ManualDescriptorProvider) object).provideDescriptors(
                             keyPrefix,
-                            p -> groupMainPropMap.put(keyPrefix, p),
-                            p -> p
+                            p -> groupMainPropMap.put(keyPrefix, p)
                     )
             );
             return contextList;

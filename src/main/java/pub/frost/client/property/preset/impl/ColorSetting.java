@@ -6,6 +6,7 @@ import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.AbstractProperty;
 import pub.frost.client.property.descriptor.ManualDescriptorProvider;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
+import pub.frost.client.property.descriptor.VisibilitySupplier;
 import pub.frost.client.property.impl.color.ColorProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
@@ -17,10 +18,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ColorSetting implements Supplier<Boolean>, ManualDescriptorProvider {
+public class ColorSetting implements VisibilitySupplier, ManualDescriptorProvider {
     private final Supplier<Boolean> visibility;
 
     public final ModeProperty<EnumColorType> type = new ModeProperty<>(EnumColorType.STATIC);
@@ -73,30 +73,30 @@ public class ColorSetting implements Supplier<Boolean>, ManualDescriptorProvider
     @Override
     public List<PropertyDescriptor> provideDescriptors(
             String keyPrefix,
-            Consumer<AbstractProperty<?, ?>> mainPropConsumer, Function<PropertyDescriptor, PropertyDescriptor> register
+            Consumer<AbstractProperty<?, ?>> mainPropConsumer
     ) {
         mainPropConsumer.accept(type);
         ArrayList<PropertyDescriptor> descriptors = new ArrayList<>(Arrays.asList(
                 // type
-                register.apply(getPropDescriptor(keyPrefix, "Type", type)),
+                getPropDescriptor(keyPrefix, "Type", type),
 
                 // dynamic
-                register.apply(getPropDescriptor(keyPrefix, "Speed", speed)),
-                register.apply(getPropDescriptor(keyPrefix, "Range", range)),
+                getPropDescriptor(keyPrefix, "Speed", speed),
+                getPropDescriptor(keyPrefix, "Range", range),
 
                 // rainbow
-                register.apply(getPropDescriptor(keyPrefix, "RainbowSaturation", rainbowSaturation)),
-                register.apply(getPropDescriptor(keyPrefix, "RainbowBrightness", rainbowBrightness)),
+                getPropDescriptor(keyPrefix, "RainbowSaturation", rainbowSaturation),
+                getPropDescriptor(keyPrefix, "RainbowBrightness", rainbowBrightness),
 
                 // gradient
-                register.apply(getPropDescriptor(keyPrefix, "GradientColorCount", gradientColorCount))
+                getPropDescriptor(keyPrefix, "GradientColorCount", gradientColorCount)
         ));
 
         // add colors
         String propKey = "StaticColor";
         for (int i = 0; i < 7; i++) {
             ColorProperty colorProp = colors[i];
-            descriptors.add(register.apply(getPropDescriptor(keyPrefix, propKey, colorProp)));
+            descriptors.add(getPropDescriptor(keyPrefix, propKey, colorProp));
             propKey = "GradientColor"  + (i + 1);
         }
 
@@ -132,7 +132,7 @@ public class ColorSetting implements Supplier<Boolean>, ManualDescriptorProvider
     }
 
     @Override
-    public Boolean get() {
+    public boolean isVisible() {
         return visibility.get();
     }
 
