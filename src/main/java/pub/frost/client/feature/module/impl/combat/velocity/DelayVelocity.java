@@ -1,6 +1,10 @@
 package pub.frost.client.feature.module.impl.combat.velocity;
 
 import lombok.RequiredArgsConstructor;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.INetHandlerPlayClient;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.Velocity;
@@ -37,12 +41,13 @@ public class DelayVelocity extends AbstractSubModule<Velocity> implements Suppli
     private final Deque<CachedPacket> cachedPackets = new ArrayDeque<>();
 
     public void processIncomingPacket(EventPacket event) {
-        Object packet = event.getPacket();
+        Packet packet = event.getPacket();
         boolean cancel = false;
-        if (EntityVelocityPacket.isTarget(packet)) {
-            Object player = Minecraft.getPlayer(mc);
-            if (EntityVelocityPacket.getEntityId(packet) != Entity.getEntityId(player)) return;
-            if (!airOnly.get() || !Entity.isOnGround(player)) {
+        if (packet instanceof S12PacketEntityVelocity) {
+            S12PacketEntityVelocity s12 = (S12PacketEntityVelocity) packet;
+            EntityPlayerSP player = mc.thePlayer;
+            if (s12.getEntityID() != player.getEntityId()) return;
+            if (!airOnly.get() || !player.onGround) {
                 cancel = true;
             }
         } else if (!cachedPackets.isEmpty()) {
@@ -57,13 +62,10 @@ public class DelayVelocity extends AbstractSubModule<Velocity> implements Suppli
     public void update() {
         for (CachedPacket cachedPacket : cachedPackets) {
             boolean maxTickReached = cachedPacket.ticks > delayTicks.get();
-            boolean groundForceReleaseReached = untilGround.get() && Entity.isOnGround(Minecraft.getPlayer(mc));
+            boolean groundForceReleaseReached = untilGround.get() && mc.thePlayer.onGround;
 
             if (maxTickReached || groundForceReleaseReached) {
-                Packet.processPacket(
-                        cachedPacket.packet,
-                        Minecraft.getNetHandler(mc)
-                );
+                cachedPacket.packet.processPacket(mc.getNetHandler());
                 cachedPackets.remove(cachedPacket);
             } else cachedPacket.ticks++;
         }
@@ -71,10 +73,7 @@ public class DelayVelocity extends AbstractSubModule<Velocity> implements Suppli
 
     public void flush() {
         while (!cachedPackets.isEmpty()) {
-            Packet.processPacket(
-                    cachedPackets.pollFirst().packet,
-                    Minecraft.getNetHandler(mc)
-            );
+            cachedPackets.pollFirst().packet.processPacket(mc.getNetHandler());
         }
     }
 
@@ -85,7 +84,7 @@ public class DelayVelocity extends AbstractSubModule<Velocity> implements Suppli
 
     @RequiredArgsConstructor
     private static class CachedPacket {
-        final Object packet;
+        final Packet<INetHandlerPlayClient> packet;
         int ticks = 0;
     }
 }

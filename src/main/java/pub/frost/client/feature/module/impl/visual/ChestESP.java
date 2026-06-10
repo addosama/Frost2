@@ -2,13 +2,16 @@ package pub.frost.client.feature.module.impl.visual;
 
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
+import javax.vecmath.Matrix4f;
+
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
+import net.minecraft.tileentity.TileEntityChest;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRender3D;
-import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -18,9 +21,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.color.ColorProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
-import pub.frost.utils.EnumBoxRenderType;
-import pub.frost.utils.RenderUtils;
-import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,7 +54,7 @@ public class ChestESP extends AbstractModule {
     @Property("ShadowColor")
     public final ColorProperty shadowColor = new ColorProperty(0x33000000, true).setVisibilitySupplier(shadow::get);
     
-    private final List<Object> cachedChestData = new ArrayList<>();
+    private final List<TileEntity> cachedChestData = new ArrayList<>();
     private Matrix4f cachedModelView, cachedProjection;
     
     @EventHandler
@@ -65,26 +66,26 @@ public class ChestESP extends AbstractModule {
     @EventHandler
     private void onUpdate(EventPlayerUpdateTick event) {
         cachedChestData.clear();
-        World.getLoadedTileEntityList(Minecraft.getWorld(mc)).stream().filter(
-                Wrappers.TileEntity::isChest
+        mc.theWorld.loadedTileEntityList.stream().filter(
+                tile -> tile instanceof TileEntityChest
         ).forEach(cachedChestData::add);
     }
     
     @EventHandler
     private void onRender2D(EventRender2D event) {
-        final Vector3d playerPos = Entity.getLerpedPositionVector(Minecraft.getPlayer(mc), event.getTickDelta());
-        final Vector3d negatedPlayerPos = playerPos.negate(new Vector3d());
+        final Vec3 playerPos = EntityUtils.getLerpedPositionVector(mc.thePlayer, event.getTickDelta());
+        final Vec3 negatedPlayerPos = VecUtils.negate(playerPos);
         // render chests
         if (!cachedChestData.isEmpty()) {
             cachedChestData.sort(Comparator.comparingDouble(tile ->
-                    -Wrappers.TileEntity.distanceTo(tile, playerPos.x(), playerPos.y(), playerPos.z())
+                    -tile.getDistanceSq(playerPos.xCoord, playerPos.yCoord, playerPos.zCoord)
             ));
             final double expandSize = expand.get();
             final EnumBoxRenderType renderType = mode.get();
             final float thickness = this.thickness.get();
             final boolean shadow = this.shadow.get();
-            for (Object tile : cachedChestData) {
-                BoundingBox bb = Wrappers.TileEntity.getBoundingBox(tile).move(negatedPlayerPos);
+            for (TileEntity tile : cachedChestData) {
+                AxisAlignedBB bb = BoundingBoxUtils.move(tile.getRenderBoundingBox(), negatedPlayerPos);
                 if (expandSize != 0) {
                     bb = bb.expand(expandSize, expandSize, expandSize);
                 }

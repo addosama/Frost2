@@ -2,9 +2,9 @@ package pub.frost.client.feature.helper.player.rotation.providers.impl;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.joml.Vector3d;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import pub.frost.client.feature.helper.player.rotation.providers.AbstractRotationProvider;
-import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
 
 import java.util.function.Predicate;
@@ -19,7 +19,7 @@ public class LazyRotationProvider extends AbstractRotationProvider {
     private int ticksRayCastFailed = 0;
 
     @Override
-    protected Rotation getRotationInternal(Vector3d eyePos, BoundingBox target, Vector3d preferred, Predicate<Rotation> rayCast, BoundingBox lastTarget, Rotation lastProvidedRotation, boolean tick) {
+    protected Rotation getRotationInternal(Vec3 eyePos, AxisAlignedBB target, Vec3 preferred, Predicate<Rotation> rayCast, AxisAlignedBB lastTarget, Rotation lastProvidedRotation, boolean tick) {
         if (rayCast.test(lastProvidedRotation)) {
             if (tick) ticksRayCastFailed = 0;
             return lastProvidedRotation;

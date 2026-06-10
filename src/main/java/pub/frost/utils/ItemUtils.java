@@ -6,26 +6,24 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.block.Block;
 import net.minecraft.item.*;
 import net.minecraft.potion.PotionEffect;
-import pub.frost.base.wrapping.Wrappers;
-import pub.frost.wrappers.shared.item.WItemPickaxe;
-import pub.frost.wrappers.shared.item.WItemStack;
-import pub.frost.wrappers.shared.item.WItemTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ItemUtils implements Wrappers {
+public class ItemUtils {
     public static float getToolEfficiency(Object itemStack, Object block) {
         float efficiency = 1.0f;
-        if (itemStack != null) {
-            Object item = getItemInStack(itemStack);
-            efficiency = couldItemHarvestBlock(itemStack, block) || !(ItemPickaxe.isTarget(item))
-                    ? ItemStack.getStrVsBlock(itemStack, block) : 1.0f;
-            if (ItemTool.isTarget(item)) {
+        if (itemStack instanceof ItemStack) {
+            ItemStack stack = (ItemStack) itemStack;
+            Item item = stack.getItem();
+            efficiency = couldItemHarvestBlock(stack, (Block) block) || !(item instanceof ItemPickaxe)
+                    ? stack.getStrVsBlock((Block) block) : 1.0f;
+            if (item instanceof ItemTool) {
                 int enchantLevel;
-                if (efficiency > 1.0f && (enchantLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, (ItemStack) itemStack)) > 0) {
+                if (efficiency > 1.0f && (enchantLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, stack)) > 0) {
                     efficiency += (float) (enchantLevel * enchantLevel + 1);
                 }
             }
@@ -33,12 +31,12 @@ public class ItemUtils implements Wrappers {
         return efficiency;
     }
 
-    public static boolean couldItemHarvestBlock(Object itemStack, Object block) {
-        return ItemStack.canHarvestBlock(itemStack, block);
+    public static boolean couldItemHarvestBlock(ItemStack itemStack, Block block) {
+        return itemStack.canHarvestBlock(block);
     }
 
-    public static Object getItemInStack(Object itemStack) {
-        return ItemStack.getItem(itemStack);
+    public static Item getItemInStack(ItemStack itemStack) {
+        return itemStack.getItem();
     }
 
     // === Ported from skid ItemUtil ===

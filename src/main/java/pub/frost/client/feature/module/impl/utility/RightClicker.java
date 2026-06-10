@@ -1,9 +1,10 @@
 package pub.frost.client.feature.module.impl.utility;
 
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventRender2D;
-import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -11,9 +12,6 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.InputUtils;
-import pub.frost.wrappers.shared.entity.WEntityPlayer;
-import pub.frost.wrappers.shared.item.WItemBlock;
-import pub.frost.wrappers.shared.item.WItemStack;
 
 @Module(
         key = "RightClicker",
@@ -47,7 +45,7 @@ public class RightClicker extends AbstractModule {
     private void onProcessInteract(EventPreProcessInteract e) {
         if (InputUtils.isMouseDown(1)) {
             while (clickCount > 0) {
-                mcWrapper.clickRMB(mc);
+                InputUtils.clickRMB();
                 clickCount--;
             }
         } else resetRecorders();
@@ -59,9 +57,9 @@ public class RightClicker extends AbstractModule {
     }
 
     private boolean isHoldingBlock() {
-        Object itemHeld = EntityLivingBase.getHeldItem(mcWrapper.getPlayer(mc));
+        ItemStack itemHeld = mc.thePlayer.getHeldItem();
         if (itemHeld != null) {
-            return ItemBlock.isTarget(ItemStack.getItem(itemHeld));
+            return itemHeld.getItem() instanceof ItemBlock;
         }
         return false;
     }

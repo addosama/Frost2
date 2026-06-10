@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.combat.velocity;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.network.play.client.*;
@@ -94,10 +95,10 @@ public class AttackReduceVelocity extends AbstractSubModule<Velocity> implements
         KillAura killAura = FrostCore.getInstance().getModuleManager().getModule(KillAura.class);
         if (killAura == null || !killAura.isEnabled()) return;
 
-        Object target = killAura.getTarget();
+        Entity target = killAura.getTarget();
         if (target == null) return;
 
-        Object player = Minecraft.getPlayer(mc);
+        EntityPlayerSP player = mc.thePlayer;
 
         Entity rawEntity = (Entity) player;
         if (!rawEntity.isSprinting()) return;
@@ -110,11 +111,11 @@ public class AttackReduceVelocity extends AbstractSubModule<Velocity> implements
                 new C02PacketUseEntity((Entity) target, C02PacketUseEntity.Action.ATTACK), true
         );
 
-        double mx = Entity.getMotionX(player) * 0.6;
-        double my = Entity.getMotionY(player);
-        double mz = Entity.getMotionZ(player) * 0.6;
-        Entity.setVelocity(player, mx, my, mz);
-        Entity.setSprinting(player, false);
+        double mx = player.motionX * 0.6;
+        double my = player.motionY;
+        double mz = player.motionZ * 0.6;
+        player.setVelocity(mx, my, mz);
+        player.setSprinting(false);
     }
 
     public void processOutgoingPacket(EventPacket event) {

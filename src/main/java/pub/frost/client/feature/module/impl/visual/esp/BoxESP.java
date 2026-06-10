@@ -2,7 +2,8 @@ package pub.frost.client.feature.module.impl.visual.esp;
 
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Matrix4f;
+import javax.vecmath.Matrix4f;
+import net.minecraft.util.AxisAlignedBB;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.visual.ESP;
 import pub.frost.client.i18n.annotations.TranslationKey;
@@ -14,7 +15,6 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.utils.EnumBoxRenderType;
 import pub.frost.utils.RenderUtils;
-import pub.frost.utils.data.BoundingBox;
 
 public class BoxESP extends AbstractSubModule<ESP> {
     public BoxESP(ESP esp) {
@@ -44,7 +44,7 @@ public class BoxESP extends AbstractSubModule<ESP> {
     public final BooleanProperty tickPos = new BooleanProperty(false);
 
     public void renderBox(
-            BoundingBox lerpedBB, BoundingBox prevBB, BoundingBox tickBB,
+            AxisAlignedBB lerpedBB, AxisAlignedBB prevBB, AxisAlignedBB tickBB,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int width, int height
     ) {

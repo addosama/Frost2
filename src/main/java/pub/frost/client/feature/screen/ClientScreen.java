@@ -1,10 +1,10 @@
 package pub.frost.client.feature.screen;
 
+import net.minecraft.client.Minecraft;
 import pub.frost.base.event.impl.types.InputDevice;
-import pub.frost.base.wrapping.Wrappers;
 
-public abstract class ClientScreen implements Wrappers {
-    protected final Object mc = Minecraft.getInstance();
+public abstract class ClientScreen {
+    protected final Minecraft mc = Minecraft.getMinecraft();
 
     public abstract void render(boolean dummy, float tickDelta);
 
@@ -19,7 +19,7 @@ public abstract class ClientScreen implements Wrappers {
     }
 
     public void onDisplay() {
-        if (!allowCursorGrabbing()) Minecraft.ungrabMouse(mc);
+        if (!allowCursorGrabbing()) mc.mouseHelper.ungrabMouseCursor();
     }
     public void onClose() {
 

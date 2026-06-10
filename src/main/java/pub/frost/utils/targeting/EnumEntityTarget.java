@@ -1,20 +1,22 @@
 package pub.frost.utils.targeting;
 
 import lombok.RequiredArgsConstructor;
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.player.EntityPlayer;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
-import pub.frost.wrappers.shared.entity.*;
 
 import java.util.function.Predicate;
 
 @RequiredArgsConstructor
 @TranslationKey("strings.enum.targeting.targets.entities.~")
 public enum EnumEntityTarget implements Named {
-    PLAYERS(Wrappers.EntityPlayer, "players"),
-    ANIMALS(Wrappers.EntityAnimal, "animals"),
-    MOBS(Wrappers.EntityMob, "mobs"),
-    VILLAGERS(Wrappers.EntityVillager, "villagers"),
+    PLAYERS(EntityPlayer.class, "players"),
+    ANIMALS(EntityAnimal.class, "animals"),
+    MOBS(EntityMob.class, "mobs"),
+    VILLAGERS(EntityVillager.class, "villagers"),
     OTHER(
             (Predicate<Class<?>>) c -> !(PLAYERS.isTarget(c) || ANIMALS.isTarget(c) || MOBS.isTarget(c) || VILLAGERS.isTarget(c)),
             "other"
@@ -23,8 +25,8 @@ public enum EnumEntityTarget implements Named {
     final Predicate<Class<?>> predicate;
     final String key;
 
-    <T extends WEntity> EnumEntityTarget(T entityWrapper, String key) {
-        this((Predicate<Class<?>>) entityWrapper::isTarget, key);
+    EnumEntityTarget(Class<?> targetClass, String key) {
+        this((Predicate<Class<?>>) targetClass::isAssignableFrom, key);
     }
 
     public boolean isTarget(Class<?> clazz) {

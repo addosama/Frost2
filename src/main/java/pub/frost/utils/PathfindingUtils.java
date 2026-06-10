@@ -1,14 +1,16 @@
 package pub.frost.utils;
 
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import pub.frost.utils.data.BlockPlacementInfo;
-import pub.frost.utils.data.BlockPosition;
-import pub.frost.utils.data.EnumDirection;
 
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -17,9 +19,9 @@ import java.util.function.Predicate;
 
 public class PathfindingUtils {
     public static Queue<BlockPlacementInfo> placePathToBlock(
-            List<BlockPosition> usableBlocks, BlockPosition targetBlock,
-            List<EnumDirection> allowedDirections,
-            Predicate<BlockPosition> blockAvailablePredicate
+            List<BlockPos> usableBlocks, BlockPos targetBlock,
+            List<EnumFacing> allowedDirections,
+            Predicate<BlockPos> blockAvailablePredicate
     ) {
         Queue<BlockPlacementInfo> emptyResult = new ArrayDeque<>();
         if (usableBlocks == null || usableBlocks.isEmpty()
@@ -29,29 +31,29 @@ public class PathfindingUtils {
             return emptyResult;
         }
 
-        List<BlockPosition> sortedUsableBlocks = new ArrayList<>(usableBlocks.size());
-        for (BlockPosition blockPos : usableBlocks) {
-            if (blockPos != null) sortedUsableBlocks.add(new BlockPosition(blockPos));
+        List<BlockPos> sortedUsableBlocks = new ArrayList<>(usableBlocks.size());
+        for (BlockPos blockPos : usableBlocks) {
+            if (blockPos != null) sortedUsableBlocks.add(new BlockPos(blockPos));
         }
-        sortedUsableBlocks.sort(Comparator.comparingDouble(targetBlock::distance));
+        sortedUsableBlocks.sort(Comparator.comparingDouble(targetBlock::distanceSq));
 
         if (sortedUsableBlocks.stream().anyMatch(targetBlock::equals)) {
             return emptyResult;
         }
 
-        int minX = targetBlock.x;
-        int minY = targetBlock.y;
-        int minZ = targetBlock.z;
-        int maxX = targetBlock.x;
-        int maxY = targetBlock.y;
-        int maxZ = targetBlock.z;
-        for (BlockPosition startBlock : sortedUsableBlocks) {
-            minX = Math.min(minX, startBlock.x);
-            minY = Math.min(minY, startBlock.y);
-            minZ = Math.min(minZ, startBlock.z);
-            maxX = Math.max(maxX, startBlock.x);
-            maxY = Math.max(maxY, startBlock.y);
-            maxZ = Math.max(maxZ, startBlock.z);
+        int minX = targetBlock.getX();
+        int minY = targetBlock.getY();
+        int minZ = targetBlock.getZ();
+        int maxX = targetBlock.getX();
+        int maxY = targetBlock.getY();
+        int maxZ = targetBlock.getZ();
+        for (BlockPos startBlock : sortedUsableBlocks) {
+            minX = Math.min(minX, startBlock.getX());
+            minY = Math.min(minY, startBlock.getY());
+            minZ = Math.min(minZ, startBlock.getZ());
+            maxX = Math.max(maxX, startBlock.getX());
+            maxY = Math.max(maxY, startBlock.getY());
+            maxZ = Math.max(maxZ, startBlock.getZ());
         }
 
         final int searchPadding = 1;
@@ -62,24 +64,24 @@ public class PathfindingUtils {
         maxY += searchPadding;
         maxZ += searchPadding;
 
-        ArrayDeque<BlockPosition> queue = new ArrayDeque<>();
-        Map<BlockPosition, BlockPlacementInfo> parentStepMap = new HashMap<>();
-        Set<BlockPosition> visited = new HashSet<>();
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        Map<BlockPos, BlockPlacementInfo> parentStepMap = new HashMap<>();
+        Set<BlockPos> visited = new HashSet<>();
 
-        for (BlockPosition startBlock : sortedUsableBlocks) {
+        for (BlockPos startBlock : sortedUsableBlocks) {
             if (visited.add(startBlock)) {
                 queue.add(startBlock);
             }
         }
 
         while (!queue.isEmpty()) {
-            BlockPosition currentBlock = queue.poll();
+            BlockPos currentBlock = queue.poll();
             BlockPlacementInfo parentStep = parentStepMap.get(currentBlock);
 
-            EnumDirection preferredFace =
+            EnumFacing preferredFace =
                     parentStep != null ? parentStep.getFaceToUse() : null;
 
-            List<EnumDirection> prioritizedDirections =
+            List<EnumFacing> prioritizedDirections =
                     buildPreferredDirections(preferredFace, allowedDirections);
 
             List<BlockPlacementInfo> nextSteps = getBlockPlacingSolution(
@@ -89,7 +91,7 @@ public class PathfindingUtils {
             );
 
             for (BlockPlacementInfo nextStep : nextSteps) {
-                BlockPosition placedBlock = getPlacedBlock(nextStep);
+                BlockPos placedBlock = getPlacedBlock(nextStep);
                 if (!isWithinSearchBounds(placedBlock, minX, minY, minZ, maxX, maxY, maxZ)) continue;
                 if (!visited.add(placedBlock)) continue;
 
@@ -106,15 +108,15 @@ public class PathfindingUtils {
     }
 
     public static List<BlockPlacementInfo> getBlockPlacingSolution(
-            BlockPosition blockToUse, List<EnumDirection> directionsToAnalyze,
-            Predicate<BlockPosition> predicate
+            BlockPos blockToUse, List<EnumFacing> directionsToAnalyze,
+            Predicate<BlockPos> predicate
     ) {
         return directionsToAnalyze.stream().collect(
                 ArrayList::new,
                 (list, direction) -> {
-                    BlockPosition placedBlock = new BlockPosition(blockToUse).offset(direction);
+                    BlockPos placedBlock = new BlockPos(blockToUse).offset(direction);
                     if (predicate.test(placedBlock)) {
-                        list.add(new BlockPlacementInfo(new BlockPosition(blockToUse), direction));
+                        list.add(new BlockPlacementInfo(new BlockPos(blockToUse), direction));
                     }
                 },
                 ArrayList::addAll
@@ -122,37 +124,37 @@ public class PathfindingUtils {
     }
 
     private static Queue<BlockPlacementInfo> rebuildPath(
-            Map<BlockPosition, BlockPlacementInfo> parentStepMap, BlockPosition targetBlock
+            Map<BlockPos, BlockPlacementInfo> parentStepMap, BlockPos targetBlock
     ) {
         ArrayDeque<BlockPlacementInfo> path = new ArrayDeque<>();
-        BlockPosition currentBlock = new BlockPosition(targetBlock);
+        BlockPos currentBlock = new BlockPos(targetBlock);
 
         while (true) {
             BlockPlacementInfo step = parentStepMap.get(currentBlock);
             if (step == null) break;
 
             path.addFirst(step);
-            currentBlock = new BlockPosition(step.getBlockToUse());
+            currentBlock = new BlockPos(step.getBlockToUse());
         }
 
         return path;
     }
 
-    private static List<EnumDirection> buildPreferredDirections(
-            EnumDirection preferredFace,
-            List<EnumDirection> allowedDirections
+    private static List<EnumFacing> buildPreferredDirections(
+            EnumFacing preferredFace,
+            List<EnumFacing> allowedDirections
     ) {
         if (preferredFace == null) {
             return allowedDirections;
         }
 
-        ArrayList<EnumDirection> result = new ArrayList<>(allowedDirections.size());
+        ArrayList<EnumFacing> result = new ArrayList<>(allowedDirections.size());
 
         if (allowedDirections.contains(preferredFace)) {
             result.add(preferredFace);
         }
 
-        for (EnumDirection direction : allowedDirections) {
+        for (EnumFacing direction : allowedDirections) {
             if (direction != preferredFace) {
                 result.add(direction);
             }
@@ -161,17 +163,17 @@ public class PathfindingUtils {
         return result;
     }
 
-    private static BlockPosition getPlacedBlock(BlockPlacementInfo info) {
-        return new BlockPosition(info.getBlockToUse()).offset(info.getFaceToUse());
+    private static BlockPos getPlacedBlock(BlockPlacementInfo info) {
+        return new BlockPos(info.getBlockToUse()).offset(info.getFaceToUse());
     }
 
     private static boolean isWithinSearchBounds(
-            BlockPosition block,
+            BlockPos block,
             int minX, int minY, int minZ,
             int maxX, int maxY, int maxZ
     ) {
-        return block.x >= minX && block.x <= maxX
-                && block.y >= minY && block.y <= maxY
-                && block.z >= minZ && block.z <= maxZ;
+        return block.getX() >= minX && block.getX() <= maxX
+                && block.getY() >= minY && block.getY() <= maxY
+                && block.getZ() >= minZ && block.getZ() <= maxZ;
     }
 }

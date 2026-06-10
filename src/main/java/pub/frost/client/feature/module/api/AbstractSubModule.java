@@ -1,10 +1,10 @@
 package pub.frost.client.feature.module.api;
 
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.client.Minecraft;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.SubModule;
 
-public class AbstractSubModule<PARENT extends AbstractModule> implements Wrappers {
+public class AbstractSubModule<PARENT extends AbstractModule> {
     /**
      * @deprecated
      * consider using <code>getParent()</code> with no args constructor
@@ -13,7 +13,7 @@ public class AbstractSubModule<PARENT extends AbstractModule> implements Wrapper
     protected final PARENT parent;
 
     private PARENT p;
-    protected final Object mc = Minecraft.getInstance();
+    protected final Minecraft mc = Minecraft.getMinecraft();
 
 
     /**

@@ -1,11 +1,9 @@
 package pub.frost.client.feature.module.impl.utility;
 
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
-import org.joml.Vector3d;
-import org.joml.Vector3dc;
+import net.minecraft.util.*;
+import net.minecraft.world.World;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
@@ -20,8 +18,8 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.legacy.RotationSetting;
 import pub.frost.utils.*;
-import pub.frost.utils.data.*;
-import pub.frost.utils.data.raytrace.HitResult;
+import pub.frost.utils.data.BlockPlacementInfo;
+import pub.frost.utils.data.Rotation;
 import pub.frost.utils.raycast.EnumRaycastType;
 import pub.frost.utils.raycast.RayCastUtils;
 
@@ -85,9 +83,9 @@ public class Scaffold extends AbstractModule {
 
     private final BasicRotationProvider rotationProvider = new BasicRotationProvider();
 
-    private final List<EnumDirection> availableFaceList = Arrays.asList(
-            EnumDirection.NORTH, EnumDirection.EAST, EnumDirection.SOUTH, EnumDirection.WEST,
-            EnumDirection.UP
+    private final List<EnumFacing> availableFaceList = Arrays.asList(
+            EnumFacing.NORTH, EnumFacing.EAST, EnumFacing.SOUTH, EnumFacing.WEST,
+            EnumFacing.UP
     );
     private final Deque<BlockPlacementInfo> placeDeque = new ArrayDeque<>();
 
@@ -112,15 +110,16 @@ public class Scaffold extends AbstractModule {
 
     @EventHandler
     private void onPreTickLoop(EventPreTickLoop event) {
-        final Object player = Minecraft.getPlayer(mc), world = Minecraft.getWorld(mc);
+        final EntityPlayerSP player = mc.thePlayer;
+        World world = mc.theWorld;
         if (player == null || world == null) {
             this.setEnabled(false);
             return;
         }
 
-        Vector3dc playerPos = Entity.getPositionVector(player);
-        if (Entity.isOnGround(player)) {
-            lastOnGroundY = (int) playerPos.y();
+        Vec3 playerPos = player.getPositionVector();
+        if (player.onGround) {
+            lastOnGroundY = (int) playerPos.yCoord;
             ticksSinceJump = -1;
         }
 
@@ -133,31 +132,31 @@ public class Scaffold extends AbstractModule {
             }
         }
 
-        BlockPosition targetBlock = new BlockPosition(
-                (int) Math.floor(playerPos.x()),
-                (shouldKeepY() || (telly.get() && !upTelly && !shouldForceJump()))? lastOnGroundY : (int) Math.floor(playerPos.y()),
-                (int) Math.floor(playerPos.z())
-        ).offset(EnumDirection.DOWN);
+        BlockPos targetBlock = new BlockPos(
+                (int) Math.floor(playerPos.xCoord),
+                (shouldKeepY() || (telly.get() && !upTelly && !shouldForceJump()))? lastOnGroundY : (int) Math.floor(playerPos.yCoord),
+                (int) Math.floor(playerPos.zCoord)
+        ).offset(EnumFacing.DOWN);
 
 //        if (!placeDeque.isEmpty()) {
-//            BlockPlacementInfo data = placeDeque.peekLast();
-//            if (new BlockPosition(data.getBlockToUse()).offset(data.getFaceToUse()).equals(targetBlock)) return;
+//            Map.Entry data = placeDeque.peekLast();
+//            if (new BlockPos(data.getBlockToUse()).offset(data.getFaceToUse()).equals(targetBlock)) return;
 //        }
 
         final int searchRange = this.searchRange.get();
-        List<BlockPosition> usableBlocks = BlockUtils.getBlocksInRange(targetBlock, searchRange, world)
+        List<BlockPos> usableBlocks = BlockUtils.getBlocksInRange(targetBlock, searchRange, world)
                 .stream()
-                .sorted(Comparator.comparingDouble(targetBlock::distance))
+                .sorted(Comparator.comparingDouble(targetBlock::distanceSq))
                 .collect(Collectors.toList());
 
         placeDeque.clear();
         placeDeque.addAll(PathfindingUtils.placePathToBlock(
                 usableBlocks, targetBlock,
-                availableFaceList, pos -> World.isAirBlock(world, pos) && World.getCollidingBoundingBoxes(
-                        world, player,
-                        new BoundingBox(
-                                pos.x, pos.y, pos.z,
-                                pos.x + 1, pos.y + 1, pos.z + 1
+                availableFaceList, pos -> world.isAirBlock(pos) && world.getCollidingBoundingBoxes(
+                        player,
+                        new AxisAlignedBB(
+                                pos.getX(), pos.getY(), pos.getZ(),
+                                pos.getX() + 1, pos.getX() + 1, pos.getX() + 1
                         )
                 ).isEmpty()
         ));
@@ -173,10 +172,10 @@ public class Scaffold extends AbstractModule {
             if (!placeDeque.isEmpty()) {
                 BlockPlacementInfo data = placeDeque.peekFirst();
                 if (data == null) return;
-                Object player = Minecraft.getPlayer(mc);
-                Vector3d eyePos = Entity.getPositionEyes(player, 1);
-                BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
-                BoundingBox faceBB = BoundingBoxUtils.getFaceBoundingBox(
+                EntityPlayerSP player = mc.thePlayer;
+                Vec3 eyePos = player.getPositionEyes(1);
+                AxisAlignedBB blockBB = getBlockAxisAlignedBB(data.getBlockToUse());
+                AxisAlignedBB faceBB = BoundingBoxUtils.getFaceBoundingBox(
                         blockBB,
                         data.getFaceToUse()
                 );
@@ -206,7 +205,7 @@ public class Scaffold extends AbstractModule {
                 if (rotation == null) {
                     if (tryUsePresetYaws.get()) {
                         Rotation lastRotation = lastProvidedRotation == null?
-                                new Rotation(Entity.getYaw(player), Entity.getPitch(player)) : lastProvidedRotation;
+                                new Rotation(player.rotationYaw, player.rotationPitch) : lastProvidedRotation;
 
                         Float[] yawArray = {
                                 -135F,
@@ -292,7 +291,7 @@ public class Scaffold extends AbstractModule {
 
     @EventHandler(priority = 40)
     private void onProcessInteract(EventPreProcessInteract event) {
-        Object player = Minecraft.getPlayer(mc);
+        EntityPlayerSP player = mc.thePlayer;
         net.minecraft.item.ItemStack stack = net.minecraft.client.Minecraft.getMinecraft().thePlayer.getHeldItem();
         if (stack == null) return;
         if (!(stack.getItem() instanceof ItemBlock)) return;
@@ -303,31 +302,31 @@ public class Scaffold extends AbstractModule {
             placed++;
             BlockPlacementInfo data = placeDeque.peek();
             if (data == null) continue;
-            if (placed == 0 && World.isAirBlock(Minecraft.getWorld(mc), data.getBlockToUse())) continue;
+            if (placed == 0 && mc.theWorld.isAirBlock(data.getBlockToUse())) continue;
 
-            BoundingBox blockBB = getBlockBoundingBox(data.getBlockToUse());
-            Vector3d hitVec = BoundingBoxUtils.getFaceCenter(
+            AxisAlignedBB blockBB = getBlockAxisAlignedBB(data.getBlockToUse());
+            Vec3 hitVec = BoundingBoxUtils.getFaceCenter(
                     blockBB,
                     data.getFaceToUse()
             );
 
             if (rayCast.get() != EnumRaycastType.DISABLED) {
                 if (rayCast.is(EnumRaycastType.LEGIT)) {
-                    HitResult result = EntityUtils.getLookingObject(
+                    MovingObjectPosition result = EntityUtils.getLookingObject(
                             player,
-                            Entity.getLook(player, 1),
+                            player.getLook(1),
                             3, 1
                     );
                     if (
-                            result.getType() == HitResult.EnumHitType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())
+                            result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())
                     ) {
-                        hitVec = result.getHitVec();
+                        hitVec = result.hitVec;
                     } else continue;
                 } else {
-                    Map.Entry<Boolean, Vector3d> result = RayCastUtils.getSimpleHitResult(
-                            Entity.getPositionEyes(player, 1),
-                            Entity.getYaw(player),
-                            Entity.getPitch(player),
+                    Map.Entry<Boolean, Vec3> result = RayCastUtils.getSimpleHitResult(
+                            player.getPositionEyes(1),
+                            player.rotationYaw,
+                            player.rotationPitch,
                             BoundingBoxUtils.getFaceBoundingBox(
                                     blockBB, data.getFaceToUse()
                             )
@@ -341,13 +340,13 @@ public class Scaffold extends AbstractModule {
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
                     net.minecraft.client.Minecraft.getMinecraft().theWorld,
                     stack,
-                    new BlockPos(data.getBlockToUse().x, data.getBlockToUse().y, data.getBlockToUse().z),
+                    new BlockPos(data.getBlockToUse().getX(), data.getBlockToUse().getY(), data.getBlockToUse().getZ()),
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
-                    new Vec3(hitVec.x, hitVec.y, hitVec.z)
-            )) EntityClientPlayer.swingItem(player);
+                    new Vec3(hitVec.xCoord, hitVec.yCoord, hitVec.zCoord)
+            )) player.swingItem();
             placeDeque.poll();
             ticksSincePlace = 0;
-            if (data.getBlockToUse().y() <= lastOnGroundY) {
+            if (data.getBlockToUse().getY() <= lastOnGroundY) {
                 blocksPlacedSinceJump++;
             }
         }
@@ -364,7 +363,7 @@ public class Scaffold extends AbstractModule {
     @EventHandler(priority = 8)
     private void onMovementInput(EventUpdateMovementInput event) {
         upTelly = false;
-        boolean onGround = Entity.isOnGround(Minecraft.getPlayer(mc));
+        boolean onGround = mc.thePlayer.onGround;
         if (onGround) {
             if (forceUp.get()) {
                 if (shouldForceJump()) {
@@ -385,30 +384,30 @@ public class Scaffold extends AbstractModule {
         }
     }
 
-    private BoundingBox getBlockBoundingBox(BlockPosition position) {
-        return new BoundingBox(
-                position.x,
-                position.y,
-                position.z,
-                position.x + 1,
-                position.y + 1,
-                position.z + 1
+    private AxisAlignedBB getBlockAxisAlignedBB(BlockPos position) {
+        return new AxisAlignedBB(
+                position.getX(),
+                position.getY(),
+                position.getZ(),
+                position.getX() + 1,
+                position.getY() + 1,
+                position.getZ() + 1
         );
     }
-    private Vector3d getHitPoint(BoundingBox faceBB, EnumDirection direction) {
+    private Vec3 getHitPoint(AxisAlignedBB faceBB, EnumFacing direction) {
         if (!randomizeHitPoint.get()) return BoundingBoxUtils.getFaceCenter(faceBB, direction);
-        else return new BoundingBox(
-                faceBB.getMinVector().add(
-                        Math.random() * faceBB.getSizeX(),
-                        Math.random() * faceBB.getSizeY(),
-                        Math.random() * faceBB.getSizeZ()
-                ),
-                faceBB.getMaxVector().sub(
-                        Math.random() * faceBB.getSizeX(),
-                        Math.random() * faceBB.getSizeY(),
-                        Math.random() * faceBB.getSizeZ()
-                )
-        ).getCenter();
+        else return BoundingBoxUtils.getCenter(BoundingBoxUtils.createBox(
+                BoundingBoxUtils.getMinVector(faceBB).add(new Vec3(
+                        Math.random() * BoundingBoxUtils.getSizeX(faceBB),
+                        Math.random() * BoundingBoxUtils.getSizeY(faceBB),
+                        Math.random() * BoundingBoxUtils.getSizeZ(faceBB)
+                )),
+                BoundingBoxUtils.getMaxVector(faceBB).subtract(new Vec3(
+                        Math.random() * BoundingBoxUtils.getSizeX(faceBB),
+                        Math.random() * BoundingBoxUtils.getSizeY(faceBB),
+                        Math.random() * BoundingBoxUtils.getSizeZ(faceBB)
+                ))
+        ));
     }
 
     public boolean shouldKeepY() {

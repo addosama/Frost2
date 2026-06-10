@@ -3,26 +3,26 @@ package pub.frost.utils;
 import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import org.joml.Vector4f;
-import pub.frost.utils.data.BoundingBox;
-
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4f;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RenderUtils {
     public static ImVec2 worldToScreen(
-            Vector3d point,
+            Vec3 point,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
     ) {
         // 1. 必须使用 4D 向量
-        Vector4f pos = new Vector4f((float) point.x, (float) point.y, (float) point.z, 1.0f);
+        Vector4f pos = new Vector4f((float) point.xCoord, (float) point.yCoord, (float) point.zCoord, 1.0f);
 
         // 2. 变换顺序：先 View 再 Projection
         modelViewMatrix.transform(pos);
@@ -56,11 +56,12 @@ public class RenderUtils {
         buffer.get(values);
         Matrix4f matrix = new Matrix4f();
         matrix.set(values);
+        matrix.transpose(); // 必须转置，因为 OpenGL 是列主序，而 vecmath transform 是按行算的
         return matrix;
     }
     
-    private static Vector4f toViewSpace(Vector3d point, Matrix4f modelViewMatrix) {
-        Vector4f pos = new Vector4f((float) point.x, (float) point.y, (float) point.z, 1.0f);
+    private static Vector4f toViewSpace(Vec3 point, Matrix4f modelViewMatrix) {
+        Vector4f pos = new Vector4f((float) point.xCoord, (float) point.yCoord, (float) point.zCoord, 1.0f);
         modelViewMatrix.transform(pos);
         return pos;
     }
@@ -78,7 +79,7 @@ public class RenderUtils {
     }
     private static void drawClippedLine(
             ImDrawList list,
-            Vector3d a, Vector3d b,
+            Vec3 a, Vec3 b,
             int color, float thickness,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
@@ -120,11 +121,11 @@ public class RenderUtils {
     }
 
     public static void drawBoundingBox(
-            ImDrawList list, BoundingBox boundingBox, float thickness, int color,
+            ImDrawList list, AxisAlignedBB boundingBox, float thickness, int color,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
     ) {
-        Vector3d[] v = boundingBox.getVertices();
+        Vec3[] v = BoundingBoxUtils.getVertices(boundingBox);
 
         // 12 条边：底面 4 条、顶面 4 条、4 条竖边
         int[][] edges = {
@@ -145,14 +146,14 @@ public class RenderUtils {
     }
 
     public static void drawBoundingBox2DOutline(
-            ImDrawList list, BoundingBox boundingBox, float thickness, int color,
+            ImDrawList list, AxisAlignedBB boundingBox, float thickness, int color,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int windowWidth, int windowHeight
     ) {
-        Vector3d[] vertices = boundingBox.getVertices();
+        Vec3[] vertices = BoundingBoxUtils.getVertices(boundingBox);
         List<ImVec2> pts =  new ArrayList<>();
         Matrix4f modelView = getModelViewMatrix(), projection = getProjectionMatrix();
-        for (Vector3d vec3 : vertices) {
+        for (Vec3 vec3 : vertices) {
             ImVec2 vec2 = worldToScreen(
                     vec3,
                     modelViewMatrix, projectionMatrix,
@@ -185,7 +186,7 @@ public class RenderUtils {
     }
 
     public static void renderBox(
-            BoundingBox lerpedBB,
+            AxisAlignedBB lerpedBB,
             Matrix4f modelViewMatrix, Matrix4f projectionMatrix,
             int width, int height,
             EnumBoxRenderType type,
@@ -193,12 +194,12 @@ public class RenderUtils {
             int color, int shadowColor
     ) {
         // project vertices to screen
-        final Vector3d[] vertexArray = lerpedBB.getVertices();
+        final Vec3[] vertexArray = BoundingBoxUtils.getVertices(lerpedBB);
         final ImVec2[] vertexScreenPosArray = new ImVec2[vertexArray.length];
         ImVec2 minVec, maxVec;
         {
             for (int i = 0; i < 8; i++) {
-                Vector3d vertex = vertexArray[i];
+                Vec3 vertex = vertexArray[i];
                 vertexScreenPosArray[i] = RenderUtils.worldToScreen(
                         vertex,
                         modelViewMatrix, projectionMatrix,

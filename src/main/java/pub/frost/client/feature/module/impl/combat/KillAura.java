@@ -1,7 +1,12 @@
 package pub.frost.client.feature.module.impl.combat;
 
 import lombok.RequiredArgsConstructor;
-import org.joml.Vector3d;
+import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventPreTickLoop;
@@ -26,11 +31,10 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.preset.legacy.RotationSetting;
 import pub.frost.client.property.preset.legacy.TickDeltaFixSetting;
+import pub.frost.utils.BoundingBoxUtils;
+import pub.frost.utils.EntityUtils;
 import pub.frost.utils.RotationUtils;
-import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
-import pub.frost.utils.data.raytrace.HitResult;
-import pub.frost.utils.data.raytrace.impl.EntityHitResult;
 import pub.frost.utils.interacting.EnumInteractType;
 import pub.frost.utils.raycast.EnumRaycastType;
 import pub.frost.utils.raycast.RayCastUtils;
@@ -70,11 +74,11 @@ public class KillAura extends AbstractModule {
 
     private final AbstractRotationProvider rotationProvider = new BasicRotationProvider();
 
-    private Object target = null;
+    private Entity target = null;
     private Rotation targetRotation = null;
     private boolean tickRotProvided;
 
-    public Object getTarget() {
+    public Entity getTarget() {
         return target;
     }
     private void resetTarget() {
@@ -111,9 +115,10 @@ public class KillAura extends AbstractModule {
         if (isGoodTick()) {
             attacking.doAttack(target, 1);
             if (autoBlock.enabled.get() && isHoldingSword()) {
-                double distance = Entity.distanceTo(
-                        target,
-                        Entity.getPositionVector(Minecraft.getPlayer(mc))
+                double distance = target.getDistance(
+                        mc.thePlayer.posX,
+                        mc.thePlayer.posY,
+                        mc.thePlayer.posZ
                 );
                 autoBlock.tryMakeBlocking(distance);
             }
@@ -123,7 +128,7 @@ public class KillAura extends AbstractModule {
 
     private void tick(float tickDelta) {
         tickRotProvided = false;
-        List<Object> validTargets = searching.searchTargets();
+        List<Entity> validTargets = searching.searchTargets();
         if (validTargets.isEmpty()) {
             resetTarget();
             targetRotation = null;
@@ -137,11 +142,13 @@ public class KillAura extends AbstractModule {
         }
     }
 
-    public Rotation getRotation(Object target, float tickDelta) {
+    public Rotation getRotation(Entity target, float tickDelta) {
         tickDelta += prediction.get()? predictionValue.get(): 0;
-        BoundingBox box = prediction.get()? Entity.getLerpedBoundingBox(target, tickDelta) : Entity.getBoundingBox(target);
-        Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), tickDelta);
-        Vector3d targetEyePos = Entity.getPositionEyes(target, tickDelta);
+        AxisAlignedBB box = prediction.get()
+                ? BoundingBoxUtils.lerp(EntityUtils.getPrevBoundingBox(target), target.getEntityBoundingBox(), tickDelta)
+                : target.getEntityBoundingBox();
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(tickDelta);
+        Vec3 targetEyePos = target.getPositionEyes(tickDelta);
         Rotation rotationAimingEyePos = RotationUtils.getRotationAimingPoint(
                 eyePos,
                 targetEyePos
@@ -160,38 +167,38 @@ public class KillAura extends AbstractModule {
         );
     }
 
-    public boolean rayTraceTarget(Object target, Rotation rotation, float tickDelta) {
+    public boolean rayTraceTarget(Entity target, Rotation rotation, float tickDelta) {
         return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? searching.targetRange.get() : attacking.getRealAttackRange(), true, tickDelta);
     }
-    public boolean rayTraceTarget(Object target, Rotation r, double reach, boolean useDefaultIfOutOfRange, float tickDelta) {
+    public boolean rayTraceTarget(Entity target, Rotation r, double reach, boolean useDefaultIfOutOfRange, float tickDelta) {
         if (rayCast.is(EnumRaycastType.DISABLED)) return true;
         tickDelta = Math.max(0, Math.min(1, tickDelta));
 
-        final Object player = getPlayer();
-        final Vector3d playerEyePos = Entity.getPositionEyes(player, tickDelta);
+        final Entity player = mc.thePlayer;
+        final Vec3 playerEyePos = player.getPositionEyes(tickDelta);
         final float yaw = r.getYaw(), pitch = r.getPitch();
 
-        final boolean outofRange = useDefaultIfOutOfRange && playerEyePos.distance(Entity.getPositionEyes(target, tickDelta)) > reach;
+        final boolean outofRange = useDefaultIfOutOfRange && playerEyePos.distanceTo(target.getPositionEyes(tickDelta)) > reach;
 
         if (rayCast.is(EnumRaycastType.DEFAULT) || outofRange) {
             double cmpReach = outofRange? searching.targetRange.get() : reach;
-            Map.Entry<Boolean, Vector3d> result = RayCastUtils.getSimpleHitResult(
+            Map.Entry<Boolean, Vec3> result = RayCastUtils.getSimpleHitResult(
                     playerEyePos,
                     r.getYaw(), r.getPitch(),
-                    Entity.getBoundingBox(target)
+                    target.getEntityBoundingBox()
             );
             if (result.getKey()) {
                 // check rotation hitting walls
-                final double distToHitPoint = playerEyePos.distance(result.getValue());
+                final double distToHitPoint = playerEyePos.distanceTo(result.getValue());
                 if (distToHitPoint <= cmpReach) {
                     if (wallsCheck.get()) {
-                        HitResult hitResult = Entity.raytraceBlocks(
-                                player, playerEyePos,
+                        MovingObjectPosition hitResult = RayCastUtils.raytraceBlocks(
+                                player.worldObj, playerEyePos,
                                 RotationUtils.getVectorForRotation(pitch, yaw),
                                 searching.targetRange.get()
                         );
-                        if (hitResult != null && hitResult.getType() == HitResult.EnumHitType.BLOCK) {
-                            return playerEyePos.distance(hitResult.getHitVec()) > distToHitPoint;
+                        if (hitResult != null && hitResult.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                            return playerEyePos.distanceTo(hitResult.hitVec) > distToHitPoint;
                         }
                     }
                     return true;
@@ -200,15 +207,14 @@ public class KillAura extends AbstractModule {
             return false;
         }
         else if (attacking.mode.is(EnumInteractType.LEGIT) || rayCast.is(EnumRaycastType.LEGIT)) {
-            HitResult result = Entity.rayTrace(
+            MovingObjectPosition result = EntityUtils.getLookingObject(
                     player,
                     RotationUtils.getVectorForRotation(r.getPitch(), r.getYaw()),
                     reach, tickDelta
             );
             if (result == null) return false;
-            if (result.getType() == HitResult.EnumHitType.ENTITY) {
-                EntityHitResult entityHit = (EntityHitResult) result;
-                return entityHit.getHitEntity() == target;
+            if (result.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+                return result.entityHit == target;
             }
             return false;
         }
@@ -221,20 +227,15 @@ public class KillAura extends AbstractModule {
     }
 
     private boolean isHoldingSword() {
-        Object itemHeld = getPlayerHeldItem();
+        ItemStack itemHeld = getPlayerHeldItem();
         if (itemHeld == null) return false;
-        return ItemSword.isTarget(
-                ItemStack.getItem(itemHeld).getClass()
-        );
+        return itemHeld.getItem() instanceof ItemSword;
     }
-    private Object getPlayer() {
-        return Minecraft.getPlayer(mc);
-    }
-    public Object getPlayerHeldItem() {
-        return EntityLivingBase.getHeldItem(getPlayer());
+    public ItemStack getPlayerHeldItem() {
+        return mc.thePlayer.getHeldItem();
     }
     public int getCurrentItemIndex() {
-        return InventoryPlayer.getCurrentItem(EntityPlayer.getInventory(getPlayer()));
+        return mc.thePlayer.inventory.currentItem;
     }
 
     @Override

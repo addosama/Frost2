@@ -1,5 +1,10 @@
 package pub.frost.client.feature.module.impl.utility;
 
+import net.minecraft.block.Block;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.item.ItemSword;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
@@ -14,7 +19,7 @@ import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.utils.EntityUtils;
 import pub.frost.utils.InputUtils;
 import pub.frost.utils.ItemUtils;
-import pub.frost.utils.data.raytrace.HitResult;
+import net.minecraft.util.MovingObjectPosition;
 
 @Module(
         key = "AutoTool",
@@ -42,7 +47,7 @@ public class AutoTool extends AbstractModule {
 
     @EventHandler
     private void onUpdate(EventPlayerUpdateTick e) {
-        Object player = Minecraft.getPlayer(mc);
+        EntityPlayerSP player = mc.thePlayer;
 
         if (FrostCore.getHelpers().getPlayerListener().isStopDiggingTick()) {
             ticksSinceStopBreaking = 0;
@@ -56,8 +61,8 @@ public class AutoTool extends AbstractModule {
         }
 
         if (requireMouseDown.get() && !InputUtils.isMouseDown(0)) return;
-        if (requireSneak.get() && !Entity.isSneaking(player)) return;
-        if (notWhileSword.get() && EntityUtils.isHoldingItem(player, ItemSword)) return;
+        if (requireSneak.get() && !player.isSneaking()) return;
+        if (notWhileSword.get() && EntityUtils.isHoldingItem(player, ItemSword.class)) return;
 
         if (FrostCore.getHelpers().getPlayerListener().isStartDiggingTick()) {
             ticksSinceStartBreaking = 0;
@@ -82,35 +87,35 @@ public class AutoTool extends AbstractModule {
     }
 
     private void switchBestTool() {
-        Object player = Minecraft.getPlayer(mc);
-        HitResult hitResult = Entity.rayTrace(
+        EntityPlayerSP player = mc.thePlayer;
+        MovingObjectPosition hitResult = EntityUtils.getLookingObject(
                 player,
-                Entity.getLook(player, 1),
+                player.getLook(1),
                 3, 1
         );
-        if (hitResult.getType() != HitResult.EnumHitType.BLOCK) return;
+        if (hitResult.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return;
 
-        Object block = IBlockState.getBlock(World.getBlockState(Minecraft.getWorld(mc), hitResult.getBlockPos()));
+        Block block = player.worldObj.getBlockState(hitResult.getBlockPos()).getBlock();
 
-        Object inventory = EntityPlayer.getInventory(player);
-        int current = InventoryPlayer.getCurrentItem(inventory);
+        InventoryPlayer inventory = player.inventory;
+        int current = inventory.currentItem;
         int best = current;
-        float vl = ItemUtils.getToolEfficiency(InventoryPlayer.getStackInSlot(inventory, best), block);
+        float vl = ItemUtils.getToolEfficiency(inventory.getStackInSlot(best), block);
         for (int i = 0; i <= 8; i++) {
-            Object item = InventoryPlayer.getStackInSlot(inventory, i);
+            Object item = inventory.getStackInSlot(i);
             float nextVL = ItemUtils.getToolEfficiency(item, block);
             if (nextVL > vl) {
                 best = i;
                 vl = nextVL;
             }
         }
-        InventoryPlayer.setCurrentItem(inventory, best);
+        inventory.currentItem = best;
         if (switchedFromSlot == -1 && current != best) switchedFromSlot = current;
     }
     private void switchBack() {
         if (switchedFromSlot != -1) {
-            Object inventory = EntityPlayer.getInventory(Minecraft.getPlayer(mc));
-            InventoryPlayer.setCurrentItem(inventory, switchedFromSlot);
+            InventoryPlayer inventory = mc.thePlayer.inventory;
+            inventory.currentItem = switchedFromSlot;
             switchedFromSlot = -1;
         }
     }

@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
+import net.minecraft.entity.Entity;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
@@ -29,10 +30,10 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
     @Property("RaytraceBeforeTarget")
     public final BooleanProperty raytraceBeforeTarget = new BooleanProperty(true);
 
-    private Object lastTarget = null;
+    private Entity lastTarget = null;
 
-    public Object selectBestTarget(List<Object> validTargets, float tickDelta) {
-        Object targetRet = lastTarget;
+    public Entity selectBestTarget(List<Entity> validTargets, float tickDelta) {
+        Entity targetRet = lastTarget;
         if (mode.is(KillAura.Mode.SINGLE)) {
             if (lastTarget == null || !validTargets.stream().collect(ArrayList::new,
                     ArrayList::add,
@@ -46,8 +47,8 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
             boolean hit = preTargetRaytrace(targetRet, tickDelta);
 
             if (!hit) {
-                Object tempTarget = null;
-                for (Object validTarget : validTargets) {
+                Entity tempTarget = null;
+                for (Entity validTarget : validTargets) {
                     if (validTarget == targetRet) continue;
                     if (preTargetRaytrace(validTarget, tickDelta)) tempTarget = validTarget;
                     break;
@@ -60,7 +61,7 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
         return targetRet;
     }
 
-    private boolean preTargetRaytrace(Object target, float tickDelta) {
+    private boolean preTargetRaytrace(Entity target, float tickDelta) {
         Rotation rotationAimingTarget = getParent().getRotation(target, tickDelta);
         return rotationAimingTarget != null;
     }

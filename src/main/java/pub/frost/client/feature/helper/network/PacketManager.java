@@ -1,17 +1,19 @@
 package pub.frost.client.feature.helper.network;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.Packet;
 import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.PacketType;
-import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PacketManager implements Wrappers {
-    private final Set<Object> noEventPackets = new HashSet<>();
+public class PacketManager {
+    private final Set<Packet> noEventPackets = new HashSet<>();
+    private final Minecraft mc = Minecraft.getMinecraft();
 
-    public boolean processIncoming(Object packet) {
+    public boolean processIncoming(Packet packet) {
         EventPacket event = new EventPacket(PacketType.IN, packet);
         FrostCore.getEventBus().call(event);
         if (event.isCancelled()) return true;
@@ -19,7 +21,7 @@ public class PacketManager implements Wrappers {
         return FrostCore.getHelpers().getLagManager().processIncoming(packet);
     }
 
-    public boolean processOutgoing(Object packet) {
+    public boolean processOutgoing(Packet packet) {
         if (noEventPackets.contains(packet)) {
             noEventPackets.remove(packet);
             return false;
@@ -32,10 +34,10 @@ public class PacketManager implements Wrappers {
         return FrostCore.getHelpers().getLagManager().processOutgoing(packet);
     }
 
-    public void sendPacket(Object packet, boolean event) {
+    public void sendPacket(Packet packet, boolean event) {
         if (!event) {
             noEventPackets.add(packet);
         }
-        NetHandlerPlayClient.addToSendQueue(Minecraft.getNetHandler(Minecraft.getInstance()), packet);
+        mc.getNetHandler().addToSendQueue(packet);
     }
 }

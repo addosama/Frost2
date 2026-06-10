@@ -2,7 +2,9 @@ package pub.frost.client.feature.module.impl.visual.esp;
 
 import imgui.ImGui;
 import imgui.ImVec2;
-import org.joml.Matrix4f;
+import javax.vecmath.Matrix4f;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.visual.ESP;
 import pub.frost.client.i18n.annotations.TranslationKey;
@@ -11,7 +13,6 @@ import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.utils.ImTextRenderer;
 import pub.frost.utils.RenderUtils;
-import pub.frost.utils.data.BoundingBox;
 
 public class NameTagESP extends AbstractSubModule<ESP> {
     public NameTagESP(ESP esp) {
@@ -26,7 +27,7 @@ public class NameTagESP extends AbstractSubModule<ESP> {
     public final BooleanProperty use3DPos = new BooleanProperty(false);
 
     public void renderNameTag(
-            BoundingBox bb,
+            AxisAlignedBB bb,
             Matrix4f cachedModelView, Matrix4f cachedProjection,
             int width, int height,
             ImVec2 boxMinVec, ImVec2 boxMaxVec,
@@ -38,7 +39,7 @@ public class NameTagESP extends AbstractSubModule<ESP> {
         float textX, textY;
         if (use3DPos.get()) {
             ImVec2 centerVec = RenderUtils.worldToScreen(
-                    bb.getCenter().sub(0, bb.getSizeY() / 2, 0),
+                    new Vec3((bb.minX + bb.maxX) / 2.0, bb.minY, (bb.minZ + bb.maxZ) / 2.0),
                     cachedModelView, cachedProjection,
                     width, height
             );

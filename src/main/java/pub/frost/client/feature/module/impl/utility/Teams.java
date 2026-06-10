@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.utility;
 
+import net.minecraft.entity.Entity;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -16,12 +17,12 @@ public class Teams extends AbstractModule {
         return FrostCore.getInstance().getModuleManager().getModule(Teams.class);
     }
 
-    private boolean test(Object entity) {
+    private boolean test(Entity entity) {
         if (!isEnabled()) return false;
-        return FormatUtils.getFirstColor(EntityUtils.tryGetDisplayName(mcWrapper.getPlayer(mc))) == FormatUtils.getFirstColor(EntityUtils.tryGetDisplayName(entity));
+        return FormatUtils.getFirstColor(EntityUtils.tryGetDisplayName(mc.thePlayer)) == FormatUtils.getFirstColor(EntityUtils.tryGetDisplayName(entity));
     }
 
-    public static boolean isTeammate(Object entity) {
+    public static boolean isTeammate(Entity entity) {
         return getInstance().test(entity);
     }
 }

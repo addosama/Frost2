@@ -3,6 +3,7 @@ package pub.frost.client.feature.module.impl.movement;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
@@ -31,13 +32,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 )
 public class BlinkNoslow extends AbstractModule {
 
-    private final ConcurrentLinkedQueue<Object> packets = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Packet> packets = new ConcurrentLinkedQueue<>();
 
     @EventHandler
     private void onPacket(EventPacket event) {
         if (event.getType() != PacketType.OUT) return;
 
-        Object packet = event.getPacket();
+        Packet packet = event.getPacket();
         if (packet instanceof C09PacketHeldItemChange || packet instanceof C07PacketPlayerDigging) {
             flush(false);
             return;
@@ -102,7 +103,7 @@ public class BlinkNoslow extends AbstractModule {
             packets.removeIf(p -> p instanceof C08PacketPlayerBlockPlacement);
         }
 
-        for (Object packet : packets) {
+        for (Packet packet : packets) {
             FrostCore.getInstance().getPacketManager().sendPacket(packet, false);
         }
         packets.clear();

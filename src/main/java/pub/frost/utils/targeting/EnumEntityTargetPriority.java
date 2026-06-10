@@ -2,13 +2,13 @@ package pub.frost.utils.targeting;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.joml.Vector3d;
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.Vec3;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.utils.RotationUtils;
-import pub.frost.wrappers.shared.entity.WEntityLivingBase;
 
 import java.util.Comparator;
 import java.util.function.Function;
@@ -18,17 +18,22 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public enum EnumEntityTargetPriority implements Named {
     ANGLE("angle", player -> {
-        WEntityLivingBase wrapper = Wrappers.EntityLivingBase;
-        Vector3d eyePos = wrapper.getPositionEyes(player, 1);
+        Vec3 eyePos = new Vec3(
+                ((Entity) player).posX,
+                ((Entity) player).posY + ((Entity) player).getEyeHeight(),
+                ((Entity) player).posZ
+        );
         float playerYaw = RotationUtils.wrapYawTo180(FrostCore.getInstance().getRotationManager().getPlayerYaw());
         return Comparator.comparingDouble(target -> Math.abs(
-                RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, wrapper.getPositionVector(target)).getYaw())
+                RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, ((Entity) target).getPositionVector()).getYaw())
                 - playerYaw
         ));
     }),
-    DISTANCE("distance", player -> Comparator.comparingDouble(entity -> Wrappers.EntityLivingBase.distanceTo(player, Wrappers.EntityLivingBase.getPositionVector(entity)))),
-    HEALTH("health", p -> Comparator.comparingDouble(Wrappers.EntityLivingBase::getHealth)),
-    HURTTIME("hurttime", p -> Comparator.comparingInt(Wrappers.EntityLivingBase::getHurtTime)),;
+    DISTANCE("distance", player -> Comparator.comparingDouble(entity ->
+            ((Entity) player).getDistanceToEntity((Entity) entity)
+    )),
+    HEALTH("health", p -> Comparator.comparingDouble(e -> ((EntityLivingBase) e).getHealth())),
+    HURTTIME("hurttime", p -> Comparator.comparingInt(e -> ((EntityLivingBase) e).hurtTime)),;
 
     final String key;
     final Function<Object, Comparator<Object>> comparator;

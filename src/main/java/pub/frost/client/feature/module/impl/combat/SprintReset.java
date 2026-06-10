@@ -33,7 +33,7 @@ public class SprintReset extends AbstractModule {
     private void onAttack(EventPlayerAttackEntity e) {
         resetRecorder(true);
         if (reset && ticksSinceReset <= duration.getValue()) {
-            if (mode.is(Mode.NO_STOP)) Entity.setSprinting(mcWrapper.getPlayer(mc), false);
+            if (mode.is(Mode.NO_STOP)) mc.thePlayer.setSprinting(false);
         }
     }
 

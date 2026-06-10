@@ -2,29 +2,30 @@ package pub.frost.base.event.impl.events;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.joml.Vector3dc;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.interfaces.Event;
-import pub.frost.utils.data.BoundingBox;
-import pub.frost.utils.data.raytrace.HitResult;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition;
 
 @Getter @Setter
 public class EventTestPlayerLookingEntity implements Event {
     private final float tickDelta;
-    private final Object sourceEntity;
-    private final Object entity;
-    private final Vector3dc eyePos;
-    private final Vector3dc lookingVec;
+    private final Entity sourceEntity;
+    private final Entity entity;
+    private final Vec3 eyePos;
+    private final Vec3 lookingVec;
     private final double reachDistance;
 
-    private BoundingBox hitbox;
+    private AxisAlignedBB hitbox;
 
-    private boolean useDefaultHitResult = true;
-    private HitResult hitResult = null;
+    private boolean useDefualtResult = true;
+    private MovingObjectPosition hitResult = null;
 
     public EventTestPlayerLookingEntity(
-            float tickDelta, Object sourceEntity, Object entity, Vector3dc eyePos,
-            Vector3dc lookingVec, double reachDistance,
-            BoundingBox hitbox
+            float tickDelta, Entity sourceEntity, Entity entity, Vec3 eyePos,
+            Vec3 lookingVec, double reachDistance,
+            AxisAlignedBB hitbox
     ) {
         this.tickDelta = tickDelta;
         this.sourceEntity = sourceEntity;
@@ -37,22 +38,22 @@ public class EventTestPlayerLookingEntity implements Event {
     }
 
     public EventTestPlayerLookingEntity(
-            float tickDelta, Object entity, Vector3dc eyePos,
-            Vector3dc lookingVec, double reachDistance,
-            BoundingBox hitbox
+            float tickDelta, Entity entity, Vec3 eyePos,
+            Vec3 lookingVec, double reachDistance,
+            AxisAlignedBB hitbox
     ) {
         this(tickDelta, null, entity, eyePos, lookingVec, reachDistance, hitbox);
     }
 
     public EventTestPlayerLookingEntity(
-            float tickDelta, Object entity, Vector3dc eyePos,
-            BoundingBox hitbox
+            float tickDelta, Entity entity, Vec3 eyePos,
+            AxisAlignedBB hitbox
     ) {
         this(tickDelta, null, entity, eyePos, null, Double.NaN, hitbox);
     }
 
-    public void setHitResult(HitResult hitResult) {
-        useDefaultHitResult = false;
+    public void setResult(MovingObjectPosition hitResult) {
+        useDefualtResult = false;
         this.hitResult = hitResult;
     }
 }

@@ -1,5 +1,7 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.Entity;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
@@ -8,6 +10,7 @@ import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.utils.InputUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.interacting.EnumInteractType;
 
@@ -40,23 +43,23 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
         attackCount = 0;
     }
     
-    public void doAttack(Object target, float tickDelta) {
+    public void doAttack(Entity target, float tickDelta) {
         while (attackCount > 0) {
             attack(target, tickDelta);
         }
     }
-    private void attack(Object target, float tickDelta) {
-        if (mode.is(EnumInteractType.LEGIT)) Minecraft.clickLMB(mc);
+    private void attack(Entity target, float tickDelta) {
+        if (mode.is(EnumInteractType.LEGIT)) InputUtils.clickLMB();
         else {
-            Object player = Minecraft.getPlayer(mc);
-            EntityLivingBase.swingItem(player);
+            EntityPlayerSP player = mc.thePlayer;
+            player.swingItem();
 
 
             boolean rayCastResult = getParent().rayTraceTarget(
                     target,
                     new Rotation(
-                            Entity.getYaw(player),
-                            Entity.getPitch(player)
+                            target.rotationYaw,
+                            target.rotationPitch
                     ),
                     getRealAttackRange(),
                     false,
@@ -64,8 +67,7 @@ public class KillAuraAttacking extends AbstractSubModule<KillAura> {
             );
 
             if (rayCastResult) {
-                PlayerControllerMP.attackEntity(
-                        Minecraft.getPlayerController(mc),
+                mc.playerController.attackEntity(
                         player, target
                 );
             }

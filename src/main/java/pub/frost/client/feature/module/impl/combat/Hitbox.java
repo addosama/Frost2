@@ -1,7 +1,8 @@
 package pub.frost.client.feature.module.impl.combat;
 
 import lombok.RequiredArgsConstructor;
-import org.joml.Vector3d;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventTestPlayerLookingEntity;
 import pub.frost.client.feature.module.annotations.Module;
@@ -13,6 +14,7 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.utils.BoundingBoxUtils;
+import pub.frost.utils.EntityUtils;
 
 @Module(
         key = "Hitbox",
@@ -34,15 +36,15 @@ public class Hitbox extends AbstractModule {
                 break;
             }
             case LEGIT: {
-                Object sourceEntity = event.getSourceEntity() == null ? Minecraft.getPlayer(mc) : event.getSourceEntity();
-                Vector3d lookingVec = event.getLookingVec() == null
-                        ? Entity.getLook(sourceEntity, event.getTickDelta())
-                        : new Vector3d(event.getLookingVec());
+                Entity sourceEntity = event.getSourceEntity() == null ? mc.thePlayer : event.getSourceEntity();
+                Vec3 lookingVec = event.getLookingVec() == null
+                        ? sourceEntity.getLook(event.getTickDelta())
+                        : event.getLookingVec();
                 double reachDistance = Double.isNaN(event.getReachDistance()) ? 3.0D : event.getReachDistance();
 
                 event.setHitResult(BoundingBoxUtils.getAreaHitResult(
-                        Entity.getLerpedBoundingBox(event.getEntity(), 0),
-                        Entity.getLerpedBoundingBox(event.getEntity(), 1),
+                        BoundingBoxUtils.lerp(EntityUtils.getPrevBoundingBox(event.getEntity()), event.getEntity().getEntityBoundingBox(), 0),
+                        BoundingBoxUtils.lerp(EntityUtils.getPrevBoundingBox(event.getEntity()), event.getEntity().getEntityBoundingBox(), 1),
                         sourceEntity,
                         lookingVec,
                         reachDistance,

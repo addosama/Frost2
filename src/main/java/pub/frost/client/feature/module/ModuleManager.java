@@ -29,7 +29,6 @@ public class ModuleManager {
                 new Eagle(),
                 new Teams(),
                 new AutoTool(),
-                new BackTrack(),
                 new SprintReset(),
                 new KeepSprint(),
                 new NoSlowdown(),

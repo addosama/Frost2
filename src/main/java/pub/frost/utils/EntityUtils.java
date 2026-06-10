@@ -1,31 +1,28 @@
 package pub.frost.utils;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.util.EntitySelectors;
-import org.joml.Vector3d;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.*;
 import pub.frost.base.event.impl.events.EventTestPlayerLookingEntity;
-import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
-import pub.frost.utils.data.BlockPosition;
-import pub.frost.utils.data.BoundingBox;
-import pub.frost.utils.data.raytrace.HitResult;
-import pub.frost.wrappers.shared.item.WItem;
 
 import java.util.List;
 
-public class EntityUtils implements Wrappers {
-    public static String tryGetDisplayName(Object entity) {
-        return Entity.getDisplayName(entity);
+public class EntityUtils {
+    public static String tryGetDisplayName(Entity entity) {
+        return entity.getDisplayName().getFormattedText();
     }
 
-    public static BoundingBox getBoundingBoxAtPosition(Object entity, Vector3d position) {
-        double x = position.x;
-        double y = position.y;
-        double z = position.z;
-        float width = Entity.getWidth(entity);
-        float height = Entity.getHeight(entity);
+    public static AxisAlignedBB getPrevBoundingBox(Entity entity) {
+        return getBoundingBoxAtPosition(entity, entity.prevPosX, entity.prevPosY, entity.prevPosZ);
+    }
+    public static AxisAlignedBB getBoundingBoxAtPosition(Entity entity, double x, double y, double z) {
+        float width = entity.width;
+        float height = entity.height;
 
-        return new BoundingBox(
+        return new AxisAlignedBB(
                 x - width / 2,
                 y,
                 z - width / 2,
@@ -34,106 +31,152 @@ public class EntityUtils implements Wrappers {
                 z + width / 2
         );
     }
-    public static boolean isHoldingItem(Object livingEntity, WItem targetItem) {
-        Object itemHeld = EntityLivingBase.getHeldItem(livingEntity);
+    public static AxisAlignedBB getBoundingBoxAtPosition(Entity entity, Vec3 position) {
+        return getBoundingBoxAtPosition(entity, position.xCoord, position.yCoord, position.zCoord);
+    }
+    public static boolean isHoldingItem(EntityLivingBase livingEntity, Class<? extends Item> targetItem) {
+        ItemStack itemHeld = livingEntity.getHeldItem();
         if (itemHeld == null) return false;
-        return targetItem.isTarget(
-                ItemStack.getItem(itemHeld)
-        );
+        return targetItem.isInstance(itemHeld.getItem());
     }
 
-    public static HitResult getLookingObject(Object instance, Vector3d lookingVec, double reachDistance, float tickDelta) {
+    public static MovingObjectPosition getLookingObject(Entity instance, Vec3 lookingVec, double reachDistance, float tickDelta) {
         return getLookingObject(
                 instance, lookingVec, reachDistance, tickDelta,
                 true
         );
     }
 
-    public static HitResult getLookingObject(
-            Object instance, Vector3d lookingVec, double reachDistance, float tickDelta,
+    public static MovingObjectPosition getLookingObject(
+            Entity instance, Vec3 lookingVec, double reachDistance, float tickDelta,
             boolean callEvent
     ) {
-        HitResult objectMouseOver;
-        Object pointedEntity = null;
+        MovingObjectPosition objectMouseOver;
+        Entity pointedEntity = null;
 
-        Vector3d eyePos = Entity.getPositionEyes(instance, tickDelta);
-        objectMouseOver = Entity.raytraceBlocks(instance, eyePos, lookingVec, reachDistance);
+        Vec3 eyePos = getPositionEyes(instance, tickDelta);
+        Vec3 reachEnd = eyePos.addVector(
+                lookingVec.xCoord * reachDistance,
+                lookingVec.yCoord * reachDistance,
+                lookingVec.zCoord * reachDistance
+        );
+        objectMouseOver = instance.worldObj.rayTraceBlocks(eyePos, reachEnd, false, true, true);
 
         double d1 = reachDistance;
         boolean flag = reachDistance > 3.0D;
 
         if (objectMouseOver != null) {
-            d1 = objectMouseOver.getHitVec().distance(eyePos);
+            d1 = objectMouseOver.hitVec.distanceTo(eyePos);
         }
 
-        Vector3d vec32 = new Vector3d(eyePos).add(
-                lookingVec.x() * reachDistance,
-                lookingVec.y() * reachDistance,
-                lookingVec.z() * reachDistance
+        Vec3 vec32 = eyePos.addVector(
+                lookingVec.xCoord * reachDistance,
+                lookingVec.yCoord * reachDistance,
+                lookingVec.zCoord * reachDistance
         );
-        Vector3d vec33 = null;
+        Vec3 vec33 = null;
         float f = 1.0F;
-        List<Object> list = World.getEntitiesInAABBExcluding(
-                Entity.getWorld(instance),
-                instance,
-                Entity.getBoundingBox(instance).addCoord(
-                        lookingVec.x() * reachDistance,
-                        lookingVec.y() * reachDistance,
-                        lookingVec.z() * reachDistance
-                ).expand(f, f, f),
-                en -> EntitySelectors.NOT_SPECTATING.apply((Entity) en) && Entity.canBeCollidedWith(en)
+
+        // expand reach AABB
+        AxisAlignedBB entityBB = instance.getEntityBoundingBox();
+        AxisAlignedBB reachBB = new AxisAlignedBB(
+                entityBB.minX, entityBB.minY, entityBB.minZ,
+                entityBB.maxX, entityBB.maxY, entityBB.maxZ
+        );
+        reachBB = new AxisAlignedBB(
+                Math.min(reachBB.minX, reachBB.minX + lookingVec.xCoord * reachDistance),
+                Math.min(reachBB.minY, reachBB.minY + lookingVec.yCoord * reachDistance),
+                Math.min(reachBB.minZ, reachBB.minZ + lookingVec.zCoord * reachDistance),
+                Math.max(reachBB.maxX, reachBB.maxX + lookingVec.xCoord * reachDistance),
+                Math.max(reachBB.maxY, reachBB.maxY + lookingVec.yCoord * reachDistance),
+                Math.max(reachBB.maxZ, reachBB.maxZ + lookingVec.zCoord * reachDistance)
+        ).expand(f, f, f);
+
+        List<Entity> list = instance.worldObj.getEntitiesInAABBexcluding(
+                instance, reachBB,
+                e -> EntitySelectors.NOT_SPECTATING.apply(e) && e.canBeCollidedWith()
         );
         double d2 = d1;
 
-        for (Object entity : list) {
-            float f1 = Entity.getCollisionBorderSize(entity);
+        for (Entity entity : list) {
+            float f1 = entity.getCollisionBorderSize();
+            AxisAlignedBB hitBB = entity.getEntityBoundingBox().expand(f1, f1, f1);
             EventTestPlayerLookingEntity event;
             {
                 event = new EventTestPlayerLookingEntity(
                         tickDelta, instance, entity, eyePos,
                         lookingVec, reachDistance,
-                        Entity.getBoundingBox(entity).expand(f1, f1, f1)
+                        hitBB
                 );
                 if (callEvent) FrostCore.getEventBus().call(event);
             }
-            BoundingBox boundingBox = event.getHitbox();
-            HitResult hitResult = event.isUseDefaultHitResult()? boundingBox.calculateIntercept(eyePos, vec32) : event.getHitResult();
+            AxisAlignedBB boundingBox = event.getHitbox();
+            MovingObjectPosition hitResult = event.isUseDefualtResult()
+                    ? boundingBox.calculateIntercept(eyePos, vec32)
+                    : event.getHitResult();
             if (boundingBox.isVecInside(eyePos)) {
                 if (d2 >= 0.0D) {
                     pointedEntity = entity;
-                    vec33 = hitResult == null ? eyePos : hitResult.getHitVec();
+                    vec33 = hitResult == null ? eyePos : hitResult.hitVec;
                     d2 = 0.0D;
                 }
             } else if (hitResult != null) {
-                double d3 = eyePos.distance(hitResult.getHitVec());
+                double d3 = eyePos.distanceTo(hitResult.hitVec);
                 if (d3 < d2 || d2 == 0.0D) {
-                    if (entity == Entity.getRidingEntity(instance) && !Entity.canRiderInteract(instance)) {
+                    if (entity == instance.ridingEntity && !instance.canRiderInteract()) {
                         if (d2 == 0.0D) {
                             pointedEntity = entity;
-                            vec33 = hitResult.getHitVec();
+                            vec33 = hitResult.hitVec;
                         }
                     } else {
                         pointedEntity = entity;
-                        vec33 = hitResult.getHitVec();
+                        vec33 = hitResult.hitVec;
                         d2 = d3;
                     }
                 }
             }
         }
 
-        if (pointedEntity != null && flag && eyePos.distance(vec33) > 3.0D) {
+        if (pointedEntity != null && flag && eyePos.distanceTo(vec33) > 3.0D) {
             pointedEntity = null;
-            objectMouseOver = HitResult.buildMissHit(new BlockPosition(vec33), null, vec33);
+            objectMouseOver = new MovingObjectPosition(
+                    MovingObjectPosition.MovingObjectType.MISS,
+                    vec33, null, new BlockPos(
+                    (int)Math.floor(vec33.xCoord),
+                    (int)Math.floor(vec33.yCoord),
+                    (int)Math.floor(vec33.zCoord)
+            )
+            );
         }
 
         if (pointedEntity != null && (d2 < d1 || objectMouseOver == null)) {
-            objectMouseOver = HitResult.buildEntityHit(
-                    pointedEntity,
-                    null, null,
-                    vec33
-            );
+            objectMouseOver = new MovingObjectPosition(pointedEntity, vec33);
         }
 
         return objectMouseOver;
     }
+
+    public static Vec3 getPositionEyes(Entity entity, float tickDelta) {
+        if (tickDelta == 1.0F) {
+            return new Vec3(entity.posX, entity.posY + (double)entity.getEyeHeight(), entity.posZ);
+        } else {
+            double d0 = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)tickDelta;
+            double d1 = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)tickDelta + (double)entity.getEyeHeight();
+            double d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)tickDelta;
+            return new Vec3(d0, d1, d2);
+        }
+    }
+
+    public static Vec3 getLerpedPositionVector(Entity entity, float tickDelta) {
+        return new Vec3(
+            MathUtils.lerp(entity.prevPosX, entity.posX, tickDelta),
+            MathUtils.lerp(entity.prevPosY, entity.posY, tickDelta),
+            MathUtils.lerp(entity.prevPosZ, entity.posZ, tickDelta)
+        );
+    }
+
+    public static double getDistanceToPoint(Entity entity, Vec3 point) {
+        return entity.getDistance(point.xCoord, point.yCoord, point.zCoord);
+    }
+
 }

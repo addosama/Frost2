@@ -5,22 +5,19 @@ import lombok.Setter;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.helper.player.rotation.processors.post.EnumRotationPostProcessor;
 import pub.frost.utils.MathUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
-import pub.frost.wrappers.shared.client.WMinecraft;
-import pub.frost.wrappers.shared.entity.WEntityClientPlayer;
 
 import java.util.function.BiConsumer;
 
 @Getter
 public class RotationManager {
-    protected final Object mc = Wrappers.Minecraft.getInstance();
-    protected final WMinecraft mcWrapper = Wrappers.Minecraft;
-    protected final WEntityClientPlayer playerWrapper = Wrappers.EntityClientPlayer;
+    protected final Minecraft mc = Minecraft.getMinecraft();
 
     @Setter
     private float playerYaw, playerPitch, prevPlayerYaw, prevPlayerPitch;
@@ -71,8 +68,8 @@ public class RotationManager {
     }
 
     private boolean postRotationEvent() {
-        Object player = mcWrapper.getPlayer(mc);
-        EventRotation event = new EventRotation(playerWrapper.getYaw(player), playerWrapper.getPitch(player), 180, false, false, 0);
+        EntityPlayerSP player = mc.thePlayer;
+        EventRotation event = new EventRotation(player.rotationYaw, player.rotationPitch, 180, false, false, 0);
         FrostCore.getInstance().getEventBus().call(event);
         targetYaw = event.getYaw();
         targetPitch = event.getPitch();
@@ -134,13 +131,13 @@ public class RotationManager {
     @EventHandler(priority = 100)
     private void onPreGameTick(EventGameTick e) {
         if (e.getType() == TickType.PRE) {
-            Object player = mcWrapper.getPlayer(mc);
+            EntityPlayerSP player = mc.thePlayer;
             if (player == null) return;
-            
-            setPrevPlayerYaw(playerWrapper.getPrevYaw(player));
-            setPrevPlayerPitch(playerWrapper.getPrevPitch(player));
-            setPlayerYaw(playerWrapper.getYaw(player));
-            setPlayerPitch(playerWrapper.getPitch(player));
+
+            setPrevPlayerYaw(player.prevRotationYaw);
+            setPrevPlayerPitch(player.prevRotationPitch);
+            setPlayerYaw(player.rotationYaw);
+            setPlayerPitch(player.rotationPitch);
 
             if (!postRotationEvent()) {
                 applied = false;
@@ -149,10 +146,10 @@ public class RotationManager {
 
             processSilentRotation();
 
-            playerWrapper.setPrevYaw(player, getPrevSilentYaw());
-            playerWrapper.setPrevPitch(player, getPrevSilentPitch());
-            playerWrapper.setYaw(player, getSilentYaw());
-            playerWrapper.setPitch(player, getSilentPitch());
+            player.prevRotationYaw = getPrevSilentYaw();
+            player.prevRotationPitch = getPrevSilentPitch();
+            player.rotationYaw = getSilentYaw();
+            player.rotationPitch = getSilentPitch();
 
             if (lockView) {
                 setPrevPlayerYaw(getPrevSilentYaw());
@@ -169,13 +166,13 @@ public class RotationManager {
     private void onPostGameTick(EventGameTick e) {
         if (e.getType() == TickType.POST) {
             if (!applied) return;
-            Object player = mcWrapper.getPlayer(mc);
+            EntityPlayerSP player = mc.thePlayer;
             if (player == null) return;
 
-            playerWrapper.setPrevYaw(player, getPrevPlayerYaw());
-            playerWrapper.setPrevPitch(player, getPrevPlayerPitch());
-            playerWrapper.setYaw(player, getPlayerYaw());
-            playerWrapper.setPitch(player, getPlayerPitch());
+            player.prevRotationYaw = getPrevPlayerYaw();
+            player.prevRotationPitch = getPrevPlayerPitch();
+            player.rotationYaw = getPlayerYaw();
+            player.rotationPitch = getPlayerPitch();
 
             applied = false;
         }

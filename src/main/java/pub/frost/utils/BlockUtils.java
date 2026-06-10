@@ -3,24 +3,23 @@ package pub.frost.utils;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
-import pub.frost.base.wrapping.Wrappers;
-import pub.frost.utils.data.BlockPosition;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockUtils implements Wrappers {
-    public static List<BlockPosition> getBlockPositionsInRange(BlockPosition centerPos, int radius) {
-        List<BlockPosition> list = new ArrayList<>();
+public class BlockUtils {
+    public static List<BlockPos> getBlockPositionsInRange(BlockPos centerPos, int radius) {
+        List<BlockPos> list = new ArrayList<>();
 
-        int posX = centerPos.x;
-        int posY = centerPos.y;
-        int posZ = centerPos.z;
+        int posX = centerPos.getX();
+        int posY = centerPos.getY();
+        int posZ = centerPos.getZ();
 
         for (int x = posX - radius; x <= posX + radius; x++) {
             for (int y = posY - radius; y <= posY + radius; y++) {
                 for (int z = posZ - radius; z <= posZ + radius; z++) {
-                    BlockPosition pos = new BlockPosition(x, y, z);
+                    BlockPos pos = new BlockPos(x, y, z);
                     list.add(pos);
                 }
             }
@@ -28,18 +27,18 @@ public class BlockUtils implements Wrappers {
 
         return list;
     }
-    public static List<BlockPosition> getBlocksInRange(BlockPosition centerPos, int radius, Object world) {
-        List<BlockPosition> list = new ArrayList<>();
+    public static List<BlockPos> getBlocksInRange(BlockPos centerPos, int radius, World world) {
+        List<BlockPos> list = new ArrayList<>();
 
-        int posX = centerPos.x;
-        int posY = centerPos.y;
-        int posZ = centerPos.z;
+        int posX = centerPos.getX();
+        int posY = centerPos.getY();
+        int posZ = centerPos.getZ();
 
         for (int x = posX - radius; x <= posX + radius; x++) {
             for (int y = posY - radius; y <= posY + radius; y++) {
                 for (int z = posZ - radius; z <= posZ + radius; z++) {
-                    BlockPosition pos = new BlockPosition(x, y, z);
-                    if (World.isAirBlock(world, pos)) continue;
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (world.isAirBlock(pos)) continue;
                     list.add(pos);
                 }
             }

@@ -3,12 +3,19 @@ package pub.frost.client.feature.module.impl.visual;
 import imgui.ImGui;
 import imgui.ImVec2;
 import lombok.Getter;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
 import pub.frost.base.event.impl.events.EventRender2D;
 import pub.frost.base.event.impl.events.EventRender3D;
 import pub.frost.base.rendering.FontManager;
-import pub.frost.base.wrapping.Wrappers;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3d;
+
+import net.minecraft.client.Minecraft;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
@@ -19,17 +26,8 @@ import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.preset.legacy.TargetSetting;
-import pub.frost.utils.EntityUtils;
-import pub.frost.utils.ImTextRenderer;
-import pub.frost.utils.RenderUtils;
-import pub.frost.utils.data.BoundingBox;
+import pub.frost.utils.*;
 import pub.frost.utils.data.EnumTextFormatting;
-import pub.frost.wrappers.shared.entity.WEntity;
-import pub.frost.wrappers.shared.entity.WEntityLivingBase;
-
-import org.joml.Matrix4f;
-import org.joml.Vector3d;
-import pub.frost.wrappers.shared.world.WWorld;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -52,10 +50,6 @@ public class ESP extends AbstractModule {
     @Property("data")
     public final BooleanProperty renderData = new BooleanProperty(true);
 
-    private final WEntity entityWrapper = Wrappers.Entity;
-    private final WWorld worldWrapper = Wrappers.World;
-    private final WEntityLivingBase livingEntityWrapper = Wrappers.EntityLivingBase;
-
     private final List<EntityData> cachedData = new ArrayList<>();
     private Matrix4f cachedModelView;
     private Matrix4f cachedProjection;
@@ -63,7 +57,7 @@ public class ESP extends AbstractModule {
     @EventHandler
     public void onUpdate(EventPlayerUpdateTick event) {
         cachedData.clear();
-        worldWrapper.getLoadedEntityList(Minecraft.getWorld(mc)).stream().filter(
+        mc.theWorld.getLoadedEntityList().stream().filter(
                 this::isTarget
         ).forEach(en -> cachedData.add(new EntityData(en)));
     }
@@ -78,22 +72,21 @@ public class ESP extends AbstractModule {
     public void onRender2D(EventRender2D e) {
         int width = (int) ImGui.getIO().getDisplaySizeX();
         int height = (int) ImGui.getIO().getDisplaySizeY();
-        Vector3d playerPos = entityWrapper.getLerpedPositionVector(Minecraft.getPlayer(mc), e.getTickDelta());
-        Vector3d negatedPlayerPos = playerPos.negate(new Vector3d());
+        Vec3 playerPos = EntityUtils.getLerpedPositionVector(mc.thePlayer, e.getTickDelta());
+        Vec3 negatedPlayerPos = VecUtils.negate(playerPos);
 
         // sort entities by distance
         {
-            cachedData.sort(Comparator.comparingDouble(data -> -entityWrapper.distanceTo(
-                    data.getEntity(),
-                    playerPos.x(), playerPos.y(), playerPos.z()
+            cachedData.sort(Comparator.comparingDouble(data -> -data.getEntity().getDistance(
+                    playerPos.xCoord, playerPos.yCoord, playerPos.zCoord
             )));
         }
 
         ImGui.pushFont(FontManager.INSTANCE.puHui10);
         for (EntityData data : cachedData) {
-            BoundingBox lerpedBB = data.getBoundingBox(e.getTickDelta()).move(negatedPlayerPos);
-            BoundingBox prevBB = data.getBoundingBox(0).move(negatedPlayerPos);
-            BoundingBox tickBB = data.getBoundingBox(1).move(negatedPlayerPos);
+            AxisAlignedBB lerpedBB = BoundingBoxUtils.move(data.getBoundingBox(e.getTickDelta()), negatedPlayerPos);
+            AxisAlignedBB prevBB = BoundingBoxUtils.move(data.getBoundingBox(0), negatedPlayerPos);;
+            AxisAlignedBB tickBB = BoundingBoxUtils.move(data.getBoundingBox(1), negatedPlayerPos);;
 
             // expand bounding box
             {
@@ -104,12 +97,12 @@ public class ESP extends AbstractModule {
             }
 
             // project vertices to screen
-            final Vector3d[] vertexArray = lerpedBB.getVertices();
+            final Vec3[] vertexArray = BoundingBoxUtils.getVertices(lerpedBB);
             final ImVec2[] vertexScreenPosArray = new ImVec2[vertexArray.length];
             ImVec2 minVec, maxVec;
             {
                 for (int i = 0; i < 8; i++) {
-                    Vector3d vertex = vertexArray[i];
+                    Vec3 vertex = vertexArray[i];
                     vertexScreenPosArray[i] = RenderUtils.worldToScreen(
                             vertex,
                             cachedModelView, cachedProjection,
@@ -181,14 +174,14 @@ public class ESP extends AbstractModule {
         ImGui.popFont();
     }
 
-    private boolean isTarget(Object entity) {
-        if (entity == Minecraft.getPlayer(mc)) return false;
+    private boolean isTarget(Entity entity) {
+        if (entity == mc.thePlayer) return false;
         return target.isTarget(entity);
     }
 
     @Getter
     private class EntityData {
-        final Object entity;
+        final Entity entity;
 
         final String name;
 
@@ -197,29 +190,29 @@ public class ESP extends AbstractModule {
 
         final float health, maxHealth;
 
-        EntityData(Object entity) {
+        EntityData(Entity entity) {
             this.entity = entity;
 
             this.name = EntityUtils.tryGetDisplayName(entity);
 
-            this.prevX = entityWrapper.getPrevX(entity);
-            this.prevY = entityWrapper.getPrevY(entity);
-            this.prevZ = entityWrapper.getPrevZ(entity);
-            this.x = entityWrapper.getX(entity);
-            this.y = entityWrapper.getY(entity);
-            this.z = entityWrapper.getZ(entity);
+            this.prevX = entity.prevPosX;
+            this.prevY = entity.prevPosY;
+            this.prevZ = entity.prevPosZ;
+            this.x = entity.posX;
+            this.y = entity.posY;
+            this.z = entity.posZ;
 
             float hp = 0, maxHP = 0;
-            if (livingEntityWrapper.isTarget(entity.getClass())) {
-                hp = livingEntityWrapper.getHealth(entity);
-                maxHP = livingEntityWrapper.getMaxHealth(entity);
+            if (entity instanceof EntityLivingBase) {
+                hp = ((EntityLivingBase) entity).getHealth();
+                maxHP = ((EntityLivingBase) entity).getMaxHealth();
             }
             this.health = hp;
             this.maxHealth = maxHP;
         }
 
-        BoundingBox getBoundingBox(float tickDelta) {
-            return entityWrapper.getLerpedBoundingBox(entity, tickDelta);
+        AxisAlignedBB getBoundingBox(float tickDelta) {
+            return BoundingBoxUtils.lerp(EntityUtils.getPrevBoundingBox(entity), entity.getEntityBoundingBox(), tickDelta);
         }
     }
 }

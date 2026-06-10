@@ -1,6 +1,6 @@
 package pub.frost.client.property.preset.legacy;
 
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.entity.Entity;
 import pub.frost.client.feature.module.impl.utility.Teams;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
@@ -55,8 +55,8 @@ public class TargetSetting {
         );
     }
 
-    public boolean isTarget(Object entity) {
-        if (shouldDoInvisibleCheck && invisibleCheck.get() && Wrappers.Entity.isInvisible(entity)) return false;
+    public boolean isTarget(Entity entity) {
+        if (shouldDoInvisibleCheck && invisibleCheck.get() && entity.isInvisible()) return false;
         if (shouldDoTeamCheck && teamCheck.get() && Teams.isTeammate(entity)) return false;
         // if (shouldDoBotCheck && botCheck.get() && false) return false;
         for (EnumEntityTarget target : targets.getEnabled()) {

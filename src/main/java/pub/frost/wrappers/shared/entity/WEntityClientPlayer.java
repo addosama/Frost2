@@ -1,9 +1,0 @@
-package pub.frost.wrappers.shared.entity;
-
-import net.minecraft.client.entity.EntityPlayerSP;
-
-public class WEntityClientPlayer extends WEntityPlayer {
-    public WEntityClientPlayer() {
-        super(EntityPlayerSP.class);
-    }
-}

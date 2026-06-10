@@ -2,20 +2,27 @@ package pub.frost.client.feature.helper.network;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.network.Packet;
+import net.minecraft.network.handshake.client.C00Handshake;
+import net.minecraft.network.login.client.C00PacketLoginStart;
+import net.minecraft.network.login.client.C01PacketEncryptionResponse;
+import net.minecraft.network.status.client.C00PacketServerQuery;
+import net.minecraft.network.status.client.C01PacketPing;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventProactiveLag;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.client.Minecraft;
 import pub.frost.client.core.FrostCore;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Setter
-public class LagManager implements Wrappers {
-    private final Object mc = Minecraft.getInstance();
+public class LagManager {
+    private final Minecraft mc = Minecraft.getMinecraft();
     private final Deque<DelayedPacket> incomingPacketDeque = new ConcurrentLinkedDeque<>();
     private final Deque<DelayedPacket> outgoingPacketDeque = new ConcurrentLinkedDeque<>();
 
@@ -25,7 +32,7 @@ public class LagManager implements Wrappers {
     private boolean laggingInc = false, laggingOut = false;
     private int releaseIncTick = -1, releaseOutTick = -1;
 
-    public boolean processIncoming(Object packet) {
+    public boolean processIncoming(Packet<?> packet) {
         EventProactiveLag lagEvent = new EventProactiveLag(
                 packet, PacketType.IN,
                 incomingLaggedTicks, outgoingLaggedTicks
@@ -42,13 +49,13 @@ public class LagManager implements Wrappers {
         }
         return false;
     }
-    public boolean processOutgoing(Object packet) {
+    public boolean processOutgoing(Packet<?> packet) {
         if (
-                C2SHandShakePacket.isTarget(packet)
-                || C2SPingPacket.isTarget(packet)
-                || C2SServerQueryPacket.isTarget(packet)
-                || C2SEncryptionResponsePacket.isTarget(packet)
-                || C2SLoginStartPacket.isTarget(packet)
+                packet instanceof C00Handshake
+                || packet instanceof C01PacketPing
+                || packet instanceof C00PacketServerQuery
+                || packet instanceof C01PacketEncryptionResponse
+                || packet instanceof C00PacketLoginStart
         ) {
             return false;
         }
@@ -73,13 +80,13 @@ public class LagManager implements Wrappers {
     @EventHandler
     private void onUpdate(EventGameTick event) {
         if (event.getType() == TickType.PRE) {
-            Object player = Minecraft.getPlayer(mc);
-            if (player == null || Minecraft.getWorld(mc) == null) {
+            EntityPlayerSP player = mc.thePlayer;
+            if (player == null || mc.theWorld == null) {
                 clearIncoming();
                 clearOutgoing();
             }
             else {
-                if (Entity.isDead(player)) {
+                if (player.isDead) {
                     flushIncoming();
                     clearOutgoing();
                     return;
@@ -90,10 +97,7 @@ public class LagManager implements Wrappers {
                         while (!incomingPacketDeque.isEmpty()) {
                             DelayedPacket data = incomingPacketDeque.peekFirst();
                             if (data.ticks >= releaseIncTick) {
-                                Packet.processPacket(
-                                        data.packet,
-                                        Minecraft.getNetHandler(mc)
-                                );
+                                data.packet.processPacket(mc.getNetHandler());
                                 incomingPacketDeque.pollFirst();
                             } else break;
                         }
@@ -138,10 +142,7 @@ public class LagManager implements Wrappers {
     private void flushIncoming() {
         while (!incomingPacketDeque.isEmpty()) {
             DelayedPacket data = incomingPacketDeque.poll();
-            Packet.processPacket(
-                    data.packet,
-                    Minecraft.getNetHandler(mc)
-            );
+            data.packet.processPacket(mc.getNetHandler());
         }
     }
     private void flushOutgoing() {
@@ -163,7 +164,7 @@ public class LagManager implements Wrappers {
 
     @RequiredArgsConstructor
     private static class DelayedPacket {
-        final Object packet;
+        final Packet packet;
         int ticks;
     }
 }

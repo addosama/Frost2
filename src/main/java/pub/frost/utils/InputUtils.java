@@ -1,7 +1,9 @@
 package pub.frost.utils;
 
+import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import pub.frost.platforms.v1_8_9.forged.mixin.AccessorMinecraft;
 
 public class InputUtils {
     public static String getKeyName(int keyCode) {
@@ -21,5 +23,12 @@ public class InputUtils {
     }
     public static float getMouseEventWheel() {
         return Mouse.getDWheel() / 120f;
+    }
+
+    public static void clickLMB() {
+        ((AccessorMinecraft) Minecraft.getMinecraft()).callClickMouse();
+    }
+    public static void clickRMB() {
+        ((AccessorMinecraft) Minecraft.getMinecraft()).callRightClickMouse();
     }
 }

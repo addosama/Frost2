@@ -1,16 +1,16 @@
 package pub.frost.client.feature.helper.player.rotation.providers.impl;
 
-import org.joml.Vector3d;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import pub.frost.client.feature.helper.player.rotation.providers.AbstractRotationProvider;
-import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
 
 import java.util.function.Predicate;
 
 public class BasicRotationProvider extends AbstractRotationProvider {
     @Override
-    protected Rotation getRotationInternal(Vector3d eyePos, BoundingBox target, Vector3d preferred, Predicate<Rotation> rayCast, BoundingBox lastTarget, Rotation lastProvidedRotation, boolean tick) {
-        return getBestRotationAimingBoundingBox(
+    protected Rotation getRotationInternal(Vec3 eyePos, AxisAlignedBB target, Vec3 preferred, Predicate<Rotation> rayCast, AxisAlignedBB lastTarget, Rotation lastProvidedRotation, boolean tick) {
+        return getBestRotationAimingAxisAlignedBB(
                 eyePos, target,
                 preferred,
                 rayCast

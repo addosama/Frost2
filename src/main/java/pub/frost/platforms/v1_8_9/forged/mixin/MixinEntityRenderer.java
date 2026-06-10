@@ -10,7 +10,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItemFrame;
 import net.minecraft.util.*;
-import org.joml.Vector3d;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,10 +19,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.rendering.ClientRenderContext;
-import pub.frost.base.wrapping.Wrappers;
 import pub.frost.client.core.FrostCore;
-import pub.frost.utils.EntityUtils;
-import pub.frost.utils.data.raytrace.HitResult;
 
 import java.util.List;
 
@@ -123,10 +119,10 @@ public class MixinEntityRenderer {
                         partialTicks,
                         entity,
                         entity1,
-                        new Vector3d(vec3.xCoord, vec3.yCoord, vec3.zCoord),
-                        new Vector3d(vec31.xCoord, vec31.yCoord, vec31.zCoord),
+                        new Vec3(vec3.xCoord, vec3.yCoord, vec3.zCoord),
+                        new Vec3(vec31.xCoord, vec31.yCoord, vec31.zCoord),
                         d0,
-                        Wrappers.Entity.getBoundingBox(entity1).expand(f1, f1, f1)
+                        entity1.getEntityBoundingBox().expand(f1, f1, f1)
                 );
                 FrostCore.getEventBus().call(event);
 
@@ -139,31 +135,10 @@ public class MixinEntityRenderer {
                         event.getHitbox().maxZ
                 );
                 MovingObjectPosition movingobjectposition;
-                if (event.isUseDefaultHitResult())
+                if (event.isUseDefualtResult())
                     movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
                 else {
-                    HitResult hitResult = event.getHitResult();
-                    if (hitResult != null) {
-                        MovingObjectPosition.MovingObjectType type;
-                        switch (hitResult.getTypeIndex()) {
-                            case 0: {
-                                type = MovingObjectPosition.MovingObjectType.ENTITY;
-                                break;
-                            }
-                            case 1: {
-                                type = MovingObjectPosition.MovingObjectType.BLOCK;
-                                break;
-                            }
-                            default: type = MovingObjectPosition.MovingObjectType.MISS;
-                        }
-                        movingobjectposition = new MovingObjectPosition(
-                                type,
-                                new Vec3(hitResult.getHitVec().x, hitResult.getHitVec().y, hitResult.getHitVec().z),
-                                hitResult.getHitDirection() == null? null : EnumFacing.VALUES[hitResult.getHitDirection().getIndex()],
-                                new BlockPos(hitResult.getBlockPos().x, hitResult.getBlockPos().y, hitResult.getBlockPos().z)
-                        );
-                    }
-                    else movingobjectposition = null;
+                    movingobjectposition = event.getHitResult();
                 }
                 if (axisalignedbb.isVecInside(vec3)) {
                     if (d2 >= 0.0D) {

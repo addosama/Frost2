@@ -1,6 +1,8 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
-import org.joml.Vector3d;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.Vec3;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
@@ -10,6 +12,8 @@ import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.legacy.TargetSetting;
+import pub.frost.utils.BoundingBoxUtils;
+import pub.frost.utils.EntityUtils;
 import pub.frost.utils.RotationUtils;
 import pub.frost.utils.data.Rotation;
 import pub.frost.utils.targeting.EnumEntityTarget;
@@ -26,29 +30,30 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
     @Property("fov")
     public final IntegerProperty fov = new IntegerProperty(1, 180, 1, 180);
 
-    private List<Object> provideValidTargetList() {
+    private List<Entity> provideValidTargetList() {
         final TargetSetting targetSetting = getParent().targeting.targets;
-        List<Object> list = new ArrayList<>();
+        List<Entity> list = new ArrayList<>();
         int fovValue = fov.get();
-        Vector3d eyePos = Entity.getPositionEyes(Minecraft.getPlayer(mc), 1);
-        for (Object entity : World.getLoadedEntityList(Minecraft.getWorld(mc))) {
-            if (Entity.isDead(entity)) continue;
-            if (!EntityLivingBase.isTarget(entity.getClass())) continue;
-            if (entity == Minecraft.getPlayer(mc)) continue;
+        Vec3 eyePos = EntityUtils.getPositionEyes(mc.thePlayer, 1);
+        for (Entity entity : mc.theWorld.getLoadedEntityList()) {
+            if (entity.isDead) continue;
+            if (!(entity instanceof EntityLivingBase)) continue;
+            if (entity == mc.thePlayer) continue;
 
-            if (EntityLivingBase.getHealth(entity) <= 0) continue;
-            if (EntityLivingBase.distanceTo(entity, Entity.getPositionVector(Minecraft.getPlayer(mc))) > targetRange.getValue()) continue;
+            EntityLivingBase living = (EntityLivingBase) entity;
+            if (living.getHealth() <= 0) continue;
+            if (EntityUtils.getDistanceToPoint(living, EntityUtils.getPositionEyes(mc.thePlayer, 1)) > targetRange.getValue()) continue;
 
             if (targetSetting.teamCheck.get() && Teams.isTeammate(entity)) continue;
 
             for (EnumEntityTarget targetEnum : targetSetting.targets.getEnabled()) {
                 if (!targetEnum.isTarget(entity.getClass())) continue;
-                if (targetSetting.invisibleCheck.get() && Entity.isInvisible(entity)) continue;
+                if (targetSetting.invisibleCheck.get() && entity.isInvisible()) continue;
                 if (fovValue != 180) {
                     Rotation rotDelta = RotationUtils.getRotationDeltaAimingPoint(
                             eyePos,
                             FrostCore.getHelpers().getRotationManager().getCurrentPlayerRotation(),
-                            Entity.getBoundingBox(entity).getCenter()
+                            BoundingBoxUtils.getCenter(entity.getEntityBoundingBox())
                     );
                     if (Math.abs(rotDelta.getYaw()) > fovValue || Math.abs(rotDelta.getPitch()) > fovValue / 2f) {
                         break;
@@ -61,23 +66,23 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
         }
         return list;
     }
-    private void sortEntityListByPriority(List<Object> list) {
+    private void sortEntityListByPriority(List<Entity> list) {
         EnumEntityTargetPriority value = getParent().targeting.priority.getValue();
-        Comparator<Object> comparator = Comparator.comparingInt(
-                en -> Entity.distanceTo(
-                        Minecraft.getPlayer(mc), Entity.getPositionVector(en)
+        Comparator<Entity> comparator = Comparator.comparingInt(
+                en -> mc.thePlayer.getDistanceToEntity(
+                        en
                 ) > getParent().attacking.getRealAttackRange()? 1 : -1
         );
-        comparator = comparator.thenComparing(value.getComparator().apply(Minecraft.getPlayer(mc)));
+        comparator = comparator.thenComparing(value.getComparator().apply(mc.thePlayer));
         for (EnumEntityTargetPriority p : EnumEntityTargetPriority.values()) {
             if (p == value) continue;
-            comparator = comparator.thenComparing(p.getComparator().apply(Minecraft.getPlayer(mc)));
+            comparator = comparator.thenComparing(p.getComparator().apply(mc.thePlayer));
         }
         list.sort(comparator);
     }
 
-    public List<Object> searchTargets() {
-        List<Object> list = provideValidTargetList();
+    public List<Entity> searchTargets() {
+        List<Entity> list = provideValidTargetList();
         sortEntityListByPriority(list);
         return list;
     }

@@ -2,7 +2,7 @@ package pub.frost.client.feature.helper.player.rotation.processors.post;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import pub.frost.base.wrapping.Wrappers;
+import net.minecraft.client.Minecraft;
 import pub.frost.client.feature.helper.player.rotation.processors.RotationProcessor;
 import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.i18n.annotations.TranslationKey;
@@ -12,11 +12,11 @@ import java.util.function.BiConsumer;
 
 @TranslationKey("strings.enum.rotation.processors.~")
 @RequiredArgsConstructor
-public enum EnumRotationPostProcessor implements Named, RotationProcessor, Wrappers {
+public enum EnumRotationPostProcessor implements Named, RotationProcessor {
     GCD_FIX(
             "GCDFix", 0x01,
             (currentYaw, currentPitch, nextYaw, nextPitch, rotationAcceptor) -> {
-                final float mouseSensitivity = (float) (GameSettings.getMouseSensitivity(Minecraft.getGameSettings(Minecraft.getInstance())) * (1 + Math.random() / 10000000) * 0.6F + 0.2F);
+                final float mouseSensitivity = (float) (Minecraft.getMinecraft().gameSettings.mouseSensitivity * (1 + Math.random() / 10000000) * 0.6F + 0.2F);
                 final double multiplier = mouseSensitivity * mouseSensitivity * mouseSensitivity * 8.0F * 0.15D;
                 final float yaw = currentYaw + (float) (Math.round((nextYaw - currentYaw) / multiplier) * multiplier);
                 final float pitch = currentPitch + (float) (Math.round((nextPitch - currentPitch) / multiplier) * multiplier);

@@ -2,9 +2,9 @@ package pub.frost.client.feature.helper.player.rotation.providers;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.joml.Vector3d;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import pub.frost.utils.RotationUtils;
-import pub.frost.utils.data.BoundingBox;
 import pub.frost.utils.data.Rotation;
 
 import java.util.Optional;
@@ -19,11 +19,11 @@ public abstract class AbstractRotationProvider {
     private Supplier<Integer> maxSearchSteps = () -> 2;
 
     private Rotation lastProvidedRotation = null;
-    private BoundingBox lastTarget = null;
+    private AxisAlignedBB lastTarget = null;
 
     public Rotation getRotation(
-            Vector3d eyePos, BoundingBox target,
-            Vector3d preferred,
+            Vec3 eyePos, AxisAlignedBB target,
+            Vec3 preferred,
             Predicate<Rotation> rayCast,
             boolean tick
     ) {
@@ -31,8 +31,8 @@ public abstract class AbstractRotationProvider {
     }
 
     public Rotation getRotation(
-            Vector3d eyePos, BoundingBox target,
-            Vector3d preferred,
+            Vec3 eyePos, AxisAlignedBB target,
+            Vec3 preferred,
             Predicate<Rotation> rayCast,
             Rotation fallbackRotation,
             boolean tick
@@ -49,17 +49,17 @@ public abstract class AbstractRotationProvider {
     }
 
     protected abstract Rotation getRotationInternal(
-            Vector3d eyePos,
-            BoundingBox target,
-            Vector3d preferred,
+            Vec3 eyePos,
+            AxisAlignedBB target,
+            Vec3 preferred,
             Predicate<Rotation> rayCast,
-            BoundingBox lastTarget, Rotation lastProvidedRotation,
+            AxisAlignedBB lastTarget, Rotation lastProvidedRotation,
             boolean tick
     );
 
-    protected Rotation getBestRotationAimingBoundingBox(
-            Vector3d eyePos, BoundingBox target,
-            Vector3d preferredAimingPoint,
+    protected Rotation getBestRotationAimingAxisAlignedBB(
+            Vec3 eyePos, AxisAlignedBB target,
+            Vec3 preferredAimingPoint,
             Predicate<Rotation> rayCast
     ) {
         {

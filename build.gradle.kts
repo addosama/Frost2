@@ -88,7 +88,6 @@ dependencies {
 
     shadowImpl("org.apache.commons:commons-lang3:3.20.0")
     shadowImpl("io.github.spair:imgui-java-binding:1.90.0")
-    shadowImpl("org.joml:joml:1.10.8")
     shadowImpl("com.alibaba.fastjson2:fastjson2:2.0.61")
 
     shadowImpl("com.github.Enaium:ImGui-LWJGL2:e30f6b9")
@@ -151,7 +150,6 @@ tasks.shadowJar {
     fun relocate(name: String) = relocate(name, "pub.frost.deps.$name")
 
     relocate("org.apache.commons.lang3")
-    relocate("org.joml")
     relocate("loutre.imgui")
 }
 

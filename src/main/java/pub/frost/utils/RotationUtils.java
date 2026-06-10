@@ -1,8 +1,8 @@
 package pub.frost.utils;
 
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
-import org.joml.Vector3d;
-import pub.frost.utils.data.BoundingBox;
+import net.minecraft.util.Vec3;
 import pub.frost.utils.data.Rotation;
 
 import java.util.*;
@@ -36,12 +36,12 @@ public class RotationUtils {
         return rotationYaw;
     }
 
-    private static float[] getRotation(Vector3d eyePos, Vector3d targetPoint) {
+    private static float[] getRotation(Vec3 eyePos, Vec3 targetPoint) {
         double yaw, pitch;
         {
-            double xDiff = eyePos.x() - targetPoint.x();
-            double yDiff = eyePos.y() - targetPoint.y();
-            double zDiff = eyePos.z() - targetPoint.z();
+            double xDiff = eyePos.xCoord - targetPoint.xCoord;
+            double yDiff = eyePos.yCoord - targetPoint.yCoord;
+            double zDiff = eyePos.zCoord - targetPoint.zCoord;
             double xyDist = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(zDiff, 2));
 
             yaw = Math.toDegrees(Math.atan2(zDiff, xDiff)) + 90;
@@ -50,13 +50,13 @@ public class RotationUtils {
         return new float[]{(float) yaw, (float) pitch};
     }
 
-    public static Rotation getRotationAimingPoint(Vector3d eyePos, Vector3d targetPoint) {
+    public static Rotation getRotationAimingPoint(Vec3 eyePos, Vec3 targetPoint) {
         double yaw, pitch;
 
         {
-            double xDiff = eyePos.x() - targetPoint.x();
-            double yDiff = eyePos.y() - targetPoint.y();
-            double zDiff = eyePos.z() - targetPoint.z();
+            double xDiff = eyePos.xCoord - targetPoint.xCoord;
+            double yDiff = eyePos.yCoord - targetPoint.yCoord;
+            double zDiff = eyePos.zCoord - targetPoint.zCoord;
             double xyDist = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(zDiff, 2));
 
             yaw = Math.toDegrees(Math.atan2(zDiff, xDiff)) + 90;
@@ -65,7 +65,7 @@ public class RotationUtils {
 
         return new Rotation((float) yaw, (float) pitch);
     }
-    public static Rotation getRotationDeltaAimingPoint(Vector3d eyePos, Rotation rotation, Vector3d targetPoint) {
+    public static Rotation getRotationDeltaAimingPoint(Vec3 eyePos, Rotation rotation, Vec3 targetPoint) {
         float[] rotAimingPoint = getRotation(eyePos, targetPoint);
         return new Rotation(
                 wrapYawTo180(rotAimingPoint[0]) - wrapYawTo180(rotation.getYaw()),
@@ -73,19 +73,19 @@ public class RotationUtils {
         );
     }
 
-    public static Rotation searchRotationHittingBoundingBox(Vector3d eyePos, BoundingBox target, Predicate<Rotation> predicate, int maxStep) {
+    public static Rotation searchRotationHittingBoundingBox(Vec3 eyePos, AxisAlignedBB target, Predicate<Rotation> predicate, int maxStep) {
         int currentStep = 0;
-        List<BoundingBox> boundingBoxes = Collections.singletonList(target);
+        List<AxisAlignedBB> boundingBoxes = Collections.singletonList(target);
         while (currentStep <= maxStep) {
-            List<BoundingBox> nextList = new ArrayList<>();
-            for (BoundingBox box : boundingBoxes) {
-                Vector3d center = box.getCenter();
+            List<AxisAlignedBB> nextList = new ArrayList<>();
+            for (AxisAlignedBB box : boundingBoxes) {
+                Vec3 center = BoundingBoxUtils.getCenter(box);
                 Rotation rotation = getRotationAimingPoint(eyePos, center);
                 if (predicate.test(rotation)) return rotation;
-                else for (Vector3d vertex : box.getVertices()) {
+                else for (Vec3 vertex : BoundingBoxUtils.getVertices(box)) {
                     Rotation vertexRotation = getRotationAimingPoint(eyePos, vertex);
                     if (predicate.test(vertexRotation)) return vertexRotation;
-                    else nextList.add(new BoundingBox(vertex, center));
+                    else nextList.add(BoundingBoxUtils.createBox(vertex, center));
                 }
             }
             boundingBoxes = nextList;
@@ -95,11 +95,11 @@ public class RotationUtils {
         return null;
     }
 
-    public static Vector3d getVectorForRotation(float pitch, float yaw) {
+    public static Vec3 getVectorForRotation(float pitch, float yaw) {
         float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
         float f1 = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
         float f2 = -MathHelper.cos(-pitch * 0.017453292F);
         float f3 = MathHelper.sin(-pitch * 0.017453292F);
-        return new Vector3d((double)(f1 * f2), (double)f3, (double)(f * f2));
+        return new Vec3((double)(f1 * f2), (double)f3, (double)(f * f2));
     }
 }
