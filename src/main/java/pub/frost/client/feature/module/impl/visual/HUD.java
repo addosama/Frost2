@@ -1,6 +1,7 @@
 package pub.frost.client.feature.module.impl.visual;
 
 import imgui.*;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiScreen;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
@@ -50,6 +51,6 @@ public class HUD extends AbstractModule {
 
     private boolean isInChatHud() {
         Object currentScreen = mc.currentScreen;
-        return currentScreen instanceof GuiScreen;
+        return currentScreen instanceof GuiChat;
     }
 }
