@@ -13,7 +13,11 @@ public class Recorder<DATA> {
         this.value = defaultValue;
     }
 
+    public void updateValue(DATA value) {
+        if (!value.equals(this.value)) setValue(value);
+    }
+
     public void reset() {
-        setValue(defaultValue);
+        updateValue(defaultValue);
     }
 }
