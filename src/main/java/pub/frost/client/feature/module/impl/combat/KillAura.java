@@ -1,5 +1,6 @@
 package pub.frost.client.feature.module.impl.combat;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -74,13 +75,11 @@ public class KillAura extends AbstractModule {
 
     private final AbstractRotationProvider rotationProvider = new BasicRotationProvider();
 
+    @Getter
     private Entity target = null;
     private Rotation targetRotation = null;
     private boolean tickRotProvided;
 
-    public Entity getTarget() {
-        return target;
-    }
     private void resetTarget() {
         target = null;
     }

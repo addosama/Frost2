@@ -30,7 +30,7 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
     @Property("fov")
     public final IntegerProperty fov = new IntegerProperty(1, 180, 1, 180);
 
-    private List<Entity> provideValidTargetList() {
+    private List<Entity> provideValidTargetList(double targetRange) {
         final TargetSetting targetSetting = getParent().targeting.targets;
         List<Entity> list = new ArrayList<>();
         int fovValue = fov.get();
@@ -42,7 +42,7 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
 
             EntityLivingBase living = (EntityLivingBase) entity;
             if (living.getHealth() <= 0) continue;
-            if (EntityUtils.getDistanceToPoint(living, EntityUtils.getPositionEyes(mc.thePlayer, 1)) > targetRange.getValue()) continue;
+            if (EntityUtils.getDistanceToPoint(living, EntityUtils.getPositionEyes(mc.thePlayer, 1)) > targetRange) continue;
 
             if (targetSetting.teamCheck.get() && Teams.isTeammate(entity)) continue;
 
@@ -81,9 +81,12 @@ public class KillAuraSearching extends AbstractSubModule<KillAura> {
         list.sort(comparator);
     }
 
-    public List<Entity> searchTargets() {
-        List<Entity> list = provideValidTargetList();
+    public List<Entity> searchTargets(double targetRange) {
+        List<Entity> list = provideValidTargetList(targetRange);
         sortEntityListByPriority(list);
         return list;
+    }
+    public List<Entity> searchTargets() {
+        return searchTargets(targetRange.get());
     }
 }
