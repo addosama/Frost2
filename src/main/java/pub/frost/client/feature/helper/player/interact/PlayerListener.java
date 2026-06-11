@@ -3,6 +3,7 @@ package pub.frost.client.feature.helper.player.interact;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
@@ -72,7 +73,7 @@ public class PlayerListener {
                         packet instanceof C03PacketPlayer.C04PacketPlayerPosition
                                 || packet instanceof C03PacketPlayer.C06PacketPlayerPosLook
                 ) {
-                    positionDeque.offerValue(mc.thePlayer.getPositionVector());
+                    positionDeque.offerValue(new Vec3(c03.getPositionX(), c03.getPositionY(), c03.getPositionZ()));
                 }
                 tickableList.forEach(Tickable::tick);
             }
@@ -100,9 +101,12 @@ public class PlayerListener {
                 }
                 else if (packet instanceof C08PacketPlayerBlockPlacement) {
                     C08PacketPlayerBlockPlacement c08 =  (C08PacketPlayerBlockPlacement) packet;
-                    if (c08.getStack().getItemUseAction() != EnumAction.NONE) {
-                        usingStateRecorder.updateValue(true);
-                    } else placeRecorder.updateValue(true);
+                    ItemStack stack = c08.getStack();
+                    if (stack != null) {
+                        if (stack.getItemUseAction() != EnumAction.NONE) {
+                            usingStateRecorder.updateValue(true);
+                        } else placeRecorder.updateValue(true);
+                    }
                 }
                 else if (packet instanceof C09PacketHeldItemChange) {
                     heldItemChangeRecorder.updateValue(true);
