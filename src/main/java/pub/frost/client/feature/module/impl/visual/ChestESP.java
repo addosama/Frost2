@@ -4,8 +4,11 @@ import imgui.ImGui;
 import imgui.ImVec2;
 import javax.vecmath.Matrix4f;
 
+import javafx.scene.chart.Axis;
+import net.minecraft.block.BlockChest;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.tileentity.TileEntityChest;
 import pub.frost.base.event.api.annotations.EventHandler;
@@ -23,9 +26,7 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.utils.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Module(
         key = "ChestESP",
@@ -84,14 +85,43 @@ public class ChestESP extends AbstractModule {
             final EnumBoxRenderType renderType = mode.get();
             final float thickness = this.thickness.get();
             final boolean shadow = this.shadow.get();
+            Set<TileEntity> renderedChests = new HashSet<>();
             for (TileEntity tile : cachedChestData) {
-                AxisAlignedBB bb = BoundingBoxUtils.move(tile.getRenderBoundingBox(), negatedPlayerPos);
+                if (renderedChests.contains(tile)) continue;
+                renderedChests.add(tile);
+
+                BlockPos pos = tile.getPos();
+                AxisAlignedBB bb = new AxisAlignedBB(
+                        pos.getX(), pos.getY(), pos.getZ(),
+                        pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1
+                );
+                if (tile instanceof TileEntityChest) {
+                    TileEntityChest chest = (TileEntityChest) tile;
+                    TileEntityChest adjacent;
+                    blockAdjacentGetter:
+                    {
+                        adjacent = chest.adjacentChestXNeg;
+                        if (adjacent != null) break blockAdjacentGetter;
+                        else adjacent = chest.adjacentChestXPos;
+                        if (adjacent != null) break blockAdjacentGetter;
+                        else adjacent = chest.adjacentChestZPos;
+                        if (adjacent != null) break blockAdjacentGetter;
+                        else adjacent = chest.adjacentChestZNeg;
+                    }
+
+                    if (adjacent != null) {
+                        renderedChests.add(adjacent);
+                        BlockPos adjacentPos = adjacent.getPos().subtract(chest.getPos());
+                        bb = bb.addCoord(adjacentPos.getX(), adjacentPos.getY(), adjacentPos.getZ());
+                    }
+                }
+
                 if (expandSize != 0) {
                     bb = bb.expand(expandSize, expandSize, expandSize);
                 }
 
                 RenderUtils.renderBox(
-                        bb,
+                        BoundingBoxUtils.move(bb, negatedPlayerPos),
                         cachedModelView, cachedProjection,
                         (int) ImGui.getIO().getDisplaySizeX(), (int) ImGui.getIO().getDisplaySizeY(),
                         renderType, thickness, shadow? 2 : 0,

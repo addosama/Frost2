@@ -194,12 +194,12 @@ public class BoundingBoxUtils {
         return new Vec3[]{
                 new Vec3(box.minX, box.minY, box.minZ),
                 new Vec3(box.minX, box.minY, box.maxZ),
+                new Vec3(box.maxX, box.minY, box.maxZ),
+                new Vec3(box.maxX, box.minY, box.minZ),
                 new Vec3(box.minX, box.maxY, box.minZ),
                 new Vec3(box.minX, box.maxY, box.maxZ),
-                new Vec3(box.maxX, box.minY, box.minZ),
-                new Vec3(box.maxX, box.minY, box.maxZ),
-                new Vec3(box.maxX, box.maxY, box.minZ),
-                new Vec3(box.maxX, box.maxY, box.maxZ)
+                new Vec3(box.maxX, box.maxY, box.maxZ),
+                new Vec3(box.maxX, box.maxY, box.minZ)
         };
     }
 
@@ -250,6 +250,18 @@ public class BoundingBoxUtils {
     }
     public static double getSizeZ(AxisAlignedBB bb) {
         return bb.maxZ - bb.minZ;
+    }
+
+    public static AxisAlignedBB expand(AxisAlignedBB bb, EnumFacing facing, double size) {
+        Vec3i n = facing.getDirectionVec();
+        return new AxisAlignedBB(
+                bb.minX + n.getX() * size,
+                bb.minY + n.getY() * size,
+                bb.minZ + n.getZ() * size,
+                bb.maxX + n.getX() * size,
+                bb.maxY + n.getY() * size,
+                bb.maxZ + n.getZ() * size
+        );
     }
 
     private static class Plane {
