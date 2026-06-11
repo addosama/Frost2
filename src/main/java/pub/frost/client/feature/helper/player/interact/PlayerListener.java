@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
@@ -14,11 +15,14 @@ import pub.frost.base.event.impl.types.TickType;
 import pub.frost.utils.api.Tickable;
 import pub.frost.utils.recorder.Recorder;
 import pub.frost.utils.recorder.impl.deque.DataDeque;
+import pub.frost.utils.recorder.impl.deque.TickableDataDeque;
 import pub.frost.utils.recorder.impl.state.SingleTickStateRecorder;
 import pub.frost.utils.recorder.impl.state.TickableStateRecorder;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public class PlayerListener {
@@ -33,6 +37,7 @@ public class PlayerListener {
     private final SingleTickStateRecorder heldItemChangeRecorder = new SingleTickStateRecorder();
 
     private final DataDeque<Vec3> positionDeque = new DataDeque<>(20);
+    private final TickableDataDeque<Map.Entry<Vec3, Vec3>> velocityDeque = new TickableDataDeque<>(20);
 
     private final List<Tickable> tickableList = Arrays.asList(
             diggingStateRecorder,
@@ -41,7 +46,9 @@ public class PlayerListener {
             swingRecorder,
             attackRecorder,
             placeRecorder,
-            heldItemChangeRecorder
+            heldItemChangeRecorder,
+            
+            velocityDeque
     );
     private final List<Recorder<?>> recorderList = Arrays.asList(
             diggingStateRecorder,
@@ -62,11 +69,11 @@ public class PlayerListener {
         }
     }
 
-    @EventHandler(priority = 100)
+    @EventHandler(priority = -1)
     public void prePacket(EventPacket e) {
         if (e.isCancelled()) return;
+        Object packet = e.getPacket();
         if (e.getType() == PacketType.OUT) {
-            Object packet = e.getPacket();
             if (packet instanceof C03PacketPlayer) {
                 C03PacketPlayer c03 = (C03PacketPlayer) packet;
                 if (
@@ -115,6 +122,19 @@ public class PlayerListener {
                 else if (packet instanceof C0APacketAnimation) {
                     swingRecorder.updateValue(true);
                 }
+            }
+        }
+        else {
+            if (packet instanceof S12PacketEntityVelocity) {
+                S12PacketEntityVelocity s12 = (S12PacketEntityVelocity) packet;
+                velocityDeque.offerValue(new AbstractMap.SimpleEntry<>(
+                        mc.thePlayer.getPositionVector(),
+                        new Vec3(
+                                s12.getMotionX() / 8000d,
+                                s12.getMotionY() / 8000d,
+                                s12.getMotionZ() / 8000d
+                        )
+                ));
             }
         }
     }

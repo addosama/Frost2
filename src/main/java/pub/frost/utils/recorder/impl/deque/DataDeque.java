@@ -8,7 +8,11 @@ import java.util.Deque;
 public class DataDeque<DATA> extends Recorder<Deque<DATA>> {
     private final int length;
     public DataDeque(int length) {
-        super(new ArrayDeque<>());
+        this(new ArrayDeque<>(), length);
+    }
+
+    public DataDeque(Deque<DATA> deque, int length) {
+        super(deque);
         this.length = length;
     }
 

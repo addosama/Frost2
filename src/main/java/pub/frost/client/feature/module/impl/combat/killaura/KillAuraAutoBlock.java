@@ -29,6 +29,7 @@ import pub.frost.utils.raycast.RayCastUtils;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 
 @SubModule(KillAura.class)
 public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
@@ -92,7 +93,6 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         for (Entity entity : entities) {
             if (inDanger) break;
             if (!(entity instanceof EntityPlayer)) continue;
-            Deque<Vec3> pastPosDeque = FrostCore.getHelpers().getPlayerListener().getPositionDeque().getValueCopy();
 
             if (
                     RayCastUtils.getSimpleHitResult(
@@ -106,9 +106,37 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
             }
 
             if (predict.predictPastPos.get()) {
+                Deque<Vec3> pastPosDeque = FrostCore.getHelpers().getPlayerListener().getPositionDeque().getValueCopy();
                 for (int ticks = 0; ticks <= predict.pastTicks.get(); ticks++) {
                     if (pastPosDeque.isEmpty()) break;
                     Vec3 pastPos = pastPosDeque.pollFirst();
+                    AxisAlignedBB pastBB = EntityUtils.getBoundingBoxAtPosition(
+                            mc.thePlayer, pastPos
+                    );
+
+                    if (
+                            RayCastUtils.getSimpleHitResult(
+                                    entity.getPositionEyes(1),
+                                    entity.rotationYaw, entity.rotationPitch,
+                                    pastBB
+                            ).getKey()
+                    ) {
+                        inDanger = true;
+                        break;
+                    }
+                }
+            }
+            if (predict.testVelocityPosition.get()) {
+                Deque<Map.Entry<Vec3, Vec3>> velocityDeque = FrostCore.getHelpers().getPlayerListener().getVelocityDeque().getValueCopy();
+                for (int ticks = 0; ticks <= predict.velocityInTicks.get(); ticks++) {
+                    if (velocityDeque.isEmpty()) break;
+
+                    if (velocityDeque.peekFirst() == null) {
+                        velocityDeque.pollFirst();
+                        continue;
+                    }
+
+                    Vec3 pastPos = velocityDeque.pollFirst().getKey();
                     AxisAlignedBB pastBB = EntityUtils.getBoundingBoxAtPosition(
                             mc.thePlayer, pastPos
                     );
@@ -202,5 +230,10 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         public final BooleanProperty predictPastPos = new BooleanProperty(true);
         @Property("PastTicks")
         public final IntegerProperty pastTicks = new IntegerProperty(1, 20, 1, 5);
+
+        @Property("TestVelocityPosition")
+        public final BooleanProperty testVelocityPosition = new BooleanProperty(true);
+        @Property("VelocityInTicks")
+        public final IntegerProperty velocityInTicks = new IntegerProperty(1, 20, 1, 5);
     }
 }
