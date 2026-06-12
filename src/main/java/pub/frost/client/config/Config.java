@@ -49,18 +49,44 @@ public class Config {
             jsonObject.put("modules", modules);
         }
 
+        // client
+        {
+            JSONObject client = new JSONObject();
+            for (PropertyDescriptor descriptor : FrostCore.getInstance().getClientSettings().getDescMap().values()) {
+                client.put(descriptor.getKey(), descriptor.getChildProperties());
+            }
+            jsonObject.put("client", client);
+        }
+
         this.json = JSON.parseObject(jsonObject.toJSONString(JSONWriter.Feature.PrettyFormat, JSONWriter.Feature.WriteEnumUsingToString, JSONWriter.Feature.FieldBased));
     }
 
     public void load() {
-        JSONObject moduleData = json.getJSONObject("modules");
-        if (moduleData == null) invalidConfig();
+        // modules
+        {
+            JSONObject moduleData = json.getJSONObject("modules");
+            if (moduleData == null) invalidConfig();
 
-        for (AbstractModule m : FrostCore.getInstance().getModuleManager().getRegisteredModules()) {
-            JSONArray propArray = moduleData.getJSONArray(m.getKey());
-            if (propArray == null) continue;
-            for (JSONObject propJson : propArray.toJavaList(JSONObject.class)) {
-                analyzeDescriptorData(propJson, m::getDescriptor);
+            for (AbstractModule m : FrostCore.getInstance().getModuleManager().getRegisteredModules()) {
+                JSONArray propArray = moduleData.getJSONArray(m.getKey());
+                if (propArray == null) continue;
+                for (JSONObject propJson : propArray.toJavaList(JSONObject.class)) {
+                    analyzeDescriptorData(propJson, m::getDescriptor);
+                }
+            }
+        }
+
+        // client
+        {
+            JSONObject clientData = json.getJSONObject("client");
+            if (clientData == null) invalidConfig();
+
+            for (PropertyDescriptor descriptor : FrostCore.getInstance().getClientSettings().getDescMap().values()) {
+                JSONArray propArray = clientData.getJSONArray(descriptor.getKey());
+                if (propArray == null) continue;
+                for (JSONObject propJson : propArray.toJavaList(JSONObject.class)) {
+                    analyzeDescriptorData(propJson, FrostCore.getInstance().getClientSettings()::getDescriptor);
+                }
             }
         }
     }

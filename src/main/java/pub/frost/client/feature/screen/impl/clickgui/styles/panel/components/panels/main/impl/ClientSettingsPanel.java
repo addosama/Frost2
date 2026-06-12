@@ -10,7 +10,6 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.MainPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.child.PropertyPanel;
 import pub.frost.client.property.descriptor.PropertyDescriptor;
-import pub.frost.client.property.descriptor.PropertyDescriptorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +20,7 @@ public class ClientSettingsPanel extends MainPanel {
 
     public ClientSettingsPanel(PanelClickGui gui) {
         super(gui);
-        for (PropertyDescriptor group : PropertyDescriptorFactory.createForObject(FrostCore.getInstance().getClientSettings()).build().getDescriptorMap().values()) {
+        for (PropertyDescriptor group : FrostCore.getInstance().getClientSettings().getDescMap().values()) {
             panels.add(new PropertyPanel(
                     gui,
                     group::getName,
