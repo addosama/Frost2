@@ -42,8 +42,8 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
         ImGui.pushStyleColor(ImGuiCol.Border, gui.getTheme().getWindowBorderColor());
         if (ImGui.beginPopup(this.toString())) {
             ImGui.pushStyleColor(ImGuiCol.Button, gui.getTheme().getButtonBgColor());
-            ImGui.pushStyleColor(ImGuiCol.ButtonActive, gui.getTheme().getButtonBgColor());
-            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, gui.getTheme().getButtonBgColor());
+            ImGui.pushStyleColor(ImGuiCol.ButtonActive, gui.getTheme().getButtonActiveBgColor());
+            ImGui.pushStyleColor(ImGuiCol.ButtonHovered, gui.getTheme().getButtonHoveredBgColor());
             ImGui.pushStyleColor(ImGuiCol.Text, gui.getTheme().getMainColor());
 
             int renderedData = renderOverrideData(dummy, tickDelta);
