@@ -175,4 +175,81 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         SelectorElementActiveColor
         ;
     }
+
+    @TranslationKey("strings.enum.guitheme.~")
+    @RequiredArgsConstructor @Getter
+    public enum EnumTheme implements Named {
+        LIGHT(
+                "Light",
+                new ColorTheme(
+                        0x99FFFFFF,
+                        0x33000000,
+                        0,
+                        0xFF4D4D4D,
+                        0xFF808080,
+                        0xFF1A1A1A,
+                        0xFFFF7D66,
+                        0x50999999,
+                        0xFFEBEBEB,
+                        0xFFF2F2F2,
+                        0x20000000,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFFFFFF,
+                        0xFFE5E5E5,
+                        0xFFE5E5E5,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFFFFFFF,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFE5E5E5,
+                        0x50CCCCCC,
+                        0x50999999
+                )
+        ),
+        DARK(
+                "dark",
+                new ColorTheme(
+                        0x99FFFFFF,
+                        0x33000000,
+                        0,
+                        0xFF4D4D4D,
+                        0xFF808080,
+                        0xFF1A1A1A,
+                        0xFFFF7D66,
+                        0x50999999,
+                        0xFFEBEBEB,
+                        0xFFF2F2F2,
+                        0x20000000,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFFFFFF,
+                        0xFFE5E5E5,
+                        0xFFE5E5E5,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFFFFFFF,
+                        0xFFE5E5E5,
+                        0xFFFF9966,
+                        0xFFFF9966,
+                        0xFFE5E5E5,
+                        0x50CCCCCC,
+                        0x50999999
+                )
+        )
+        ;
+        final String key;
+        final ColorTheme theme;
+
+        @Override
+        public String toString() {
+            return key;
+        }
+    }
 }
