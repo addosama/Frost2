@@ -133,8 +133,12 @@ public class ModuleListPanel extends MainPanel {
 
             ImGui.setCursorPos(cursorPos);
 
-            int trackColor = 0;
-            int thumbColor = ImGui.getColorU32(0, 0, 0, held ? 0.55f : hovered ? 0.42f : 0.28f);
+            int trackColor = gui.getTheme().getScrollbarTrackColor();
+            int thumbColor = held?
+                    gui.getTheme().getScrollbarThumbActiveColor()
+                    : hovered? gui.getTheme().getScrollbarThumbHoverColor()
+                      : gui.getTheme().getScrollbarThumbColor();
+
 
             if (!dummy) {
                 ImDrawList drawList = ImGui.getWindowDrawList();

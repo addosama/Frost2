@@ -70,12 +70,12 @@ public class CategoryPanel extends PanelComponent {
                 ImVec2 min = ImGui.getItemRectMin(), max = ImGui.getItemRectMax();
                 ImGui.getWindowDrawList().addRectFilled(
                         min, max,
-                        0xFF663329, 12f
+                        gui.getTheme().getClientIconBgColor(), 12f
                 );
                 ImGui.pushFont(FontManager.INSTANCE.icon16);
                 ImGui.getWindowDrawList().addText(
                         min.plus(10, 10),
-                        0xFFFFEAE5,
+                        gui .getTheme().getClientIconColor(),
                         "\ue601"
                 );
                 ImGui.popFont();
@@ -93,13 +93,13 @@ public class CategoryPanel extends PanelComponent {
             // client name
             ImGui.pushFont(FontManager.INSTANCE.puhui14);
             ImGui.setCursorPosY(centerY - 1 - ImGui.getFont().getAscent());
-            ImGui.textColored(0xFF331A15, "Frost");
+            ImGui.textColored(gui.getTheme().getClientNameColor(), "Frost");
             ImGui.popFont();
 
             // client version
             ImGui.pushFont(FontManager.INSTANCE.puHui10);
             ImGui.setCursorPosY(centerY + 1);
-            ImGui.textColored(0xFF665552, FrostCore.getVersionString());
+            ImGui.textColored(gui.getTheme().getClientVersionColor(), FrostCore.getVersionString());
             ImGui.popFont();
 
             ImGui.endGroup();
@@ -142,7 +142,7 @@ public class CategoryPanel extends PanelComponent {
                 ImGui.pushFont(FontManager.INSTANCE.puHui12);
                 draws.addText(
                         centerVec.minus(0, ImGui.getFont().getAscent() + 1),
-                        0xFF331A15,
+                        gui.getTheme().getClientNameColor(),
                         "Beta User"
                 );
                 ImGui.popFont();
@@ -151,7 +151,7 @@ public class CategoryPanel extends PanelComponent {
                 ImGui.pushFont(FontManager.INSTANCE.puHui10);
                 draws.addText(
                         centerVec.plus(0, 1),
-                        0xFF665552,
+                        gui.getTheme().getClientVersionColor(),
                         "Nightly Beta License"
                 );
                 ImGui.popFont();

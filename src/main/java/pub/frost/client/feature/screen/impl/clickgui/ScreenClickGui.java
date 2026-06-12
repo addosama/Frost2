@@ -2,6 +2,7 @@ package pub.frost.client.feature.screen.impl.clickgui;
 
 import imgui.ImGui;
 import imgui.flag.ImGuiStyleVar;
+import lombok.Getter;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.bindable.api.IBindable;
@@ -13,6 +14,7 @@ public class ScreenClickGui extends ClientScreen implements IBindable {
         FrostCore.getInstance().getBindableManager().register(this);
     }
 
+    @Getter
     private final PanelClickGui panel = new PanelClickGui();
 
     @Override

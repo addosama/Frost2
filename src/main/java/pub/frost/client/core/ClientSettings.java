@@ -1,5 +1,7 @@
 package pub.frost.client.core;
 
+import pub.frost.client.feature.screen.impl.clickgui.ScreenClickGui;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.i18n.I18n;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
@@ -10,10 +12,20 @@ import pub.frost.client.property.impl.mode.ModeProperty;
 
 import java.util.Map;
 
-public class ClientSettings {
+public final class ClientSettings {
+    @InsertProperty("client.appearance")
+    public Appearance appearance = new Appearance();
     @InsertProperty("client.Localizing")
     public Localizing localizing = new Localizing();
 
+    public static class Appearance {
+        @Property("GuiTheme")
+        public ModeProperty<PanelClickGui.EnumTheme> guiTheme = new ModeProperty<>(PanelClickGui.EnumTheme.LIGHT)
+                .setValueChangeListener((o, n) -> {
+                    FrostCore.getInstance().getClientScreenManager().getScreen(ScreenClickGui.class).getPanel()
+                            .setTheme(n.getTheme());
+                });
+    }
     public static class Localizing {
         @Property("client.localizing.Language")
         public ModeProperty<I18n.Language> language = new ModeProperty<>(I18n.Language.ENGLISH)

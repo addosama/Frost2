@@ -20,6 +20,8 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.pan
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButton;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButtonGroup;
+import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.i18n.interfaces.Named;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,36 +29,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class PanelClickGui implements RenderableComponent, InputListener {
-    @Getter
-    private final ColorTheme theme = new ColorTheme(
-            0x99FFFFFF,
-            0x33000000,
-            0,
-            0xFF4D4D4D,
-            0xFF808080,
-            0xFF1A1A1A,
-            ImColor.rgba("#667DFFFF"),
-            0x50999999,
-            0xFFEBEBEB,
-            0xFFF2F2F2,
-            0x20000000,
-            0xFFE5E5E5,
-            ImColor.rgba("#6699FFFF"),
-            0xFFFFFFFF,
-            0xFFE5E5E5,
-            0xFFE5E5E5,
-            0xFFE5E5E5,
-            ImColor.rgba("#6699FFFF"),
-            ImColor.rgba("#6699FFFF"),
-            ImColor.rgba("#6699FFFF"),
-            0xFFFFFFFF,
-            0xFFE5E5E5,
-            ImColor.rgba("#6699FFFF"),
-            ImColor.rgba("#6699FFFF"),
-            0xFFE5E5E5,
-            0x50CCCCCC,
-            0x50999999
-    );
+    @Getter @Setter
+    private ColorTheme theme = EnumTheme.LIGHT.getTheme();
 
     private final CategoryPanel categoryPanel;
     @Getter @Setter
@@ -146,6 +120,10 @@ public class PanelClickGui implements RenderableComponent, InputListener {
     @RequiredArgsConstructor @Getter
     public static class ColorTheme {
         private final int
+        ClientIconBgColor,
+        ClientIconColor,
+        ClientNameColor,
+        ClientVersionColor,
         WindowBgColor,
         WindowBorderColor,
         CategoryPanelBgColor,
@@ -172,7 +150,11 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         SliderIndicatorColor,
         SelectorBgColor,
         SelectorElementHoverColor,
-        SelectorElementActiveColor
+        SelectorElementActiveColor,
+        ScrollbarTrackColor,
+        ScrollbarThumbColor,
+        ScrollbarThumbHoverColor,
+        ScrollbarThumbActiveColor
         ;
     }
 
@@ -182,6 +164,10 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         LIGHT(
                 "Light",
                 new ColorTheme(
+                        0xFF663329,
+                        0xFFFFEAE5,
+                        0xFF331A15,
+                        0xFF665552,
                         0x99FFFFFF,
                         0x33000000,
                         0,
@@ -208,39 +194,51 @@ public class PanelClickGui implements RenderableComponent, InputListener {
                         0xFFFF9966,
                         0xFFE5E5E5,
                         0x50CCCCCC,
-                        0x50999999
+                        0x50999999,
+                        0,
+                        ImColor.rgba(0, 0, 0, 0.28f),
+                        ImColor.rgba(0, 0, 0, 0.42f),
+                        ImColor.rgba(0, 0, 0, 0.55f)
                 )
         ),
         DARK(
-                "dark",
-                new ColorTheme(
-                        0x99FFFFFF,
-                        0x33000000,
+                "Dark",
+                new PanelClickGui.ColorTheme(
+                        0xFF663329,
+                        0xFFFFEAE5,
+                        0xFFE5D2CF,
+                        0xFF807573,
+                        0x990E0E0A,
+                        0x33FFFFFF,
                         0,
-                        0xFF4D4D4D,
+                        0xFFCCCCCC,
                         0xFF808080,
-                        0xFF1A1A1A,
+                        0xFFFFFFFF,
                         0xFFFF7D66,
-                        0x50999999,
-                        0xFFEBEBEB,
-                        0xFFF2F2F2,
-                        0x20000000,
-                        0xFFE5E5E5,
+                        0x50000000,
+                        0xFF0D0D0D,
+                        0xFF1A1A1A,
+                        0x20FFFFFF,
+                        0xFF262626,
                         0xFFFF9966,
                         0xFFFFFFFF,
-                        0xFFE5E5E5,
-                        0xFFE5E5E5,
-                        0xFFE5E5E5,
+                        0xFF262626,
+                        0xFF262626,
+                        0xFF262626,
                         0xFFFF9966,
                         0xFFFF9966,
                         0xFFFF9966,
                         0xFFFFFFFF,
-                        0xFFE5E5E5,
+                        0xFF262626,
                         0xFFFF9966,
                         0xFFFF9966,
-                        0xFFE5E5E5,
+                        0xFF262626,
                         0x50CCCCCC,
-                        0x50999999
+                        0x50999999,
+                        0,
+                        ImColor.rgba(1, 1, 1, 0.14f),
+                        ImColor.rgba(1, 1, 1, 0.21f),
+                        ImColor.rgba(1, 1, 1, 0.37f)
                 )
         )
         ;
