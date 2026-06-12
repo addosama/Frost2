@@ -3,6 +3,7 @@ package pub.frost.client.i18n;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.utils.ResourceGetter;
 
 import java.io.IOException;
@@ -13,11 +14,16 @@ import java.util.Properties;
 
 public class I18n {
     @RequiredArgsConstructor
-    public enum Language {
+    public enum Language implements Named {
         ENGLISH("en_US"),
         CHINESE("zh_CN");
 
         final String code;
+
+        @Override
+        public String getName() {
+            return FrostCore.getInstance().getI18nHelper().getLanguageName(this);
+        }
     }
 
     private static final Language DEFAULT_LANGUAGE = Language.ENGLISH;
@@ -57,5 +63,9 @@ public class I18n {
         Localizer targetLocalizer = localizerMap.get(language);
         if (targetLocalizer == null) return;
         currentLocalizer = targetLocalizer;
+    }
+
+    public String getLanguageName(Language language) {
+        return localizerMap.get(language).getOrDefault("language.displayname", "Unknown");
     }
 }

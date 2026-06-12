@@ -9,9 +9,20 @@ public class Localizer {
         this.properties = properties;
     }
 
-    public String get(String key) {
-        return getOrDefault(key, key);
+    public String get(String key, boolean smartLocalize, boolean markUnlocalized) {
+        String value = getOrDefault(key, null);
+        if (value == null) {
+            if (!smartLocalize) return key.toLowerCase();
+            String[] array = key.split("\\.");
+            if (array.length < 2) return "*" + key;
+            return (markUnlocalized? "§l*§r" : "") + array[array.length - 1];
+        }
+        else return value;
     }
+    public String get(String key) {
+        return get(key, true, false);
+    }
+
     public String getOrDefault(String key, String defaultValue) {
         return properties.getProperty(key.toLowerCase(), defaultValue);
     }
