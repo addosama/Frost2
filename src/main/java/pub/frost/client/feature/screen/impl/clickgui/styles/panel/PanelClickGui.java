@@ -15,6 +15,7 @@ import pub.frost.client.feature.screen.components.InputListener;
 import pub.frost.client.feature.screen.components.RenderableComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.category.CategoryPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.MainPanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ClientSettingsPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ConfigManagementPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.impl.ModuleListPanel;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButton;
@@ -77,6 +78,12 @@ public class PanelClickGui implements RenderableComponent, InputListener {
                                 new ConfigManagementPanel(this),
                                 "\ue868",
                                 () -> FrostCore.getLocalizer().get("strings.config")
+                        ),
+                        createCategoryButton(
+                                catePanel,
+                                new ClientSettingsPanel(this),
+                                "\ue8ba",
+                                () -> FrostCore.getLocalizer().get("strings.Settings")
                         )
                 )
         ));

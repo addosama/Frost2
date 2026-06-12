@@ -16,11 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ModulePanel extends PanelComponent {
+public class PropertyPanel extends PanelComponent {
     private final Supplier<String> titleSupplier;
     private final Supplier<Float> widthSupplier;
     private final List<PanelComponent> components;
-    public ModulePanel(PanelClickGui gui, Supplier<String> titleSupplier, List<PropertyDescriptor> descriptorList, Supplier<Float> widthSupplier) {
+    public PropertyPanel(PanelClickGui gui, Supplier<String> titleSupplier, List<PropertyDescriptor> descriptorList, Supplier<Float> widthSupplier) {
         super(gui);
         this.titleSupplier = titleSupplier;
         this.widthSupplier = widthSupplier;
@@ -30,7 +30,7 @@ public class ModulePanel extends PanelComponent {
             if (component != null) components.add(component);
         });
     }
-    public ModulePanel(PanelClickGui gui, AbstractModule module, Supplier<Float> widthSupplier) {
+    public PropertyPanel(PanelClickGui gui, AbstractModule module, Supplier<Float> widthSupplier) {
         this(gui, module::getName, module.getPropertyList(), widthSupplier);
     }
 

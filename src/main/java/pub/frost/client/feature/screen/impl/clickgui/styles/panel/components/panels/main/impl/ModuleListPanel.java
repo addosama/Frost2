@@ -10,7 +10,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.module.api.ModuleCategory;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.MainPanel;
-import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.child.ModulePanel;
+import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.panels.main.child.PropertyPanel;
 import pub.frost.utils.InputUtils;
 import pub.frost.utils.MathUtils;
 
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ModuleListPanel extends MainPanel {
-    private final List<ModulePanel> leftPanels, rightPanels;
+    private final List<PropertyPanel> leftPanels, rightPanels;
     private float panelWidth = 0;
     public ModuleListPanel(PanelClickGui gui, ModuleCategory category) {
         super(gui);
@@ -30,7 +30,7 @@ public class ModuleListPanel extends MainPanel {
         for (AbstractModule module : FrostCore.getInstance().getModuleManager().getModulesByCategory(category)) {
             boolean left = leftSize <= rightSize;
             int propSize = module.getPropertyList().size();
-            ModulePanel panel = new ModulePanel(gui, module, widthSupplier);
+            PropertyPanel panel = new PropertyPanel(gui, module, widthSupplier);
             if (left) {
                 leftPanels.add(panel);
                 leftSize += propSize;
@@ -65,13 +65,13 @@ public class ModuleListPanel extends MainPanel {
             panelWidth = (size.x - 8) / 2;
 
             ImGui.beginGroup();
-            for (ModulePanel panel : leftPanels) panel.render(dummy, tickDelta);
+            for (PropertyPanel panel : leftPanels) panel.render(dummy, tickDelta);
             ImGui.endGroup();
 
             ImGui.sameLine();
 
             ImGui.beginGroup();
-            for (ModulePanel panel : rightPanels) panel.render(dummy, tickDelta);
+            for (PropertyPanel panel : rightPanels) panel.render(dummy, tickDelta);
             ImGui.endGroup();
         }
         ImGui.endChild();

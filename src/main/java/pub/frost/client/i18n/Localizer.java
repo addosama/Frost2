@@ -1,5 +1,7 @@
 package pub.frost.client.i18n;
 
+import pub.frost.client.core.FrostCore;
+
 import java.util.Properties;
 
 public class Localizer {
@@ -13,14 +15,19 @@ public class Localizer {
         String value = getOrDefault(key, null);
         if (value == null) {
             if (!smartLocalize) return key.toLowerCase();
+            String prefix = markUnlocalized? "§l*§r" : "";
             String[] array = key.split("\\.");
-            if (array.length < 2) return "*" + key;
-            return (markUnlocalized? "§l*§r" : "") + array[array.length - 1];
+            if (array.length < 2) return prefix + key;
+            return prefix + array[array.length - 1];
         }
         else return value;
     }
     public String get(String key) {
-        return get(key, true, false);
+        return get(
+                key,
+                FrostCore.getInstance().getClientSettings().localizing.smartLocalize.get(),
+                FrostCore.getInstance().getClientSettings().localizing.markUnlocalizedString.get()
+        );
     }
 
     public String getOrDefault(String key, String defaultValue) {

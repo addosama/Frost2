@@ -42,7 +42,8 @@ public final class FrostCore implements Initializer {
     private ConfigManager configManager;
 
     private ClientScreenManager clientScreenManager;
-    
+
+    private ClientSettings clientSettings;
     private ClientHelpers helpers;
 
     public FrostCore() {
@@ -61,6 +62,7 @@ public final class FrostCore implements Initializer {
 
         clientScreenManager = registerToEventBus(new ClientScreenManager());
 
+        clientSettings = new ClientSettings();
         helpers = new ClientHelpers();
 
         FrostCore.getClientDir().toFile().mkdirs();
