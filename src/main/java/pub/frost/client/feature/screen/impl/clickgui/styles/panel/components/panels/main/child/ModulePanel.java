@@ -9,6 +9,7 @@ import pub.frost.client.feature.module.api.AbstractModule;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.PropertyComponent;
+import pub.frost.client.property.descriptor.PropertyDescriptor;
 import pub.frost.utils.ImTextRenderer;
 
 import java.util.ArrayList;
@@ -16,18 +17,21 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class ModulePanel extends PanelComponent {
-    private final AbstractModule module;
+    private final Supplier<String> titleSupplier;
     private final Supplier<Float> widthSupplier;
     private final List<PanelComponent> components;
-    public ModulePanel(PanelClickGui gui, AbstractModule module, Supplier<Float> widthSupplier) {
+    public ModulePanel(PanelClickGui gui, Supplier<String> titleSupplier, List<PropertyDescriptor> descriptorList, Supplier<Float> widthSupplier) {
         super(gui);
-        this.module = module;
+        this.titleSupplier = titleSupplier;
         this.widthSupplier = widthSupplier;
         this.components = new ArrayList<>();
-        module.getPropertyList().forEach(d -> {
+        descriptorList.forEach(d -> {
             PanelComponent component = PropertyComponent.buildForDescriptor(gui, d);
             if (component != null) components.add(component);
         });
+    }
+    public ModulePanel(PanelClickGui gui, AbstractModule module, Supplier<Float> widthSupplier) {
+        this(gui, module::getName, module.getPropertyList(), widthSupplier);
     }
 
     @Override
@@ -43,16 +47,17 @@ public class ModulePanel extends PanelComponent {
         );
         // title
         {
+            String title = titleSupplier.get();
             ImGui.pushFont(FontManager.INSTANCE.puHui10);
             ImGui.dummy(10, 0);
             ImGui.sameLine();
             ImTextRenderer.drawText(
                     ImGui.getWindowDrawList(),
-                    module.getName(),
+                    title,
                     ImGui.getCursorScreenPosX(), ImGui.getCursorScreenPosY(),
                     gui.getTheme().getSecondaryColor()
             );
-            ImGui.textColored(0, module.getName());
+            ImGui.textColored(0, title);
             ImGui.popFont();
         }
         // props
