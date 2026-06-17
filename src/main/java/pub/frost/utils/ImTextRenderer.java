@@ -10,8 +10,9 @@ import java.util.regex.Matcher;
 public class ImTextRenderer {
     public static void drawText(ImDrawList list, String string, float x, float y, int color, int shadowColor, boolean bold) {
         if (shadowColor != 0) {
-            list.addText(x + 1, y + 1, shadowColor, string);
-            if (bold) list.addText(x + 2, y + 1, shadowColor, string);
+            float shadowOffset = getShadowOffset();
+            list.addText(x + shadowOffset, y + shadowOffset, shadowColor, string);
+            if (bold) list.addText(x + 1 + shadowOffset, y + shadowOffset, shadowColor, string);
         }
         list.addText(x, y, color, string);
         if (bold) list.addText(x + 1, y, color, string);
@@ -88,10 +89,11 @@ public class ImTextRenderer {
     }
     public static void drawOutlinedText(ImDrawList list, String string, float x, float y, int color, int outlineColor) {
         String unformatted = EnumTextFormatting.removeFormat(string);
-        drawText(list, unformatted, x, y - 1, outlineColor, 0);
-        drawText(list, unformatted, x - 1, y, outlineColor, 0);
-        drawText(list, unformatted, x, y + 1, outlineColor, 0);
-        drawText(list, unformatted, x + 1, y, outlineColor, 0);
+        float shadowOffset = 1;
+        drawText(list, unformatted, x, y - shadowOffset, outlineColor, 0);
+        drawText(list, unformatted, x - shadowOffset, y, outlineColor, 0);
+        drawText(list, unformatted, x, y + shadowOffset, outlineColor, 0);
+        drawText(list, unformatted, x + shadowOffset, y, outlineColor, 0);
         drawText(list, string, x, y, color);
     }
 
@@ -107,5 +109,8 @@ public class ImTextRenderer {
     }
     public static float getTextHeight() {
         return ImGui.getTextLineHeight();
+    }
+    public static float getShadowOffset() {
+        return (getTextHeight() / 18f) * 1.2f;
     }
 }
