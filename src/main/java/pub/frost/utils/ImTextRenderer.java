@@ -105,7 +105,45 @@ public class ImTextRenderer {
     }
 
     public static float getTextWidth(String text) {
-        return ImGui.calcTextSizeX(EnumTextFormatting.removeFormat(text));
+        Matcher matcher = EnumTextFormatting.formattingCodePattern.matcher(text);
+        int lastEnd = 0;
+        float currentWidth = 0;
+        boolean currentBold = false;
+
+        while (matcher.find()) {
+            String content = text.substring(lastEnd, matcher.start());
+            if (!content.isEmpty()) {
+                currentWidth += ImGui.calcTextSizeX(content) + (currentBold? 1 : 0);
+            }
+
+            // 2. 根据匹配到的代码更新颜色 (例如 §c -> 红色)
+            String code = matcher.group(); // 得到 "§c"
+            char colorCode = code.charAt(1);
+            EnumTextFormatting formatting = EnumTextFormatting.getFormatByCode(colorCode);
+            if (formatting != null) {
+                if (!formatting.isColor()) {
+                    switch (formatting) {
+                        case RESET: {
+                            currentBold = false;
+                            break;
+                        }
+                        case BOLD: {
+                            currentBold = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            lastEnd = matcher.end();
+        }
+
+        // 3. 画出最后剩余的部分
+        String remaining = text.substring(lastEnd);
+        if (!remaining.isEmpty()) {
+            currentWidth += ImGui.calcTextSizeX(remaining) + (currentBold? 1 : 0);
+        }
+        return currentWidth;
     }
     public static float getTextHeight() {
         return ImGui.getTextLineHeight();
