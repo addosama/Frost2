@@ -1,10 +1,10 @@
 package pub.frost.client.property;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
+import pub.frost.client.property.descriptor.VisibilitySupplier;
 import pub.frost.client.property.overriding.OverrideData;
 import pub.frost.client.property.overriding.Overriding;
 
@@ -21,21 +21,21 @@ public abstract class AbstractProperty<T, SELF extends AbstractProperty<T, SELF>
     @Accessors(chain = true)
     private transient BiConsumer<T, T> valueChangeListener = (o, n) -> {};
     @Accessors(chain = true)
-    private transient Supplier<Boolean> visibilitySupplier = () -> true;
+    private transient VisibilitySupplier visibilitySupplier = () -> true;
     public final boolean isVisible() {
-        return visibilitySupplier.get();
+        return visibilitySupplier.isVisible();
     }
     public final SELF setValueChangeListener(BiConsumer<T, T> valueChangeListener) {
         this.valueChangeListener = valueChangeListener;
         return (SELF) this;
     }
-    public final SELF setVisibilitySupplier(Supplier<Boolean> visibilitySupplier) {
+    public final SELF setVisibilitySupplier(VisibilitySupplier visibilitySupplier) {
         this.visibilitySupplier = visibilitySupplier;
         return (SELF) this;
     }
 
     @Deprecated
-    public final SELF setVisibilitySupplier(Class<SELF> returnType, Supplier<Boolean> visibilitySupplier) {
+    public final SELF setVisibilitySupplier(Class<SELF> returnType, VisibilitySupplier visibilitySupplier) {
         return setVisibilitySupplier(visibilitySupplier);
     }
 
@@ -111,12 +111,7 @@ public abstract class AbstractProperty<T, SELF extends AbstractProperty<T, SELF>
     }
     public static boolean isGroupHead(Field field) {
         if (field.isAnnotationPresent(PropertyGroupHead.class)) {
-            Type type = field.getGenericType();
-            if (!(type instanceof ParameterizedType)) return false;
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            if (parameterizedType.getRawType() != Supplier.class) return false;
-            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-            return actualTypeArguments.length == 1 && actualTypeArguments[0] == Boolean.class;
+            return field.getType() == VisibilitySupplier.class;
         }
         return false;
     }

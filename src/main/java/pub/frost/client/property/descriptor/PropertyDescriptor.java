@@ -19,7 +19,7 @@ public class PropertyDescriptor implements Named, Described {
     private final AbstractProperty<?, ?> property;
     @JSONField(name = "childList")
     private final List<PropertyDescriptor> childProperties;
-    private transient final Supplier<Boolean> visibilitySupplier;
+    private transient final VisibilitySupplier visibilitySupplier;
 
     private transient final String translationKey;
 
@@ -32,7 +32,7 @@ public class PropertyDescriptor implements Named, Described {
     }
 
     public boolean isVisible() {
-        return visibilitySupplier.get();
+        return visibilitySupplier.isVisible();
     }
 
     @Override

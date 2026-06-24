@@ -5,16 +5,15 @@ import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
 import pub.frost.client.property.annotations.PropertyGroupMain;
+import pub.frost.client.property.descriptor.VisibilitySupplier;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
-
-import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public class TickDeltaFixSetting {
     @TranslationKey("strings.settings.tickdeltafix.name")
     @PropertyGroupHead("TickDeltaFix")
-    public final Supplier<Boolean> visibility;
+    public final VisibilitySupplier visibility;
     public TickDeltaFixSetting() {
         this(() -> true);
     }

@@ -6,6 +6,7 @@ import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
 import pub.frost.client.property.annotations.PropertyGroupMain;
+import pub.frost.client.property.descriptor.VisibilitySupplier;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.utils.targeting.EnumEntityTarget;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 public class TargetSetting {
     @TranslationKey("strings.target.targets")
     @PropertyGroupHead("targets")
-    private final Supplier<Boolean> visibility;
+    private final VisibilitySupplier visibility;
 
     @PropertyGroupMain
     @TranslationKey("strings.target.targets")
@@ -34,7 +35,7 @@ public class TargetSetting {
     private final boolean shouldDoInvisibleCheck, shouldDoTeamCheck, shouldDoBotCheck;
 
     public TargetSetting(
-            Supplier<Boolean> groupVisibility,
+            VisibilitySupplier groupVisibility,
             boolean enableInvisibleCheck,
             boolean enableTeamCheck,
             boolean enableBotCheck

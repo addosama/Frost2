@@ -5,6 +5,7 @@ import pub.frost.client.feature.helper.player.rotation.processors.post.EnumRotat
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupHead;
+import pub.frost.client.property.descriptor.VisibilitySupplier;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.bool.MultipleBooleanProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
 public class RotationSetting {
     @TranslationKey("strings.rotation.rotation")
     @PropertyGroupHead("Rotation")
-    private final Supplier<Boolean> supplier;
+    private final VisibilitySupplier supplier;
 
     @TranslationKey("strings.rotation.instant")
     @Property("Instant")

@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to begin a property group.
- * must be annotated on Boolean Supplier field that provide the visibility of this group;
+ * must be annotated on VisibilitySupplier field that provide the visibility of this group;
  * if not, consider using @Property(beginGroup = "GroupName")
  */
 @Target(ElementType.FIELD)

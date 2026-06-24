@@ -87,8 +87,7 @@ public class PropertyDescriptorFactory {
                     startGroup = true;
                     PropertyGroupHead annotation = field.getAnnotation(PropertyGroupHead.class);
                     prefixDeque.offerLast(annotation.value());
-                    Supplier<Boolean> groupHead = (Supplier<Boolean>) field.get(object);
-                    groupVisibilitySupplier = groupHead::get;
+                    groupVisibilitySupplier = (VisibilitySupplier) field.get(object);
                 }
                 else if (isInsertField) {
                     InsertProperty annotation = field.getAnnotation(InsertProperty.class);
