@@ -41,9 +41,6 @@ public class ModuleListPanel extends MainPanel {
         }
     }
 
-    private float wheelInput = 0;
-    private float targetScroll = 0;
-
     @Override
     public void renderPanelContent(boolean dummy, float tickDelta) {
         renderModules(dummy, tickDelta);
@@ -81,16 +78,6 @@ public class ModuleListPanel extends MainPanel {
     private void renderScrollBar(boolean dummy, float tickDelta, ImVec2 contentSize) {
         float scrollMaxY = ImGui.getScrollMaxY();
         if (scrollMaxY > 0f) {
-            if (ImGui.isWindowHovered(
-                    ImGuiHoveredFlags.ChildWindows
-            )) {
-                if (wheelInput != 0) {
-                    float tempTarget = ImGui.getScrollY() - wheelInput * 24f;
-                    tempTarget = Math.max(0f, Math.min(tempTarget, ImGui.getScrollMaxY()));
-                    this.targetScroll = tempTarget;
-                }
-            }
-
             float scrollY = ImGui.getScrollY();
             ImVec2 windowPos = ImGui.getWindowPos();
             ImVec2 windowSize = ImGui.getWindowSize();
@@ -120,15 +107,18 @@ public class ModuleListPanel extends MainPanel {
             boolean hovered = ImGui.isItemHovered();
             boolean held = ImGui.isItemActive();
 
+            float scrollOffset = 0;
             if (held) {
                 float mouseDeltaY = ImGui.getIO().getMouseDeltaY();
-                float scrollDelta = thumbTravel <= 0f ? 0f : mouseDeltaY / thumbTravel * scrollMaxY;
-                targetScroll = Math.max(0f, Math.min(scrollY + scrollDelta, scrollMaxY));
+                scrollOffset += thumbTravel <= 0f ? 0f : mouseDeltaY / thumbTravel * scrollMaxY;
 
                 scrollY = ImGui.getScrollY();
                 thumbOffset = thumbTravel * (scrollY / scrollMaxY);
                 thumbMinY = trackMinY + thumbOffset;
                 thumbMaxY = thumbMinY + thumbHeight;
+            }
+            if (scrollOffset != 0) {
+                ImGui.setScrollY(MathUtils.clamp(scrollY + scrollOffset, 0f, ImGui.getScrollMaxY()));
             }
 
             ImGui.setCursorPos(cursorPos);
@@ -154,21 +144,9 @@ public class ModuleListPanel extends MainPanel {
                 );
             }
         }
-        targetScroll = MathUtils.clamp(targetScroll, 0f, scrollMaxY);
-        ImGui.setScrollY((float) MathUtils.lerp(
-                ImGui.getScrollY(), targetScroll,
-                tickDelta
-        ));
-        wheelInput = 0;
     }
 
     @Override
     public void onInput(InputDevice device, int code, int action) {
-        if (device == InputDevice.MOUSE) {
-            float wheel = InputUtils.getMouseEventWheel();
-            if (wheel != 0) {
-                wheelInput += wheel;
-            }
-        }
     }
 }

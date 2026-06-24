@@ -2,9 +2,8 @@ package pub.frost.client.feature.screen.impl.clickgui.styles.panel;
 
 import imgui.ImColor;
 import imgui.ImGui;
-import imgui.flag.ImGuiCol;
-import imgui.flag.ImGuiStyleVar;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
+import imgui.type.ImString;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -65,6 +64,7 @@ public class PanelClickGui implements RenderableComponent, InputListener {
         this.categoryPanel = catePanel;
     }
 
+    private ImString str = new ImString();
     @Override
     public void render(boolean dummy, float tickDelta) {
         ImGui.setNextWindowSize(800, 614);
@@ -83,6 +83,11 @@ public class PanelClickGui implements RenderableComponent, InputListener {
 
         ImGui.popStyleColor(2);
         ImGui.popStyleVar(4);
+
+        ImGui.begin("Debug123");
+        ImGui.text("Ctrl Down: " + ImGui.getIO().getKeyCtrl());
+        ImGui.inputText("TestInput", str);
+        ImGui.end();
     }
 
     private CategoryButton createCategoryButton(CategoryPanel panel, MainPanel boundPanel, String icon, Supplier<String> nameSupplier) {
@@ -109,12 +114,6 @@ public class PanelClickGui implements RenderableComponent, InputListener {
 
     @Override
     public void onInput(InputDevice device, int code, int action) {
-        if (activeListener != null) {
-            activeListener.onInput(device, code, action);
-        }
-        if (categoryPanel != null) {
-            categoryPanel.getActiveButton().getBoundPanel().onInput(device, code, action);
-        }
     }
 
     @RequiredArgsConstructor @Getter

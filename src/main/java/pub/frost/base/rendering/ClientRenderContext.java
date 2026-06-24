@@ -1,15 +1,27 @@
 package pub.frost.base.rendering;
 
 import imgui.ImGui;
+import imgui.ImGuiIO;
+import imgui.callback.ImStrConsumer;
+import imgui.callback.ImStrSupplier;
 import imgui.extension.implot.ImPlot;
+import imgui.flag.ImGuiConfigFlags;
 import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
 import loutre.imgui.lwjgl2.ImGuiLWJGL2;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
+
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 
 public class ClientRenderContext {
     @Getter
@@ -25,6 +37,30 @@ public class ClientRenderContext {
         ImGui.createContext();
         ImGui.getIO().getFonts().setFreeTypeRenderer(true);
         ImGui.getIO().setIniFilename(FrostCore.getClientDir().resolve("imgui.ini").toAbsolutePath().toString());
+
+        ImGui.getIO().setGetClipboardTextFn(new ImStrSupplier() {
+            final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            @Override
+            public String get() {
+                Transferable data = clipboard.getContents(null);
+                if (data != null) {
+                    if (data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                        try {
+                            return  (String) data.getTransferData(DataFlavor.stringFlavor);
+                        } catch (Exception ignored) {}
+                    }
+                }
+                return null;
+            }
+        });
+        ImGui.getIO().setSetClipboardTextFn(new ImStrConsumer() {
+            final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            @Override
+            public void accept(String str) {
+                clipboard.setContents(new StringSelection(str), null);
+            }
+        });
+
         new FontManager();
 
         ImPlot.createContext();
@@ -43,7 +79,12 @@ public class ClientRenderContext {
         ImGui.getStyle().setDisplayWindowPadding(0, 0);
         imGuiImplGl2.newFrame();
         imGuiDisplay.newFrame();
+
+        int keyMods = 0;
+        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) keyMods |= imGuiDisplay.keyToImGuiKey(Keyboard.KEY_LCONTROL);
+
         ImGui.newFrame();
+        ImGui.getIO().setKeyMods(keyMods);
     }
     public void endFrame() {
         ImGui.render();
@@ -63,7 +104,26 @@ public class ClientRenderContext {
     @EventHandler(priority = -100)
     private void onInput(EventInput event) {
         if (event.getType() == InputDevice.KEYBOARD) {
-            imGuiDisplay.onKey();
+            ImGuiIO io = ImGui.getIO();
+
+            processKey(Keyboard.getEventKey());
+            io.addInputCharacter(Keyboard.getEventCharacter());
         }
+        else {
+            int mouseButton = Mouse.getEventButton();
+            int mouseWheel = Mouse.getDWheel();
+            if (mouseWheel != 0)
+                imGuiDisplay.onMouseWheel(mouseWheel);
+            if (mouseButton != -1) {
+                imGuiDisplay.onMouseButton(
+                        mouseButton, Mouse.getEventButtonState()
+                );
+            }
+        }
+    }
+
+    private void processKey(int glKey) {
+        ImGui.getIO().addKeyEvent(imGuiDisplay.keyToImGuiKey(glKey), Keyboard.getEventKeyState() && !Keyboard.isRepeatEvent());
+        System.out.printf("Key %s, %s\n", Keyboard.getKeyName(Keyboard.getEventKey()), Keyboard.getEventKeyState() && !Keyboard.isRepeatEvent());
     }
 }
