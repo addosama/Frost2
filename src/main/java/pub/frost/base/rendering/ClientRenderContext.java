@@ -1,20 +1,15 @@
 package pub.frost.base.rendering;
 
 import imgui.ImGui;
-import imgui.ImGuiIO;
 import imgui.callback.ImStrConsumer;
 import imgui.callback.ImStrSupplier;
 import imgui.extension.implot.ImPlot;
-import imgui.flag.ImGuiConfigFlags;
 import lombok.Getter;
 import loutre.imgui.lwjgl2.ImGuiDisplay;
 import loutre.imgui.lwjgl2.ImGuiLWJGL2;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventInput;
-import pub.frost.base.event.impl.types.InputDevice;
+import pub.frost.base.input.api.InputListener;
 import pub.frost.client.core.FrostCore;
 
 import java.awt.*;
@@ -23,7 +18,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
-public class ClientRenderContext {
+public class ClientRenderContext implements InputListener {
     @Getter
     private static final ClientRenderContext instance = new ClientRenderContext();
 
@@ -101,29 +96,34 @@ public class ClientRenderContext {
         instance.endFrame();
     }
 
-    @EventHandler(priority = -100)
-    private void onInput(EventInput event) {
-        if (event.getType() == InputDevice.KEYBOARD) {
-            ImGuiIO io = ImGui.getIO();
-
-            processKey(Keyboard.getEventKey());
-            io.addInputCharacter(Keyboard.getEventCharacter());
-        }
-        else {
-            int mouseButton = Mouse.getEventButton();
-            int mouseWheel = Mouse.getDWheel();
-            if (mouseWheel != 0)
-                imGuiDisplay.onMouseWheel(mouseWheel);
-            if (mouseButton != -1) {
-                imGuiDisplay.onMouseButton(
-                        mouseButton, Mouse.getEventButtonState()
-                );
-            }
-        }
+    @Override
+    public int inputPriority() {
+        return 100;
     }
 
-    private void processKey(int glKey) {
-        ImGui.getIO().addKeyEvent(imGuiDisplay.keyToImGuiKey(glKey), Keyboard.getEventKeyState() && !Keyboard.isRepeatEvent());
-        System.out.printf("Key %s, %s\n", Keyboard.getKeyName(Keyboard.getEventKey()), Keyboard.getEventKeyState() && !Keyboard.isRepeatEvent());
+    @Override
+    public boolean onKey(int key, boolean state) {
+        ImGui.getIO().addKeyEvent(imGuiDisplay.keyToImGuiKey(key), state);
+        ImGui.getIO().addInputCharacter(Keyboard.getEventCharacter());
+        return true;
+    }
+
+    @Override
+    public boolean onChar(char ch) {
+        ImGui.getIO().addInputCharacter(Keyboard.getEventCharacter());
+        return true;
+    }
+
+    @Override
+    public boolean onMouseButton(int button, boolean state) {
+        imGuiDisplay.onMouseButton(button, state);
+        return true;
+    }
+
+    @Override
+    public boolean onMouseScroll(float scrollX, float scrollY) {
+        ImGui.getIO().setMouseWheel(ImGui.getIO().getMouseWheel() + (scrollY / 120));
+        ImGui.getIO().setMouseWheelH(ImGui.getIO().getMouseWheelH() + (scrollX / 120));
+        return true;
     }
 }

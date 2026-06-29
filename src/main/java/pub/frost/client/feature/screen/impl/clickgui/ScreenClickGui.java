@@ -27,11 +27,6 @@ public class ScreenClickGui extends ClientScreen implements IBindable {
     }
 
     @Override
-    public void onInput(InputDevice device, int code, int action) {
-        panel.onInput(device, code, action);
-    }
-
-    @Override
     public int getKeybind() {
         return 0x36;
     }

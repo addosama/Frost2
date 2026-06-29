@@ -3,9 +3,9 @@ package pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.wi
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
-import pub.frost.base.event.impl.types.InputDevice;
+import pub.frost.base.input.api.InputListener;
 import pub.frost.base.rendering.FontManager;
-import pub.frost.client.feature.screen.components.InputListener;
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.property.ElementRenderer;
@@ -18,16 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OverridePopupComponent<T> extends PanelComponent implements InputListener {
-    private interface InputConsumer extends InputListener {
-        String getID();
-    }
 
-    private final AbstractProperty<T, ? extends AbstractProperty> prop;
+    private final AbstractProperty<T, ? extends AbstractProperty<?, ?>> prop;
     private final ElementRenderer<T> elementRenderer;
 
-    private InputConsumer inputConsumer = null;
+    private OverrideOnKey bindTarget = null;
+    private boolean pressingBind = false;
 
-    public OverridePopupComponent(PanelClickGui gui, AbstractProperty<T, ? extends AbstractProperty> prop, ElementRenderer<T> elementRenderer) {
+    public OverridePopupComponent(PanelClickGui gui, AbstractProperty<T, ? extends AbstractProperty<?, ?>> prop, ElementRenderer<T> elementRenderer) {
         super(gui);
         this.prop = prop;
         this.elementRenderer = elementRenderer;
@@ -109,38 +107,17 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
                     // keybind button
                     {
                         String id = "key." + data;
-                        boolean active = inputConsumer != null && inputConsumer.getID().equals(id);
+                        boolean active = bindTarget == supplier;
                         String text = active? "LISTENING" : InputUtils.getKeyName(supplier.getKeybind());
-                        boolean buttonClicked = ImGui.button(text + "###" + id);
-                        if (buttonClicked) {
-                            long clickTime = System.currentTimeMillis();
+                        ImGui.button(text + "###" + id);
+                        pressingBind = ImGui.isItemActive();
+                        if (ImGui.isItemActivated()) {
                             if (active) {
                                 supplier.setKeybind(-1);
-                                inputConsumer = null;
-                                gui.setActiveListener(null);
+                                releaseBindTarget();
                             } else {
-                                inputConsumer = new InputConsumer() {
-                                    @Override
-                                    public void onInput(InputDevice device, int code, int action) {
-                                        if (code == 0) return;
-                                        if (action != 2) {
-                                            if (device == InputDevice.MOUSE) {
-                                                if (code == -1) return;
-                                                if (action != 1) return;
-                                            }
-                                            supplier.setKeybind(code);
-                                            inputConsumer = null;
-                                            gui.setActiveListener(null);
-                                        }
-                                    }
-
-                                    @Override
-                                    public String getID() {
-                                        return id;
-                                    }
-                                };
+                                switchBindTarget(supplier);
                             }
-                            gui.setActiveListener(this);
                         }
                     }
                     ImGui.sameLine(0, 4);
@@ -175,10 +152,34 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
         return index;
     }
 
+    public void switchBindTarget(OverrideOnKey bindTarget) {
+        this.bindTarget = bindTarget;
+        FrostCore.getInputManager().register(this);
+    }
+    public void releaseBindTarget() {
+        FrostCore.getInputManager().unregister(this);
+        this.bindTarget = null;
+    }
+
     @Override
-    public void onInput(InputDevice device, int code, int action) {
-        if (inputConsumer != null) {
-            inputConsumer.onInput(device, code, action);
+    public int inputPriority() {
+        return 95;
+    }
+    @Override
+    public boolean onKey(int key, boolean state) {
+        if (state && bindTarget != null) {
+            bindTarget.setKeybind(key);
+            releaseBindTarget();
         }
+        return false;
+    }
+    @Override
+    public boolean onMouseButton(int button, boolean state) {
+        if (state && bindTarget != null) {
+            if (button != 0)
+                bindTarget.setKeybind(-1 - button);
+            if (!pressingBind) releaseBindTarget();
+        }
+        return false;
     }
 }

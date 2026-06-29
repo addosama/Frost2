@@ -145,8 +145,4 @@ public class ModuleListPanel extends MainPanel {
             }
         }
     }
-
-    @Override
-    public void onInput(InputDevice device, int code, int action) {
-    }
 }

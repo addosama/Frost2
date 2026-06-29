@@ -20,7 +20,7 @@ public class MixinGuiIngameForge {
     )
     public void preRenderCrosshair(float partialTicks, CallbackInfo ci) {
         ClientRenderContext.draw(
-                () -> FrostCore.getInstance().getEventBus().call(new EventRender2D(partialTicks))
+                () -> FrostCore.getEventBus().call(new EventRender2D(partialTicks))
         );
     }
 }

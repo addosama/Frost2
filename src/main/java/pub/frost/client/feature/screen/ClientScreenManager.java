@@ -1,21 +1,21 @@
 package pub.frost.client.feature.screen;
 
 import lombok.Getter;
+import org.lwjgl.input.Keyboard;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.EventGameTick;
-import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.events.EventPostRender;
 import pub.frost.base.event.impl.events.EventRender2D;
-import pub.frost.base.event.impl.types.InputDevice;
 import net.minecraft.client.Minecraft;
 import pub.frost.base.event.impl.types.TickType;
+import pub.frost.base.input.api.InputListener;
 import pub.frost.client.feature.screen.impl.clickgui.ScreenClickGui;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class ClientScreenManager {
+public class ClientScreenManager implements InputListener {
     private static final Map<Class<? extends ClientScreen>, ClientScreen> clientScreenMap = new HashMap<>();
 
     protected final Minecraft mc = Minecraft.getMinecraft();
@@ -65,16 +65,37 @@ public class ClientScreenManager {
         }
     }
 
-    @EventHandler(priority = 3)
-    private void onInput(EventInput event) {
-        if (currentScreen != null) {
-            if ((currentScreen.shouldBlockMouseInput() && event.getType() == InputDevice.MOUSE)) event.setCancelled(true);
-            else if (currentScreen.shouldBlockKeyboardInput() && event.getType() == InputDevice.KEYBOARD) {
-                event.setCancelled(true);
-                if (event.getKey() == 1) closeCurrentScreen();
-            }
-            if (currentScreen != null) currentScreen.onInput(event.getType(), event.getKey(), event.getAction());
+    private boolean allowMouseInput() {
+        return currentScreen == null || !currentScreen.shouldBlockMouseInput();
+    }
+    private boolean allowKeyboardInput() {
+        return currentScreen == null || !currentScreen.shouldBlockKeyboardInput();
+    }
+
+    @Override
+    public int inputPriority() {
+        return 90;
+    }
+
+    @Override
+    public boolean onMouseButton(int button, boolean state) {
+        return allowMouseInput();
+    }
+    @Override
+    public boolean onMouseScroll(float scrollX, float scrollY) {
+        return allowMouseInput();
+    }
+    @Override
+    public boolean onKey(int key, boolean state) {
+        if (currentScreen != null && key == Keyboard.KEY_ESCAPE) {
+            closeCurrentScreen();
+            return false;
         }
+        return allowKeyboardInput();
+    }
+    @Override
+    public boolean onChar(char c) {
+        return allowKeyboardInput();
     }
 
     public void registerScreen(ClientScreen... screens) {

@@ -12,11 +12,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.EventGameTick;
-import pub.frost.base.event.impl.events.EventInput;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventPreTickLoop;
-import pub.frost.base.event.impl.types.InputDevice;
 import pub.frost.client.core.FrostCore;
+import pub.frost.utils.InputUtils;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
@@ -47,15 +46,24 @@ public abstract class MixinMinecraft {
             )
     )
     private boolean handleMouse() {
-        if (Mouse.next()) {
+        while (Mouse.next()) {
             int eventButton = Mouse.getEventButton();
-            EventInput event = new EventInput(
-                    InputDevice.MOUSE,
-                    -1 - eventButton,
-                    Mouse.getEventButtonState()? 1 : 0
-            );
-            FrostCore.getEventBus().call(event);
-            return !event.isCancelled();
+            boolean ret;
+
+            if (eventButton != -1) {
+                ret = FrostCore.getInputManager().onMouseButton(eventButton, Mouse.getEventButtonState());
+            }
+            else {
+                int dWheel = Mouse.getDWheel();
+                float x = 0, y = 0;
+                if (InputUtils.isKeyDown(Keyboard.KEY_LSHIFT))
+                    x = dWheel;
+                else y = dWheel;
+
+                ret = FrostCore.getInputManager().onMouseScroll(x, y);
+            }
+
+            if (ret) return true;
         }
         return false;
     }
@@ -68,16 +76,16 @@ public abstract class MixinMinecraft {
             )
     )
     private boolean handleKeyboard() {
-        if (Keyboard.next()) {
+        while (Keyboard.next()) {
             int eventKey = Keyboard.getEventKey();
+            boolean ret;
 
-            EventInput event = new EventInput(
-                    InputDevice.KEYBOARD,
-                    eventKey,
-                    Keyboard.getEventKeyState()? 1 : Keyboard.isRepeatEvent()? 2 : 0
-            );
-            FrostCore.getEventBus().call(event);
-            return !event.isCancelled();
+            if (eventKey == 0) {
+                ret = FrostCore.getInputManager().onChar(Keyboard.getEventCharacter());
+            }
+            else ret = FrostCore.getInputManager().onKey(eventKey, Keyboard.getEventKeyState());
+
+            if (ret) return true;
         }
         return false;
     }

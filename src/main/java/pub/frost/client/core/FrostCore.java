@@ -2,10 +2,10 @@ package pub.frost.client.core;
 
 import lombok.Getter;
 import pub.frost.base.event.api.EventBus;
+import pub.frost.base.input.InputManager;
 import pub.frost.base.rendering.ClientRenderContext;
 import pub.frost.client.config.ConfigManager;
 import pub.frost.client.feature.bindable.BindableManager;
-import pub.frost.client.feature.helper.network.LagManager;
 import pub.frost.client.feature.helper.network.PacketManager;
 import pub.frost.client.feature.helper.player.interact.PlayerListener;
 import pub.frost.client.feature.helper.player.rotation.RotationManager;
@@ -37,6 +37,7 @@ public final class FrostCore implements Initializer {
 
     private I18n i18nHelper;
     private EventBus eventBus;
+    private InputManager inputManager;
     private BindableManager bindableManager;
     private ModuleManager moduleManager;
     private ConfigManager configManager;
@@ -55,12 +56,20 @@ public final class FrostCore implements Initializer {
         i18nHelper.loadLanguages();
 
         eventBus = new EventBus();
-        registerToEventBus(ClientRenderContext.getInstance());
-        bindableManager = registerToEventBus(new BindableManager());
+        inputManager = new InputManager();
+
+        registerToInputManager(registerToEventBus(
+                ClientRenderContext.getInstance()
+        ));
+        bindableManager = registerToEventBus(registerToInputManager(
+                new BindableManager()
+        ));
         moduleManager = new ModuleManager();
         configManager = new ConfigManager();
 
-        clientScreenManager = registerToEventBus(new ClientScreenManager());
+        clientScreenManager = registerToEventBus(registerToInputManager(
+                new ClientScreenManager()
+        ));
 
         clientSettings = new ClientSettings();
         helpers = new ClientHelpers();
@@ -112,6 +121,9 @@ public final class FrostCore implements Initializer {
     
     public static EventBus getEventBus() {
         return instance.eventBus;
+    }
+    public static InputManager getInputManager() {
+        return instance.inputManager;
     }
     public static ClientHelpers getHelpers() {
         return instance.helpers;

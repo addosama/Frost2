@@ -5,11 +5,10 @@ import imgui.flag.ImGuiChildFlags;
 import imgui.flag.ImGuiCol;
 import imgui.flag.ImGuiStyleVar;
 import imgui.flag.ImGuiWindowFlags;
-import pub.frost.client.feature.screen.components.InputListener;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.PanelClickGui;
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.PanelComponent;
 
-public abstract class MainPanel extends PanelComponent implements InputListener {
+public abstract class MainPanel extends PanelComponent {
     public MainPanel(PanelClickGui gui) {
         super(gui);
     }

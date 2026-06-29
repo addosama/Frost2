@@ -25,6 +25,7 @@ public abstract class ClientScreen {
 
     }
 
+    @Deprecated
     public void onInput(InputDevice device, int code, int action) {
 
     }
