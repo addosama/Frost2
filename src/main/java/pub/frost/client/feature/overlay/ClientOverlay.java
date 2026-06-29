@@ -61,7 +61,7 @@ public abstract class ClientOverlay {
         final ImVec2 normalizedOffset;
 
         float yOffset = 0;
-        ImGui.pushFont(FontManager.INSTANCE.puHui16);
+        FontManager.pushFont(FontManager.INSTANCE.puHui16);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0, 0);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 12f);
@@ -78,7 +78,7 @@ public abstract class ClientOverlay {
 
             float xOffset = 6;
             if (icon != null && !icon.isEmpty()) {
-                ImGui.pushFont(FontManager.INSTANCE.icon14);
+                FontManager.pushFont(FontManager.INSTANCE.icon14);
                 ImGui.setCursorPos(
                         xOffset, 8
                 );

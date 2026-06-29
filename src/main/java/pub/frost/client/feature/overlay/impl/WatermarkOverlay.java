@@ -26,7 +26,7 @@ public class WatermarkOverlay extends ClientOverlay implements Named {
 
     @Override
     protected ImVec2[] preRender(boolean dummy, boolean input) {
-        ImGui.pushFont(FontManager.INSTANCE.puHui18);
+        FontManager.pushFont(FontManager.INSTANCE.puHui18);
         return super.preRender(dummy, input);
     }
     @Override
@@ -45,7 +45,7 @@ public class WatermarkOverlay extends ClientOverlay implements Named {
         // icon
         {
             final float x = xOffset, y = yOffset;
-            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            FontManager.pushFont(FontManager.INSTANCE.icon14);
             draws.addRectFilled(
                     x, y, x + 30, y + 30,
                     bgColor, 12f

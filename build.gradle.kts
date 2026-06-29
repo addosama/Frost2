@@ -87,7 +87,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.42")
 
     shadowImpl("org.apache.commons:commons-lang3:3.20.0")
-    shadowImpl("io.github.spair:imgui-java-binding:1.90.0")
+    shadowImpl("io.github.spair:imgui-java-binding:1.92.0")
     shadowImpl("com.alibaba.fastjson2:fastjson2:2.0.61")
 
     shadowImpl("com.github.Enaium:ImGui-LWJGL2:e30f6b9")

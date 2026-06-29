@@ -72,7 +72,7 @@ public class CategoryPanel extends PanelComponent {
                         min, max,
                         gui.getTheme().getClientIconBgColor(), 12f
                 );
-                ImGui.pushFont(FontManager.INSTANCE.icon16);
+                FontManager.pushFont(FontManager.INSTANCE.icon16);
                 ImGui.getWindowDrawList().addText(
                         min.plus(10, 10),
                         gui .getTheme().getClientIconColor(),
@@ -91,13 +91,14 @@ public class CategoryPanel extends PanelComponent {
             ImGui.beginGroup();
 
             // client name
-            ImGui.pushFont(FontManager.INSTANCE.puhui14);
-            ImGui.setCursorPosY(centerY - 1 - ImGui.getFont().getAscent());
+            FontManager.pushFont(FontManager.INSTANCE.puhui14);
+            // todo getAscent
+            ImGui.setCursorPosY(centerY - 1 - (ImTextRenderer.getTextHeight() - 4));
             ImGui.textColored(gui.getTheme().getClientNameColor(), "Frost");
             ImGui.popFont();
 
             // client version
-            ImGui.pushFont(FontManager.INSTANCE.puHui10);
+            FontManager.pushFont(FontManager.INSTANCE.puHui10);
             ImGui.setCursorPosY(centerY + 1);
             ImGui.textColored(gui.getTheme().getClientVersionColor(), FrostCore.getVersionString());
             ImGui.popFont();
@@ -121,7 +122,7 @@ public class CategoryPanel extends PanelComponent {
                         minVec, avatarMaxVec,
                         0xFFBF9060, 12f
                 );
-                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                FontManager.pushFont(FontManager.INSTANCE.puHui12);
                 draws.addText(
                         ImTextRenderer.centerText(
                                 "OvO",
@@ -139,16 +140,17 @@ public class CategoryPanel extends PanelComponent {
                 ImVec2 centerVec = minVec.plus(46, 18);
 
                 // username
-                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                FontManager.pushFont(FontManager.INSTANCE.puHui12);
+                // todo Ascent
                 draws.addText(
-                        centerVec.minus(0, ImGui.getFont().getAscent() + 1),
+                        centerVec.minus(0, (ImTextRenderer.getTextHeight() - 2) + 1),
                         gui.getTheme().getClientNameColor(),
                         "Beta User"
                 );
                 ImGui.popFont();
 
                 // license info
-                ImGui.pushFont(FontManager.INSTANCE.puHui10);
+                FontManager.pushFont(FontManager.INSTANCE.puHui10);
                 draws.addText(
                         centerVec.plus(0, 1),
                         gui.getTheme().getClientVersionColor(),

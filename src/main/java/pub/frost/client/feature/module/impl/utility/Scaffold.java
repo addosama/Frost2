@@ -7,6 +7,7 @@ import net.minecraft.world.World;
 import pub.frost.base.event.api.annotations.EventHandler;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.TickType;
+import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.helper.player.rotation.providers.impl.BasicRotationProvider;
 import pub.frost.client.feature.module.annotations.Module;
 import pub.frost.client.feature.module.api.AbstractModule;
@@ -302,10 +303,7 @@ public class Scaffold extends AbstractModule {
             if (placed == 0 && mc.theWorld.isAirBlock(data.getBlockToUse())) continue;
 
             AxisAlignedBB blockBB = getBlockAxisAlignedBB(data.getBlockToUse());
-            Vec3 hitVec = BoundingBoxUtils.getFaceCenter(
-                    blockBB,
-                    data.getFaceToUse()
-            );
+            Vec3 hitVec;
 
             if (rayCast.get() != EnumRaycastType.DISABLED) {
                 if (rayCast.is(EnumRaycastType.LEGIT)) {
@@ -319,7 +317,7 @@ public class Scaffold extends AbstractModule {
                     } else continue;
                 } else {
                     Map.Entry<Boolean, Vec3> result = RayCastUtils.getSimpleHitResult(
-                            player.getPositionEyes(1),
+                            player.getPositionEyes(1f),
                             player.rotationYaw,
                             player.rotationPitch,
                             BoundingBoxUtils.getFaceBoundingBox(
@@ -330,6 +328,10 @@ public class Scaffold extends AbstractModule {
                     hitVec = result.getValue();
                 }
             }
+            else hitVec = BoundingBoxUtils.getFaceCenter(
+                    blockBB,
+                    data.getFaceToUse()
+            );
 
             if (net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
@@ -337,7 +339,7 @@ public class Scaffold extends AbstractModule {
                     stack,
                     new BlockPos(data.getBlockToUse().getX(), data.getBlockToUse().getY(), data.getBlockToUse().getZ()),
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
-                    new Vec3(hitVec.xCoord, hitVec.yCoord, hitVec.zCoord)
+                    hitVec
             )) player.swingItem();
             placeDeque.poll();
             ticksSincePlace = 0;

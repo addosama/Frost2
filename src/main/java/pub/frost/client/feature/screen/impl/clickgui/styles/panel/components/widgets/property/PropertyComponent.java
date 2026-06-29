@@ -122,7 +122,7 @@ public class PropertyComponent<T> extends PanelComponent {
     }
 
     protected void renderText(boolean dummy, float tickDelta) {
-        ImGui.pushFont(FontManager.INSTANCE.puHui12);
+        FontManager.pushFont(FontManager.INSTANCE.puHui12);
         float lineHeight = ImGui.getTextLineHeight();
         float y = ImGui.getCursorPosY();
         ImGui.setCursorPosY(y + (30 - lineHeight) / 2);
@@ -151,7 +151,7 @@ public class PropertyComponent<T> extends PanelComponent {
         ImGui.setCursorPosY((y + ImGui.getContentRegionAvailY() - 14) / 2);
         boolean clicked = ImGui.invisibleButton(this + ".override", 14, 14);
         if (!dummy) {
-            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            FontManager.pushFont(FontManager.INSTANCE.icon14);
             String icon = "\uedaf";
             ImVec2 iconSize = ImGui.calcTextSize(icon);
             ImVec2 iconPos = ImGui.getItemRectMin().plus(
@@ -178,7 +178,7 @@ public class PropertyComponent<T> extends PanelComponent {
         }
         boolean popup = ImGui.isPopupOpen(this + ".popup");
         if (!dummy) {
-            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            FontManager.pushFont(FontManager.INSTANCE.icon14);
             ImVec2 buttonPos = ImGui.getItemRectMin();
             ImGui.getWindowDrawList().addText(
                     buttonPos.plus(2, 3),

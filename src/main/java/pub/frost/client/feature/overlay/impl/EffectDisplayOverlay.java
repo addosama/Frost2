@@ -71,7 +71,7 @@ public class EffectDisplayOverlay extends ClientOverlay implements Named {
         int sidebarW = sidebar.get() ? sidebarWidth.get() : 0;
         int hPadding = 8, vPadding = 3;
 
-        ImGui.pushFont(FontManager.INSTANCE.puhui14);
+        FontManager.pushFont(FontManager.INSTANCE.puhui14);
         float lineHeight = ImTextRenderer.getTextHeight() + vPadding * 2;
 
         float maxWidth = 0;

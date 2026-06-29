@@ -59,7 +59,7 @@ public class SelectorElement<ELEMENT, VAL> extends PanelComponent implements Ele
             );
 
             // arrow
-            ImGui.pushFont(FontManager.INSTANCE.puHui12);
+            FontManager.pushFont(FontManager.INSTANCE.puHui12);
             String arrow = popupOpen ? "-" : "+";
             float arrowWidth = ImGui.calcTextSizeX(arrow);
             ImTextRenderer.drawText(
@@ -78,7 +78,7 @@ public class SelectorElement<ELEMENT, VAL> extends PanelComponent implements Ele
                         itemMax.minus(12 + arrowWidth, 0),
                         true
                 );
-                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                FontManager.pushFont(FontManager.INSTANCE.puHui12);
                 ImTextRenderer.drawText(
                         ImGui.getWindowDrawList(),
                         valueStr,
@@ -117,7 +117,7 @@ public class SelectorElement<ELEMENT, VAL> extends PanelComponent implements Ele
     private VAL renderPopupContent(boolean dummy, float tickDelta, String id, VAL value) {
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 0);
         ImGui.beginGroup();
-        ImGui.pushFont(FontManager.INSTANCE.puHui12);
+        FontManager.pushFont(FontManager.INSTANCE.puHui12);
 
         VAL ret = renderPopupChildren(dummy, tickDelta, id, value);
 

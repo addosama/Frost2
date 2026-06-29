@@ -82,7 +82,7 @@ public class ESP extends AbstractModule {
             )));
         }
 
-        ImGui.pushFont(FontManager.INSTANCE.puHui10);
+        FontManager.pushFont(FontManager.INSTANCE.puHui10);
         for (EntityData data : cachedData) {
             AxisAlignedBB lerpedBB = BoundingBoxUtils.move(data.getBoundingBox(e.getTickDelta()), negatedPlayerPos);
             AxisAlignedBB prevBB = BoundingBoxUtils.move(data.getBoundingBox(0), negatedPlayerPos);;

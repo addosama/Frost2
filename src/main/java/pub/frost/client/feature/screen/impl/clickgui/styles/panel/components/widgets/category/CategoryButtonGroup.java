@@ -25,7 +25,7 @@ public class CategoryButtonGroup extends PanelComponent {
     public void render(boolean dummy, float tickDelta) {
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 0, 2);
         ImGui.beginGroup();
-        ImGui.pushFont(FontManager.INSTANCE.puHui10);
+        FontManager.pushFont(FontManager.INSTANCE.puHui10);
         ImGui.dummy(9, 0);
         ImGui.sameLine();
         ImTextRenderer.drawText(

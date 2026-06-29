@@ -42,7 +42,7 @@ public class CategoryButton extends PanelComponent {
         ImGui.invisibleButton(this.toString(), ImGui.getContentRegionAvailX(), 32);
 
         if (!dummy) {
-            ImGui.pushFont(iconFont);
+            FontManager.pushFont(iconFont);
             ImVec2 iconPos = groupPos.plus(ImTextRenderer.centerText(icon, 9, 16, false, true));
             float iconSize = ImTextRenderer.getTextWidth(icon);
             ImTextRenderer.drawText(
@@ -53,7 +53,7 @@ public class CategoryButton extends PanelComponent {
             );
             ImGui.popFont();
 
-            ImGui.pushFont(textFont);
+            FontManager.pushFont(textFont);
             ImVec2 textPos = groupPos.plus(ImTextRenderer.centerText(textSupplier.get(), 14 + iconSize, 16, false, true));
             ImTextRenderer.drawText(
                     drawList,

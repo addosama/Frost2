@@ -95,7 +95,7 @@ public class ConfigManagementPanel extends MainPanel {
     private boolean renderIconButton(boolean dummy, float tickDelta, String icon) {
         boolean active = ImGui.invisibleButton(this + "iconbutton." + icon, 30, 30);
         if (!dummy) {
-            ImGui.pushFont(FontManager.INSTANCE.icon14);
+            FontManager.pushFont(FontManager.INSTANCE.icon14);
             ImGui.getWindowDrawList().addRectFilled(
                     ImGui.getItemRectMin(), ImGui.getItemRectMax(),
                     gui.getTheme().getModulePanelBgColor(), 6f
@@ -133,7 +133,7 @@ public class ConfigManagementPanel extends MainPanel {
         ImGui.beginChild(
                 this + ".configList." + entry,
                 ImGui.getContentRegionAvailX(), 0,
-                ImGuiChildFlags.AlwaysUseWindowPadding | ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border
+                ImGuiChildFlags.AlwaysUseWindowPadding | ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Borders
         );
         {
             // config info
@@ -141,7 +141,7 @@ public class ConfigManagementPanel extends MainPanel {
                 ImGui.beginGroup();
 
                 String configName = entry.getValue().getName();
-                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                FontManager.pushFont(FontManager.INSTANCE.puHui12);
                 ImTextRenderer.drawText(
                         ImGui.getWindowDrawList(),
                         configName,
@@ -151,7 +151,7 @@ public class ConfigManagementPanel extends MainPanel {
                 ImGui.textColored(0, configName);
                 ImGui.popFont();
 
-                ImGui.pushFont(FontManager.INSTANCE.puHui10);
+                FontManager.pushFont(FontManager.INSTANCE.puHui10);
                 ImGui.textColored(gui.getTheme().getSecondaryColor(), entry.getKey().getFileName().toString());
                 ImGui.popFont();
 
@@ -208,7 +208,7 @@ public class ConfigManagementPanel extends MainPanel {
                 highlight? gui.getTheme().getHighlightButtonTextColor() : gui.getTheme().getMainColor()
         );
 
-        ImGui.pushFont(FontManager.INSTANCE.puHui12);
+        FontManager.pushFont(FontManager.INSTANCE.puHui12);
 
         boolean active = ImGui.button(label, 60f, 24f);
 

@@ -48,7 +48,7 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
 
             int renderedData = renderOverrideData(dummy, tickDelta);
             {
-                ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                FontManager.pushFont(FontManager.INSTANCE.puHui12);
                 ImGui.pushStyleVar(ImGuiStyleVar.FrameRounding, 9);
                 String text = "+ Add Override";
                 boolean noDataRendered = renderedData == 0;
@@ -94,7 +94,7 @@ public class OverridePopupComponent<T> extends PanelComponent implements InputLi
                     data.setValue(elementRenderer.renderElement(dummy, tickDelta, data.toString(), data.getValue()));
                     ImGui.sameLine(0, 4);
 
-                    ImGui.pushFont(FontManager.INSTANCE.puHui12);
+                    FontManager.pushFont(FontManager.INSTANCE.puHui12);
                     ImGui.pushStyleVar(ImGuiStyleVar.FrameRounding, 6);
                     ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 6, 1);
 

@@ -58,7 +58,7 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
 
     @Override
     protected void doRender(ImVec2 pos, ImVec2 normalizedOffset, ImDrawList draws, boolean input, float tickDelta) {
-        ImGui.pushFont(FontManager.INSTANCE.puhui14);
+        FontManager.pushFont(FontManager.INSTANCE.puhui14);
         final int hPadding = horizontalPadding.get(), vPadding = verticalPadding.get();
         final int sidebarWidth = sidebar.get()? this.sidebarWidth.get() : 0;
 

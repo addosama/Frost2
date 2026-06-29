@@ -46,7 +46,7 @@ public class SliderElement<T extends Number & Comparable<T>> extends PanelCompon
 
         // value
         {
-            ImGui.pushFont(FontManager.INSTANCE.puHui10);
+            FontManager.pushFont(FontManager.INSTANCE.puHui10);
             String valText = valueStringProvider.apply(valReturn);
             ImGui.pushStyleVar(ImGuiStyleVar.FrameRounding, 6);
             ImGui.pushStyleVar(ImGuiStyleVar.FramePadding, 4, 2);

@@ -48,7 +48,7 @@ public class PropertyPanel extends PanelComponent {
         // title
         {
             String title = titleSupplier.get();
-            ImGui.pushFont(FontManager.INSTANCE.puHui10);
+            FontManager.pushFont(FontManager.INSTANCE.puHui10);
             ImGui.dummy(10, 0);
             ImGui.sameLine();
             ImTextRenderer.drawText(
@@ -70,7 +70,7 @@ public class PropertyPanel extends PanelComponent {
             ImGui.beginChild(
                     this + ".props",
                     0, 0,
-                    ImGuiChildFlags.AlwaysUseWindowPadding | ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Border
+                    ImGuiChildFlags.AlwaysUseWindowPadding | ImGuiChildFlags.AutoResizeY | ImGuiChildFlags.Borders
             );
 
             boolean firstProp = true;
