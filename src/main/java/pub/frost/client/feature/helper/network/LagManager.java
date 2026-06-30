@@ -34,6 +34,7 @@ public class LagManager {
             DelayedPacket data = incomingPacketDeque.peekFirst();
             if (data.forceFlush || data.getRemainingTicks() <= getSendThreshold()) {
                 data.packetList.forEach(p -> p.processPacket(mc.getNetHandler()));
+                data.setFlushed();
                 incomingPacketDeque.pollFirst();
             } else break;
         }
@@ -72,6 +73,7 @@ public class LagManager {
                 data.packetList.forEach(
                         p -> FrostCore.getHelpers().getPacketManager().sendPacket(p, false)
                 );
+                data.setFlushed();
                 outgoingPacketDeque.pollFirst();
             } else break;
         }

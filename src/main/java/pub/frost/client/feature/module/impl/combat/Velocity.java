@@ -2,10 +2,7 @@ package pub.frost.client.feature.module.impl.combat;
 
 import lombok.Getter;
 import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventPacket;
-import pub.frost.base.event.impl.events.EventPlayerUpdateTick;
-import pub.frost.base.event.impl.events.EventPlayerVelocity;
-import pub.frost.base.event.impl.events.EventUpdateMovementInput;
+import pub.frost.base.event.impl.events.*;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.client.feature.module.annotations.Module;
@@ -34,7 +31,7 @@ public class Velocity extends AbstractModule {
     @InsertProperty("JumpReset")
     public final JumpResetVelocity jumpReset = new JumpResetVelocity();
     @InsertProperty("Delay")
-    public final DelayVelocity delay = new DelayVelocity(this);
+    public final DelayVelocity delay = new DelayVelocity();
     @InsertProperty("AttackReduce")
     public final AttackReduceVelocity attackReduce = new AttackReduceVelocity(this);
 
@@ -54,10 +51,15 @@ public class Velocity extends AbstractModule {
 
     @EventHandler
     public void onPacket(EventPacket event) {
-        if (event.getType() == PacketType.IN) {
-            if (delay.enabled.get()) delay.processIncomingPacket(event);
-        } else if (event.getType() == PacketType.OUT) {
+        if (event.getType() == PacketType.OUT) {
             if (attackReduce.enabled.get()) attackReduce.processOutgoingPacket(event);
+        }
+    }
+
+    @EventHandler
+    public void onPreLag(EventProactiveLag event) {
+        if (event.getPacketType() == PacketType.IN) {
+            if (delay.enabled.get()) delay.processIncomingPacket(event);
         }
     }
 
