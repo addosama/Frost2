@@ -11,6 +11,7 @@ import pub.frost.client.property.impl.color.ColorProperty;
 import pub.frost.client.property.impl.mode.ModeProperty;
 import pub.frost.client.property.impl.number.FloatProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
+import pub.frost.client.property.preset.AbstractPresetSetting;
 import pub.frost.utils.ColorUtils;
 
 import java.util.ArrayList;
@@ -18,10 +19,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-public class ColorSetting implements VisibilitySupplier, ManualDescriptorProvider {
-    private final Supplier<Boolean> visibility;
+public class ColorSetting extends AbstractPresetSetting<ColorSetting> implements ManualDescriptorProvider {
 
     public final ModeProperty<EnumColorType> type = new ModeProperty<>(EnumColorType.STATIC);
 
@@ -55,12 +54,11 @@ public class ColorSetting implements VisibilitySupplier, ManualDescriptorProvide
     public ColorSetting(int defaultColor, boolean allowAlpha) {
         this(defaultColor, allowAlpha, () -> true);
     }
-    public ColorSetting(boolean allowAlpha, Supplier<Boolean> visibility) {
+    public ColorSetting(boolean allowAlpha, VisibilitySupplier visibility) {
         this(0xFFFFFFFF, allowAlpha, visibility);
     }
-    public ColorSetting(int defaultColor, boolean allowAlpha, Supplier<Boolean> visibility) {
-        this.visibility = visibility;
-
+    public ColorSetting(int defaultColor, boolean allowAlpha, VisibilitySupplier visibility) {
+        super(visibility);
         colors[0] = new ColorProperty(defaultColor, allowAlpha).setVisibilitySupplier(() -> type.is(EnumColorType.STATIC));
         for (int i = 1; i <= 6; i++) {
             final int colorIndex = i;
@@ -131,12 +129,7 @@ public class ColorSetting implements VisibilitySupplier, ManualDescriptorProvide
         return colors[0].getValueABGR();
     }
 
-    @Override
-    public boolean isVisible() {
-        return visibility.get();
-    }
-
     private PropertyDescriptor getPropDescriptor(String keyPrefix, String key, AbstractProperty<?, ?> prop) {
-        return new PropertyDescriptor(keyPrefix + key, prop, "strings.settings.color.props." + key);
+        return getPropDescriptor(keyPrefix, key, "strings.settings.color.props." + key, prop);
     }
 }
