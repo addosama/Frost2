@@ -9,10 +9,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import pub.frost.base.event.api.annotations.EventHandler;
-import pub.frost.base.event.impl.events.EventPreProcessInteract;
-import pub.frost.base.event.impl.events.EventPreTickLoop;
-import pub.frost.base.event.impl.events.EventRender2D;
-import pub.frost.base.event.impl.events.EventRotation;
+import pub.frost.base.event.impl.events.*;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.helper.player.rotation.providers.AbstractRotationProvider;
 import pub.frost.client.feature.helper.player.rotation.providers.impl.BasicRotationProvider;
@@ -82,6 +79,11 @@ public class KillAura extends AbstractModule {
 
     private void resetTarget() {
         target = null;
+    }
+
+    @EventHandler
+    private void onPreLag(EventProactiveLag event) {
+        if (autoBlock.lag.get()) autoBlock.processLag(event);
     }
 
     @EventHandler

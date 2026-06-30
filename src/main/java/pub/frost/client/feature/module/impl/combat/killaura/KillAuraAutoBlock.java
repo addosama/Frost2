@@ -1,19 +1,26 @@
 package pub.frost.client.feature.module.impl.combat.killaura;
 
+import lombok.RequiredArgsConstructor;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C09PacketHeldItemChange;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3;
+import pub.frost.base.event.impl.events.EventProactiveLag;
+import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.helper.network.DelayedPacket;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
 import pub.frost.client.i18n.annotations.TranslationKey;
+import pub.frost.client.i18n.interfaces.Named;
 import pub.frost.client.property.annotations.InsertProperty;
 import pub.frost.client.property.annotations.Property;
 import pub.frost.client.property.annotations.PropertyGroupMain;
@@ -53,10 +60,29 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
             .setVisibilitySupplier(predict.enabled::get);
     @Property("BlockRange")
     public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f);
+
+    @Property("LimiterMode")
+    public final ModeProperty<LimiterMode> limiterMode = new ModeProperty<>(LimiterMode.CHANCE);
+
     @Property("BlockChance")
-    public final PercentProperty blockChance = new PercentProperty(0, 1, 1);
+    public final PercentProperty blockChance = new PercentProperty(0, 1, 1)
+            .setVisibilitySupplier(() -> limiterMode.is(LimiterMode.CHANCE));
     @Property("DistanceBasedChance")
-    public final BooleanProperty distanceBasedChance = new BooleanProperty(true);
+    public final BooleanProperty distanceBasedChance = new BooleanProperty(true)
+            .setVisibilitySupplier(() -> limiterMode.is(LimiterMode.CHANCE));
+
+    @Property("BPS")
+    public final IntegerProperty bps = new IntegerProperty(1, 10, 1, 1)
+            .setVisibilitySupplier(() -> limiterMode.is(LimiterMode.STATIC));
+
+    @Property("Lag")
+    public final BooleanProperty lag = new BooleanProperty(false);
+    @Property("MaxLagTicks")
+    public final IntegerProperty maxLagTicks = new IntegerProperty(1, 40, 1, 2)
+            .setVisibilitySupplier(lag::get);
+
+    private long lastBlock = 0;
+    private int blockCount = 0;
 
     public void tryMakeBlocking(double distance) {
         if (notWhileHurt.get() && mc.thePlayer.hurtTime > 0) return;
@@ -72,11 +98,33 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
             double range = blockRange.get();
             if (range == 0) return;
             if (distance > range) return;
-            float chance = blockChance.get();
-            if (distanceBasedChance.get()) {
-                chance *= (float) ((range - distance) / range);
+
+            if (limiterMode.is(LimiterMode.CHANCE)) {
+                float chance = blockChance.get();
+                if (distanceBasedChance.get()) {
+                    chance *= (float) ((range - distance) / range);
+                }
+                if (Math.random() <= chance) block = true;
             }
-            if (Math.random() <= chance) block = true;
+            else {
+                int div = 1000 / bps.get();
+                int countAdd = (int)(System.currentTimeMillis() - lastBlock) / div;
+                if (countAdd > 0) {
+                    if (countAdd < 3) {
+                        blockCount += countAdd;
+                        lastBlock += div * countAdd;
+                    }
+                    else {
+                        blockCount += 1;
+                        lastBlock = System.currentTimeMillis();
+                    }
+                }
+
+                if (blockCount > 0) {
+                    block = true;
+                    blockCount--;
+                }
+            }
         }
 
         if (block) makeBlocking();
@@ -214,6 +262,34 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         switchedFromSlot = -1;
     }
 
+    private DelayedPacket delayed = null;
+    public void processLag(EventProactiveLag event) {
+        if (event.getPacketType() == PacketType.IN) return;
+
+        Packet packet = event.getEventPacket();
+        boolean lag = false;
+        if (packet instanceof C08PacketPlayerBlockPlacement) {
+            if (delayed != null) {
+                delayed.setForceFlush(true);
+                delayed = null;
+            }
+        }
+        else if (packet instanceof C07PacketPlayerDigging) {
+            C07PacketPlayerDigging c07 =  (C07PacketPlayerDigging) packet;
+            if (c07.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
+                lag = true;
+            }
+        }
+        else if (packet instanceof C09PacketHeldItemChange) {
+            lag = true;
+        }
+
+        if (lag && delayed == null) {
+            event.setLagTicks(maxLagTicks.get());
+            event.setDelayedPacketConsumer(p -> delayed = p);
+        }
+    }
+
     public static class Prediction {
         @TranslationKey("strings.enabled")
         @PropertyGroupMain
@@ -235,5 +311,17 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         public final BooleanProperty testVelocityPosition = new BooleanProperty(true);
         @Property("VelocityInTicks")
         public final IntegerProperty velocityInTicks = new IntegerProperty(1, 20, 1, 5);
+    }
+
+    @RequiredArgsConstructor
+    @TranslationKey("strings.enum.killaura.autoblock.limitermode.~")
+    public enum LimiterMode implements Named {
+        CHANCE("Chance"),
+        STATIC("Static");
+        final String key;
+        @Override
+        public String toString() {
+            return key;
+        }
     }
 }
