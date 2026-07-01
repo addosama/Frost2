@@ -14,11 +14,11 @@ public class PacketManager {
     private final Minecraft mc = Minecraft.getMinecraft();
 
     public boolean processIncoming(Packet packet) {
+        if (FrostCore.getHelpers().getLagManager().processIncoming(packet))
+            return true;
         EventPacket event = new EventPacket(PacketType.IN, packet);
         FrostCore.getEventBus().call(event);
-        if (event.isCancelled()) return true;
-
-        return FrostCore.getHelpers().getLagManager().processIncoming(packet);
+        return event.isCancelled();
     }
 
     public boolean processOutgoing(Packet packet) {
@@ -27,11 +27,11 @@ public class PacketManager {
             return false;
         }
 
+        if (FrostCore.getHelpers().getLagManager().processOutgoing(packet))
+            return true;
         EventPacket event = new EventPacket(PacketType.OUT, packet);
         FrostCore.getEventBus().call(event);
-        if (event.isCancelled()) return true;
-
-        return FrostCore.getHelpers().getLagManager().processOutgoing(packet);
+        return event.isCancelled();
     }
 
     public void sendPacket(Packet packet, boolean event) {

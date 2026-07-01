@@ -13,6 +13,7 @@ import pub.frost.base.event.impl.events.EventPacket;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
 import pub.frost.utils.api.Tickable;
+import pub.frost.utils.data.Rotation;
 import pub.frost.utils.recorder.Recorder;
 import pub.frost.utils.recorder.impl.deque.DataDeque;
 import pub.frost.utils.recorder.impl.deque.TickableDataDeque;
@@ -37,6 +38,7 @@ public class PlayerListener {
     private final SingleTickStateRecorder heldItemChangeRecorder = new SingleTickStateRecorder();
 
     private final DataDeque<Vec3> positionDeque = new DataDeque<>(20);
+    private final DataDeque<Rotation> rotationDeque = new DataDeque<>(20);
     private final TickableDataDeque<Map.Entry<Vec3, Vec3>> velocityDeque = new TickableDataDeque<>(20);
 
     private final List<Tickable> tickableList = Arrays.asList(
@@ -59,7 +61,8 @@ public class PlayerListener {
             placeRecorder,
             heldItemChangeRecorder,
 
-            positionDeque
+            positionDeque,
+            rotationDeque
     );
 
     @EventHandler(priority = -1)
@@ -76,11 +79,12 @@ public class PlayerListener {
         if (e.getType() == PacketType.OUT) {
             if (packet instanceof C03PacketPlayer) {
                 C03PacketPlayer c03 = (C03PacketPlayer) packet;
-                if (
-                        packet instanceof C03PacketPlayer.C04PacketPlayerPosition
-                                || packet instanceof C03PacketPlayer.C06PacketPlayerPosLook
-                ) {
+                boolean c06 = packet instanceof C03PacketPlayer.C06PacketPlayerPosLook;
+                if (c06 || packet instanceof C03PacketPlayer.C04PacketPlayerPosition) {
                     positionDeque.offerValue(new Vec3(c03.getPositionX(), c03.getPositionY(), c03.getPositionZ()));
+                }
+                if (c06 || packet instanceof C03PacketPlayer.C05PacketPlayerLook) {
+                    rotationDeque.offerValue(new Rotation(c03.getYaw(), c03.getPitch()));
                 }
                 tickableList.forEach(Tickable::tick);
             }
