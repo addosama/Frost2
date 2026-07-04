@@ -1,7 +1,10 @@
 package pub.frost.client.feature.module.impl.utility;
 
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemEnderPearl;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import pub.frost.base.event.api.annotations.EventHandler;
@@ -57,6 +60,9 @@ public class Scaffold extends AbstractModule {
 
     @Property("TryUsePresetYaws")
     public final BooleanProperty tryUsePresetYaws = new BooleanProperty(true);
+    @Property("Prefer45Degree")
+    public final BooleanProperty prefer45Degree = new BooleanProperty(true)
+            .setVisibilitySupplier(tryUsePresetYaws::get);
     @Property("TryUsePresetPitches")
     public final BooleanProperty tryUsePresetPitches = new BooleanProperty(true)
             .setVisibilitySupplier(tryUsePresetYaws::get);
@@ -81,6 +87,12 @@ public class Scaffold extends AbstractModule {
     public final BooleanProperty snapRotation = new BooleanProperty(false);
     @Property("RayCast")
     public final ModeProperty<EnumRaycastType> rayCast = new ModeProperty<>(EnumRaycastType.DEFAULT);
+    @Property("DoNotChangeHitVec")
+    public final BooleanProperty doNotChangeHitVec = new BooleanProperty(true)
+            .setVisibilitySupplier(() -> !rayCast.is(EnumRaycastType.DISABLED));
+    @Property("UseServerSideRot")
+    public final BooleanProperty useServerSideRot = new BooleanProperty(true)
+            .setVisibilitySupplier(() -> !rayCast.is(EnumRaycastType.DISABLED));
 
     private final BasicRotationProvider rotationProvider = new BasicRotationProvider();
 
@@ -202,8 +214,16 @@ public class Scaffold extends AbstractModule {
 
                 if (rotation == null) {
                     if (tryUsePresetYaws.get()) {
-                        Rotation lastRotation = lastProvidedRotation == null?
-                                new Rotation(player.rotationYaw, player.rotationPitch) : lastProvidedRotation;
+                        final Rotation lastRotation;
+                        {
+                            Rotation rotTmp = lastProvidedRotation;
+                            if (rotTmp == null && useServerSideRot.get())
+                                rotTmp = FrostCore.getHelpers().getPlayerListener().getRotationDeque().getValue().peekLast();
+                            if (rotTmp == null)
+                                rotTmp = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+
+                            lastRotation = rotTmp;
+                        }
 
                         Float[] yawArray = {
                                 -135F,
@@ -217,10 +237,17 @@ public class Scaffold extends AbstractModule {
                                 bestRot.getYaw()
                         };
                         Arrays.sort(
-                                yawArray, (a, b) -> Float.compare(
-                                        Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - a)),
-                                        Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - b))
-                                )
+                                yawArray,
+                                prefer45Degree.get()?
+                                        Comparator.comparingDouble(
+                                                y -> Math.abs(RotationUtils.wrapYawTo180((float) y % 45))
+                                        ).thenComparing(
+                                                y -> Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - (float) y))
+                                        )
+                                        : (a, b) -> Float.compare(
+                                                Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - a)),
+                                                Math.abs(RotationUtils.wrapYawTo180(lastRotation.getYaw() - 180 - b))
+                                        )
                         );
                         float[] pitchArray = {75.0F, 82.0F, 87.0F};
                         boolean usePresetPitches = this.tryUsePresetPitches.get();
@@ -287,12 +314,26 @@ public class Scaffold extends AbstractModule {
         lastProvidedRotation = rotation;
     }
 
+    private int switchedFrom = -1;
     @EventHandler(priority = 40)
     private void onProcessInteract(EventPreProcessInteract event) {
         EntityPlayerSP player = mc.thePlayer;
-        net.minecraft.item.ItemStack stack = net.minecraft.client.Minecraft.getMinecraft().thePlayer.getHeldItem();
-        if (stack == null) return;
-        if (!(stack.getItem() instanceof ItemBlock)) return;
+        net.minecraft.item.ItemStack stackHeld = net.minecraft.client.Minecraft.getMinecraft().thePlayer.getHeldItem();
+        if (stackHeld == null || !(stackHeld.getItem() instanceof ItemBlock)) {
+            InventoryPlayer inventory = mc.thePlayer.inventory;
+            boolean foundBlock = false;
+            for (int slot = 0; slot < 9; slot++) {
+                ItemStack stack = inventory.getStackInSlot(slot);
+                if (stack == null || stack.stackSize < 1) continue;
+                if (stack.getItem() instanceof ItemBlock) {
+                    foundBlock = true;
+                    if (switchedFrom == -1) switchedFrom = inventory.currentItem;
+                    inventory.currentItem = slot;
+                    break;
+                }
+            }
+            if (!foundBlock) return;
+        }
 
         final int maxPlace = maxPlacePerTick.get();
         int placed = 0;
@@ -303,29 +344,34 @@ public class Scaffold extends AbstractModule {
             if (placed == 0 && mc.theWorld.isAirBlock(data.getBlockToUse())) continue;
 
             AxisAlignedBB blockBB = getBlockAxisAlignedBB(data.getBlockToUse());
-            Vec3 hitVec;
+            Vec3 hitVec = getHitPoint(blockBB, data.getFaceToUse());
 
             if (rayCast.get() != EnumRaycastType.DISABLED) {
+                Rotation rot = null;
+                if (useServerSideRot.get())
+                    rot = FrostCore.getHelpers().getPlayerListener().getRotationDeque().getValue().peekLast();
+                if (rot == null)
+                    rot = new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
                 if (rayCast.is(EnumRaycastType.LEGIT)) {
                     MovingObjectPosition result = EntityUtils.getLookingObject(
                             player,
-                            player.getLook(1),
+                            RotationUtils.getVectorForRotation(rot.getPitch(), rot.getYaw()),
                             3, 1
                     );
                     if (result != null && result.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && data.getBlockToUse().equals(result.getBlockPos())) {
-                        hitVec = result.hitVec;
+                        if (!doNotChangeHitVec.get()) hitVec = result.hitVec;
                     } else continue;
                 } else {
                     Map.Entry<Boolean, Vec3> result = RayCastUtils.getSimpleHitResult(
                             player.getPositionEyes(1f),
-                            player.rotationYaw,
-                            player.rotationPitch,
+                            rot.getYaw(),
+                            rot.getPitch(),
                             BoundingBoxUtils.getFaceBoundingBox(
                                     blockBB, data.getFaceToUse()
                             )
                     );
                     if (!result.getKey()) continue;
-                    hitVec = result.getValue();
+                    if (!doNotChangeHitVec.get()) hitVec = result.getValue();
                 }
             }
             else hitVec = BoundingBoxUtils.getFaceCenter(
@@ -336,11 +382,12 @@ public class Scaffold extends AbstractModule {
             if (net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
                     net.minecraft.client.Minecraft.getMinecraft().theWorld,
-                    stack,
+                    stackHeld,
                     new BlockPos(data.getBlockToUse().getX(), data.getBlockToUse().getY(), data.getBlockToUse().getZ()),
                     EnumFacing.VALUES[data.getFaceToUse().getIndex()],
                     hitVec
             )) player.swingItem();
+//            InputUtils.clickRMB();
             placeDeque.poll();
             ticksSincePlace = 0;
             if (data.getBlockToUse().getY() <= lastOnGroundY) {
@@ -405,6 +452,14 @@ public class Scaffold extends AbstractModule {
                         Math.random() * BoundingBoxUtils.getSizeZ(faceBB)
                 ))
         ));
+    }
+
+    @Override
+    protected void onDisabled() {
+        if (switchedFrom != -1) {
+            mc.thePlayer.inventory.currentItem = switchedFrom;
+            switchedFrom = -1;
+        }
     }
 
     public boolean shouldKeepY() {
