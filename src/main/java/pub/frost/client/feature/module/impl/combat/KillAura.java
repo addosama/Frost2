@@ -39,6 +39,7 @@ import pub.frost.utils.raycast.RayCastUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Module(
         key = "KillAura",
@@ -51,7 +52,6 @@ public class KillAura extends AbstractModule {
     public final TickDeltaFixSetting tickDeltaFix = new TickDeltaFixSetting(() -> tickTiming.is(TickTiming.PRE_GAME_TICK));
     @InsertProperty("targeting")
     public final KillAuraTargeting targeting = new KillAuraTargeting();
-    @InsertProperty("searching")
     public final KillAuraSearching searching = new KillAuraSearching();
     @InsertProperty("attacking")
     public final KillAuraAttacking attacking = new KillAuraAttacking();
@@ -115,26 +115,28 @@ public class KillAura extends AbstractModule {
         autoBlock.stopBlocking();
         if (isGoodTick()) {
             attacking.doAttack(target, 1);
-            if (autoBlock.enabled.get() && isHoldingSword()) {
-                double distance = target.getDistance(
-                        mc.thePlayer.posX,
-                        mc.thePlayer.posY,
-                        mc.thePlayer.posZ
-                );
-                autoBlock.tryMakeBlocking(distance);
-            }
+        }
+        if (autoBlock.enabled.get() && isHoldingSword()) {
+            autoBlock.tryMakeBlocking();
         }
         attacking.resetAttackCount();
     }
 
     private void tick(float tickDelta) {
         tickRotProvided = false;
-        List<Entity> validTargets = searching.searchTargets();
-        if (validTargets.isEmpty()) {
+        searching.tick();
+        if (searching.getLastSearchResult().isEmpty()) {
             resetTarget();
             targetRotation = null;
         } else {
-            target = targeting.selectBestTarget(validTargets, tickDelta);
+            target = targeting.selectBestTarget(
+                    searching.getLastSearchResult().stream().filter(
+                            e -> EntityUtils.getDistanceToPoint(
+                                    e, EntityUtils.getPositionEyes(mc.thePlayer, 1)
+                            ) < targeting.targetRange.get()
+                    ).sorted(targeting.getComparator()).collect(Collectors.toList()),
+                    tickDelta
+            );
 
             if (target != null) {
                 targetRotation = getRotation(target, tickDelta);
@@ -169,7 +171,7 @@ public class KillAura extends AbstractModule {
     }
 
     public boolean rayTraceTarget(Entity target, Rotation rotation, float tickDelta) {
-        return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? searching.targetRange.get() : attacking.getRealAttackRange(), true, tickDelta);
+        return rayTraceTarget(target, rotation, targeting.mode.is(Mode.SINGLE)? targeting.targetRange.get() : attacking.getRealAttackRange(), true, tickDelta);
     }
     public boolean rayTraceTarget(Entity target, Rotation r, double reach, boolean useDefaultIfOutOfRange, float tickDelta) {
         if (rayCast.is(EnumRaycastType.DISABLED)) return true;
@@ -182,7 +184,7 @@ public class KillAura extends AbstractModule {
         final boolean outofRange = useDefaultIfOutOfRange && playerEyePos.distanceTo(target.getPositionEyes(tickDelta)) > reach;
 
         if (rayCast.is(EnumRaycastType.DEFAULT) || outofRange) {
-            double cmpReach = outofRange? searching.targetRange.get() : reach;
+            double cmpReach = outofRange? targeting.targetRange.get() : reach;
             Map.Entry<Boolean, Vec3> result = RayCastUtils.getSimpleHitResult(
                     playerEyePos,
                     r.getYaw(), r.getPitch(),
@@ -196,7 +198,7 @@ public class KillAura extends AbstractModule {
                         MovingObjectPosition hitResult = RayCastUtils.raytraceBlocks(
                                 player.worldObj, playerEyePos,
                                 RotationUtils.getVectorForRotation(pitch, yaw),
-                                searching.targetRange.get()
+                                targeting.targetRange.get()
                         );
                         if (hitResult != null && hitResult.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                             return playerEyePos.distanceTo(hitResult.hitVec) > distToHitPoint;

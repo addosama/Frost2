@@ -2,9 +2,11 @@ package pub.frost.client.feature.module.impl.combat.killaura;
 
 import lombok.RequiredArgsConstructor;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
@@ -31,12 +33,13 @@ import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.impl.number.PercentProperty;
 import pub.frost.utils.EntityUtils;
 import pub.frost.utils.InputUtils;
+import pub.frost.utils.RotationUtils;
+import pub.frost.utils.data.Rotation;
 import pub.frost.utils.interacting.EnumInteractType;
 import pub.frost.utils.raycast.RayCastUtils;
 
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @SubModule(KillAura.class)
 public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
@@ -51,8 +54,18 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     );
     // @Property("SwitchItemUnblock")
     public final BooleanProperty switchItemUnblock = new BooleanProperty(false).setVisibilitySupplier(() -> blockMode.is(EnumInteractType.PACKET));
-    @Property("NotWhileHurt")
-    public final BooleanProperty notWhileHurt = new BooleanProperty(true);
+    @Property("ReduceWhileHurt")
+    public final BooleanProperty reduceWhileHurt = new BooleanProperty(true);
+    @Property("MinHurttime")
+    public final IntegerProperty minHurttime = new IntegerProperty(1, 10, 1, 8)
+            .setVisibilitySupplier(reduceWhileHurt::get);
+
+    @Property("CheckEnemyDirection")
+    public final BooleanProperty checkEnemyDirection = new BooleanProperty(true);
+    @Property("MaxYawDiff")
+    public final IntegerProperty maxYawDiff = new IntegerProperty(1, 180, 1, 90)
+            .setVisibilitySupplier(checkEnemyDirection::get);
+
     @InsertProperty("Predict")
     public final Prediction predict = new Prediction();
     @Property("ForceIfInDanger")
@@ -80,29 +93,59 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     @Property("MaxLagTicks")
     public final IntegerProperty maxLagTicks = new IntegerProperty(1, 40, 1, 2)
             .setVisibilitySupplier(lag::get);
+//    @Property("FlushOnHurt")
+//    public final BooleanProperty flushOnHurt = new BooleanProperty(false)
+//            .setVisibilitySupplier(lag::get);
+
+    @Property("NoDelayingAttacks")
+    public final BooleanProperty noDelayingAttacks = new BooleanProperty(true)
+            .setVisibilitySupplier(lag::get);
 
     private long lastBlock = 0;
     private int blockCount = 0;
 
-    public void tryMakeBlocking(double distance) {
-        if (notWhileHurt.get() && mc.thePlayer.hurtTime > 0) return;
-        boolean block = false;
+    public void tryMakeBlocking() {
+        if (mc.thePlayer.hurtTime > 0 && reduceWhileHurt.get() && mc.thePlayer.hurtTime < minHurttime.get()) return;
 
-        if (predict.enabled.get()) {
-            boolean inDanger = runDangerPrediction();
-            if (!inDanger) return;
-            if (forceIfInDanger.get()) block = true;
+        boolean shouldBlock = false;
+        boolean forceBlock = false;
+
+        double range = blockRange.get();
+        if (range == 0) return;
+
+        final Vec3 eyePos = mc.thePlayer.getPositionEyes(1);
+        final List<Entity> enemiesInRange = getParent().searching.getLastSearchResult().stream().filter(
+                e -> EntityUtils.getDistanceToPoint(e, eyePos) < range
+        ).sorted(
+                Comparator.comparingDouble(e -> EntityUtils.getDistanceToPoint(e, eyePos))
+        ).collect(Collectors.toList());
+        if (enemiesInRange.isEmpty()) return;
+
+        if (checkEnemyDirection.get()) {
+            for (Entity enemy : enemiesInRange) {
+                if (
+                        Math.abs(RotationUtils.getRotationDeltaAimingPoint(
+                                enemy.getPositionEyes(1),
+                                new Rotation(enemy.rotationYaw, enemy.rotationPitch), eyePos
+                        ).getYaw()) <= maxYawDiff.get()
+                ) {
+                    shouldBlock = true;
+                    break;
+                }
+            }
         }
 
-        if (!block) {
-            double range = blockRange.get();
-            if (range == 0) return;
-            if (distance > range) return;
+        if (predict.enabled.get() && runDangerPrediction(enemiesInRange)) {
+            if (forceIfInDanger.get()) forceBlock = true;
+            else shouldBlock = true;
+        }
 
+        boolean block = forceBlock;
+        if (!forceBlock && shouldBlock) {
             if (limiterMode.is(LimiterMode.CHANCE)) {
                 float chance = blockChance.get();
                 if (distanceBasedChance.get()) {
-                    chance *= (float) ((range - distance) / range);
+                    chance *= (float) ((range - EntityUtils.getDistanceToPoint(enemiesInRange.get(0), eyePos)) / range);
                 }
                 if (Math.random() <= chance) block = true;
             }
@@ -130,15 +173,9 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         if (block) makeBlocking();
     }
 
-    private boolean runDangerPrediction() {
-        List<Entity> entities = getParent().searching.searchTargets(
-                predict.customSearchRange.get() ?
-                        predict.searchRange.get()
-                        : blockRange.get()
-        );
-
+    private boolean runDangerPrediction(List<Entity> enemyList) {
         boolean inDanger = false;
-        for (Entity entity : entities) {
+        for (Entity entity : enemyList) {
             if (inDanger) break;
             if (!(entity instanceof EntityPlayer)) continue;
 
@@ -275,13 +312,26 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
             }
         }
         else if (packet instanceof C07PacketPlayerDigging) {
-            C07PacketPlayerDigging c07 =  (C07PacketPlayerDigging) packet;
+            C07PacketPlayerDigging c07 = (C07PacketPlayerDigging) packet;
             if (c07.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
                 lag = true;
             }
         }
         else if (packet instanceof C09PacketHeldItemChange) {
             lag = true;
+        }
+        else if (packet instanceof C02PacketUseEntity && noDelayingAttacks.get()) {
+            C02PacketUseEntity c02 = (C02PacketUseEntity) packet;
+
+            if (delayed != null && c02.getAction() == C02PacketUseEntity.Action.ATTACK) {
+                Entity entityAttack = c02.getEntityFromWorld(mc.theWorld);
+                if (entityAttack instanceof EntityLivingBase) {
+                    if (((EntityLivingBase) entityAttack).hurtTime == 0) {
+                        delayed.setForceFlush(true);
+                        delayed = null;
+                    }
+                }
+            }
         }
 
         if (lag && delayed == null) {
