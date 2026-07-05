@@ -10,14 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+@Getter
 @RequiredArgsConstructor
 public class DelayedPacket implements Tickable {
     final List<Packet> packetList = new ArrayList<>();
-    @Getter
     final Supplier<Integer> lagTickSupplier;
     @Setter
     boolean forceFlush = false;
-    @Getter
     boolean flushed;
 
     public void tick() {
