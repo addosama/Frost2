@@ -2,6 +2,7 @@ package pub.frost.client.feature.module.impl.combat.killaura;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.util.Vec3;
 import pub.frost.client.core.FrostCore;
 import pub.frost.client.feature.module.annotations.SubModule;
@@ -23,9 +24,7 @@ import pub.frost.utils.data.Rotation;
 import pub.frost.utils.targeting.EnumEntityTarget;
 import pub.frost.utils.targeting.EnumEntityTargetPriority;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @SubModule(KillAura.class)
 public class KillAuraTargeting extends AbstractSubModule<KillAura> {
@@ -45,6 +44,13 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
 
     @Property("RaytraceBeforeTarget")
     public final BooleanProperty raytraceBeforeTarget = new BooleanProperty(true);
+
+    @Property("SkipAttacked")
+    public final BooleanProperty skipAttacked = new BooleanProperty(true)
+            .setVisibilitySupplier(() -> mode.is(KillAura.Mode.SWITCH));
+    @Property("AttackedInTicks")
+    public final IntegerProperty attackedInTicks = new IntegerProperty(0, 20, 1, 2)
+            .setVisibilitySupplier(() -> skipAttacked.isVisible() && skipAttacked.get());
 
     private Entity lastTarget = null;
     public boolean isTarget(Entity entity, Vec3 eyePos) {
@@ -83,7 +89,25 @@ public class KillAuraTargeting extends AbstractSubModule<KillAura> {
                 if (lastTarget == null || !validTargets.contains(lastTarget)) {
                     targetRet = validTargets.get(0);
                 }
-            } else targetRet = validTargets.get(0);
+            } else {
+                Entity bestTarget = validTargets.get(0);
+                if (skipAttacked.get()) {
+                    Set<Entity> attacked = new HashSet<>();
+                    Iterator<C02PacketUseEntity> it = FrostCore.getHelpers().getPlayerListener().getAttackDeque().getValue().iterator();
+                    for (int i = 0; i < attackedInTicks.get() && it.hasNext(); i++) {
+                        C02PacketUseEntity packet = it.next();
+                        if (packet == null) continue;
+                        if (packet.getAction() != C02PacketUseEntity.Action.ATTACK) continue;
+                        attacked.add(packet.getEntityFromWorld(mc.theWorld));
+                    }
+                    for (Entity target : validTargets) {
+                        if (attacked.contains(target)) continue;
+                        bestTarget = target;
+                        break;
+                    }
+                }
+                targetRet = bestTarget;
+            }
 
             if (targetRet != null && raytraceBeforeTarget.get()) {
                 boolean hit = preTargetRaytrace(targetRet, tickDelta);

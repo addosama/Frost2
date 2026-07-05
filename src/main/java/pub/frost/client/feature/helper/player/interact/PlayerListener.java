@@ -33,12 +33,13 @@ public class PlayerListener {
     private final TickableStateRecorder usingStateRecorder = new TickableStateRecorder();
 
     private final SingleTickStateRecorder swingRecorder = new SingleTickStateRecorder();
-    private final SingleTickStateRecorder attackRecorder = new SingleTickStateRecorder();
     private final SingleTickStateRecorder placeRecorder = new SingleTickStateRecorder();
     private final SingleTickStateRecorder heldItemChangeRecorder = new SingleTickStateRecorder();
 
     private final DataDeque<Vec3> positionDeque = new DataDeque<>(20);
     private final DataDeque<Rotation> rotationDeque = new DataDeque<>(20);
+
+    private final TickableDataDeque<C02PacketUseEntity> attackDeque = new TickableDataDeque<>(20);
     private final TickableDataDeque<Map.Entry<Vec3, Vec3>> velocityDeque = new TickableDataDeque<>(20);
 
     private final List<Tickable> tickableList = Arrays.asList(
@@ -46,7 +47,7 @@ public class PlayerListener {
             usingStateRecorder,
 
             swingRecorder,
-            attackRecorder,
+            attackDeque,
             placeRecorder,
             heldItemChangeRecorder,
             
@@ -57,7 +58,7 @@ public class PlayerListener {
             usingStateRecorder,
 
             swingRecorder,
-            attackRecorder,
+            attackDeque,
             placeRecorder,
             heldItemChangeRecorder,
 
@@ -90,7 +91,7 @@ public class PlayerListener {
             }
             else {
                 if (packet instanceof C02PacketUseEntity) {
-                    attackRecorder.updateValue(true);
+                    attackDeque.offerValue((C02PacketUseEntity) packet);
                 }
                 else if (packet instanceof C07PacketPlayerDigging) {
                     C07PacketPlayerDigging c07 =  (C07PacketPlayerDigging) packet;

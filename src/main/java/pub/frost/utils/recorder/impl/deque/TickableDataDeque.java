@@ -9,10 +9,19 @@ public class TickableDataDeque<DATA> extends DataDeque<DATA> implements Tickable
     public TickableDataDeque(int ticksToSave) {
         super(new LinkedList<>(), ticksToSave);
     }
+    private boolean tickOffered = false;
 
     @Override
     public void tick() {
-        getValue().offerLast(null);
+        if (!tickOffered)
+            super.offerValue(null);
+        tickOffered = false;
+    }
+
+    @Override
+    public void offerValue(DATA value) {
+        tickOffered = true;
+        super.offerValue(value);
     }
 
     @Override

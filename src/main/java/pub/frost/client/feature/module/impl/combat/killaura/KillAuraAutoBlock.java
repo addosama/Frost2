@@ -10,6 +10,7 @@ import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C09PacketHeldItemChange;
+import net.minecraft.network.play.server.S06PacketUpdateHealth;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
@@ -65,6 +66,15 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     @Property("MaxYawDiff")
     public final IntegerProperty maxYawDiff = new IntegerProperty(1, 180, 1, 90)
             .setVisibilitySupplier(checkEnemyDirection::get);
+    @Property("CheckDistance")
+    public final BooleanProperty checkDistance = new BooleanProperty(true)
+            .setVisibilitySupplier(checkEnemyDirection::get);
+    @Property("ForceBlockDistance")
+    public final FloatProperty maxDistance = new FloatProperty(0, 3, 0.01f, 0.75f)
+            .setVisibilitySupplier(() -> checkDistance.isVisible() && checkDistance.get());
+    @Property("CheckInside")
+    public final BooleanProperty checkInside = new BooleanProperty(true)
+            .setVisibilitySupplier(checkEnemyDirection::get);
 
     @InsertProperty("Predict")
     public final Prediction predict = new Prediction();
@@ -93,9 +103,9 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     @Property("MaxLagTicks")
     public final IntegerProperty maxLagTicks = new IntegerProperty(1, 40, 1, 2)
             .setVisibilitySupplier(lag::get);
-//    @Property("FlushOnHurt")
-//    public final BooleanProperty flushOnHurt = new BooleanProperty(false)
-//            .setVisibilitySupplier(lag::get);
+    @Property("FlushOnHurt")
+    public final BooleanProperty flushOnHurt = new BooleanProperty(false)
+            .setVisibilitySupplier(lag::get);
 
     @Property("NoDelayingAttacks")
     public final BooleanProperty noDelayingAttacks = new BooleanProperty(true)
@@ -107,7 +117,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     public void tryMakeBlocking() {
         if (mc.thePlayer.hurtTime > 0 && reduceWhileHurt.get() && mc.thePlayer.hurtTime < minHurttime.get()) return;
 
-        boolean shouldBlock = false;
+        boolean shouldBlock = true;
         boolean forceBlock = false;
 
         double range = blockRange.get();
@@ -122,22 +132,27 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         if (enemiesInRange.isEmpty()) return;
 
         if (checkEnemyDirection.get()) {
+            AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox();
             for (Entity enemy : enemiesInRange) {
+                Vec3 enemyEyePos = enemy.getPositionEyes(1);
                 if (
                         Math.abs(RotationUtils.getRotationDeltaAimingPoint(
-                                enemy.getPositionEyes(1),
+                                enemyEyePos,
                                 new Rotation(enemy.rotationYaw, enemy.rotationPitch), eyePos
                         ).getYaw()) <= maxYawDiff.get()
-                ) {
-                    shouldBlock = true;
+                )
                     break;
-                }
+                if (checkDistance.get() && enemyEyePos.distanceTo(eyePos) < maxDistance.get())
+                    break;
+                if (checkInside.get() && playerBB.isVecInside(enemyEyePos))
+                    break;
+                shouldBlock = false;
             }
         }
 
-        if (predict.enabled.get() && runDangerPrediction(enemiesInRange)) {
+        if (predict.enabled.get()) {
             if (forceIfInDanger.get()) forceBlock = true;
-            else shouldBlock = true;
+            shouldBlock |= runDangerPrediction(enemiesInRange);
         }
 
         boolean block = forceBlock;
@@ -301,42 +316,46 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
 
     private DelayedPacket delayed = null;
     public void processLag(EventProactiveLag event) {
-        if (event.getPacketType() == PacketType.IN) return;
-
         Packet packet = event.getEventPacket();
-        boolean lag = false;
-        if (packet instanceof C08PacketPlayerBlockPlacement) {
-            if (delayed != null) {
+        if (event.getPacketType() == PacketType.IN) {
+            if (packet instanceof S06PacketUpdateHealth && flushOnHurt.get() && delayed != null)
                 delayed.setForceFlush(true);
-                delayed = null;
-            }
         }
-        else if (packet instanceof C07PacketPlayerDigging) {
-            C07PacketPlayerDigging c07 = (C07PacketPlayerDigging) packet;
-            if (c07.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
+        else {
+            boolean lag = false;
+            if (packet instanceof C08PacketPlayerBlockPlacement) {
+                if (delayed != null) {
+                    delayed.setForceFlush(true);
+                    delayed = null;
+                }
+            }
+            else if (packet instanceof C07PacketPlayerDigging) {
+                C07PacketPlayerDigging c07 = (C07PacketPlayerDigging) packet;
+                if (c07.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
+                    lag = true;
+                }
+            }
+            else if (packet instanceof C09PacketHeldItemChange) {
                 lag = true;
             }
-        }
-        else if (packet instanceof C09PacketHeldItemChange) {
-            lag = true;
-        }
-        else if (packet instanceof C02PacketUseEntity && noDelayingAttacks.get()) {
-            C02PacketUseEntity c02 = (C02PacketUseEntity) packet;
+            else if (packet instanceof C02PacketUseEntity && noDelayingAttacks.get()) {
+                C02PacketUseEntity c02 = (C02PacketUseEntity) packet;
 
-            if (delayed != null && c02.getAction() == C02PacketUseEntity.Action.ATTACK) {
-                Entity entityAttack = c02.getEntityFromWorld(mc.theWorld);
-                if (entityAttack instanceof EntityLivingBase) {
-                    if (((EntityLivingBase) entityAttack).hurtTime == 0) {
-                        delayed.setForceFlush(true);
-                        delayed = null;
+                if (delayed != null && c02.getAction() == C02PacketUseEntity.Action.ATTACK) {
+                    Entity entityAttack = c02.getEntityFromWorld(mc.theWorld);
+                    if (entityAttack instanceof EntityLivingBase) {
+                        if (((EntityLivingBase) entityAttack).hurtTime == 0) {
+                            delayed.setForceFlush(true);
+                            delayed = null;
+                        }
                     }
                 }
             }
-        }
 
-        if (lag && delayed == null) {
-            event.setLagTicks(maxLagTicks.get());
-            event.setDelayedPacketConsumer(p -> delayed = p);
+            if (lag && delayed == null) {
+                event.setLagTicks(maxLagTicks.get());
+                event.setDelayedPacketConsumer(p -> delayed = p);
+            }
         }
     }
 
