@@ -110,6 +110,9 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     @Property("NoDelayingAttacks")
     public final BooleanProperty noDelayingAttacks = new BooleanProperty(true)
             .setVisibilitySupplier(lag::get);
+    @Property("ForceBlockNextTick")
+    public final BooleanProperty forceBlockNextTick = new BooleanProperty(true)
+            .setVisibilitySupplier(() -> noDelayingAttacks.isVisible() && noDelayingAttacks.get());
 
     private long lastBlock = 0;
     private int blockCount = 0;
@@ -131,28 +134,34 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         ).collect(Collectors.toList());
         if (enemiesInRange.isEmpty()) return;
 
-        if (checkEnemyDirection.get()) {
-            AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox();
-            for (Entity enemy : enemiesInRange) {
-                Vec3 enemyEyePos = enemy.getPositionEyes(1);
-                if (
-                        Math.abs(RotationUtils.getRotationDeltaAimingPoint(
-                                enemyEyePos,
-                                new Rotation(enemy.rotationYaw, enemy.rotationPitch), eyePos
-                        ).getYaw()) <= maxYawDiff.get()
-                )
-                    break;
-                if (checkDistance.get() && enemyEyePos.distanceTo(eyePos) < maxDistance.get())
-                    break;
-                if (checkInside.get() && playerBB.isVecInside(enemyEyePos))
-                    break;
-                shouldBlock = false;
-            }
+        if (forceBlockAgain) {
+            forceBlockAgain = false;
+            forceBlock = true;
         }
 
-        if (predict.enabled.get()) {
-            if (forceIfInDanger.get()) forceBlock = true;
-            shouldBlock |= runDangerPrediction(enemiesInRange);
+        if (!forceBlock) {
+            if (checkEnemyDirection.get()) {
+                AxisAlignedBB playerBB = mc.thePlayer.getEntityBoundingBox();
+                for (Entity enemy : enemiesInRange) {
+                    Vec3 enemyEyePos = enemy.getPositionEyes(1);
+                    if (
+                            Math.abs(RotationUtils.getRotationDeltaAimingPoint(
+                                    enemyEyePos,
+                                    new Rotation(enemy.rotationYaw, enemy.rotationPitch), eyePos
+                            ).getYaw()) <= maxYawDiff.get()
+                    )
+                        break;
+                    if (checkDistance.get() && enemyEyePos.distanceTo(eyePos) < maxDistance.get())
+                        break;
+                    if (checkInside.get() && playerBB.isVecInside(enemyEyePos))
+                        break;
+                    shouldBlock = false;
+                }
+            }
+            if (predict.enabled.get()) {
+                if (forceIfInDanger.get()) forceBlock = true;
+                shouldBlock |= runDangerPrediction(enemiesInRange);
+            }
         }
 
         boolean block = forceBlock;
@@ -315,6 +324,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     }
 
     private DelayedPacket delayed = null;
+    private boolean forceBlockAgain = false;
     public void processLag(EventProactiveLag event) {
         Packet packet = event.getEventPacket();
         if (event.getPacketType() == PacketType.IN) {
@@ -347,6 +357,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                         if (((EntityLivingBase) entityAttack).hurtTime == 0) {
                             delayed.setForceFlush(true);
                             delayed = null;
+                            if (forceBlockNextTick.get()) forceBlockAgain = true;
                         }
                     }
                 }
