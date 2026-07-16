@@ -100,15 +100,14 @@ public class AttackReduceVelocity extends AbstractSubModule<Velocity> implements
 
         EntityPlayerSP player = mc.thePlayer;
 
-        Entity rawEntity = (Entity) player;
-        if (!rawEntity.isSprinting()) return;
-        if (!isMoving(rawEntity)) return;
-        if (target == player) return;
+        if (!player.isSprinting()) return;
+        if (!isMoving(player)) return;
         if (badPackets()) return;
+        if (player.getPositionEyes(1).distanceTo(target.getPositionEyes(1)) > 3) return;
 
         FrostCore.getHelpers().getPacketManager().sendPacket(new C0APacketAnimation(), true);
         FrostCore.getHelpers().getPacketManager().sendPacket(
-                new C02PacketUseEntity((Entity) target, C02PacketUseEntity.Action.ATTACK), true
+                new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK), true
         );
 
         double mx = player.motionX * 0.6;
