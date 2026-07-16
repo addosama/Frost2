@@ -1,4 +1,4 @@
-package pub.frost.client.feature.helper.network;
+package pub.frost.client.feature.helper.network.lag;
 
 import lombok.Setter;
 import pub.frost.utils.api.Tickable;

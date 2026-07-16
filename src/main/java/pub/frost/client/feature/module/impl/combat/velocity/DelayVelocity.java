@@ -4,8 +4,8 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import pub.frost.base.event.impl.events.EventProactiveLag;
-import pub.frost.client.feature.helper.network.DelayedPacket;
-import pub.frost.client.feature.helper.network.TickableLagTickSupplier;
+import pub.frost.client.feature.helper.network.lag.DelayedPacketDeque;
+import pub.frost.client.feature.helper.network.lag.TickableLagTickSupplier;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.Velocity;
@@ -15,7 +15,6 @@ import pub.frost.client.property.annotations.PropertyGroupMain;
 import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 
-import java.util.*;
 import java.util.function.Supplier;
 
 @SubModule(Velocity.class)
@@ -37,7 +36,7 @@ public class DelayVelocity extends AbstractSubModule<Velocity> implements Suppli
     public final IntegerProperty delayTicks = new IntegerProperty(1, 10, 1, 1).setVisibilitySupplier(() -> !untilGround.get());
 
     private boolean flag = false;
-    private DelayedPacket delayed = null;
+    private DelayedPacketDeque delayed = null;
 
     public void processIncomingPacket(EventProactiveLag event) {
         if (delayed != null) {

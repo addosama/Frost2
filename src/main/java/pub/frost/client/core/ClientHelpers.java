@@ -1,7 +1,7 @@
 package pub.frost.client.core;
 
 import lombok.Getter;
-import pub.frost.client.feature.helper.network.LagManager;
+import pub.frost.client.feature.helper.network.lag.LagManager;
 import pub.frost.client.feature.helper.network.PacketManager;
 import pub.frost.client.feature.helper.player.interact.PlayerListener;
 import pub.frost.client.feature.helper.player.rotation.RotationManager;

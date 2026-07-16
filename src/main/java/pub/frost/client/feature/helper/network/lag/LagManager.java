@@ -1,4 +1,4 @@
-package pub.frost.client.feature.helper.network;
+package pub.frost.client.feature.helper.network.lag;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,25 +13,24 @@ import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventProactiveLag;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.base.event.impl.types.TickType;
-import net.minecraft.client.Minecraft;
 import pub.frost.client.core.FrostCore;
+import pub.frost.utils.wrappers.MinecraftWrapper;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Supplier;
 
 @Setter
-public class LagManager {
-    private final Minecraft mc = Minecraft.getMinecraft();
-    private final Deque<DelayedPacket> incomingPacketDeque = new ConcurrentLinkedDeque<>();
-    private final Deque<DelayedPacket> outgoingPacketDeque = new ConcurrentLinkedDeque<>();
+public class LagManager implements MinecraftWrapper {
+    private final Deque<DelayedPacketDeque> incomingPacketDeque = new ConcurrentLinkedDeque<>();
+    private final Deque<DelayedPacketDeque> outgoingPacketDeque = new ConcurrentLinkedDeque<>();
 
     @Setter @Getter
     private int sendThreshold = 0;
 
     public boolean processIncoming(Packet<?> packet) {
         while (!incomingPacketDeque.isEmpty()) {
-            DelayedPacket data = incomingPacketDeque.peekFirst();
+            DelayedPacketDeque data = incomingPacketDeque.peekFirst();
             if (data.forceFlush || data.getRemainingTicks() <= getSendThreshold()) {
                 data.packetList.forEach(p -> p.processPacket(mc.getNetHandler()));
                 data.setFlushed();
@@ -44,7 +43,7 @@ public class LagManager {
 
         Supplier<Integer> lagTicksSupplier = lagEvent.getLagTicksSupplier();
         if (lagTicksSupplier != null) {
-            DelayedPacket delayed = new DelayedPacket(lagTicksSupplier);
+            DelayedPacketDeque delayed = new DelayedPacketDeque(lagTicksSupplier);
             if (incomingPacketDeque.offerLast(delayed) && lagEvent.getDelayedPacketConsumer() != null) {
                 lagEvent.getDelayedPacketConsumer().accept(delayed);
             }
@@ -68,7 +67,7 @@ public class LagManager {
         }
 
         while (!outgoingPacketDeque.isEmpty()) {
-            DelayedPacket data = outgoingPacketDeque.peekFirst();
+            DelayedPacketDeque data = outgoingPacketDeque.peekFirst();
             if (data.forceFlush || data.getRemainingTicks() <= getSendThreshold()) {
                 data.packetList.forEach(
                         p -> FrostCore.getHelpers().getPacketManager().sendPacket(p, false)
@@ -83,7 +82,7 @@ public class LagManager {
 
         Supplier<Integer> lagTicksSupplier = lagEvent.getLagTicksSupplier();
         if (lagTicksSupplier != null) {
-            DelayedPacket delayed = new DelayedPacket(lagTicksSupplier);
+            DelayedPacketDeque delayed = new DelayedPacketDeque(lagTicksSupplier);
             if (outgoingPacketDeque.offerLast(delayed) && lagEvent.getDelayedPacketConsumer() != null) {
                 lagEvent.getDelayedPacketConsumer().accept(delayed);
             }
@@ -122,13 +121,13 @@ public class LagManager {
 
     private void flushIncoming() {
         while (!incomingPacketDeque.isEmpty()) {
-            DelayedPacket data = incomingPacketDeque.poll();
+            DelayedPacketDeque data = incomingPacketDeque.poll();
             data.packetList.forEach(p -> p.processPacket(mc.getNetHandler()));
         }
     }
     private void flushOutgoing() {
         while (!outgoingPacketDeque.isEmpty()) {
-            DelayedPacket data = outgoingPacketDeque.poll();
+            DelayedPacketDeque data = outgoingPacketDeque.poll();
             data.packetList.forEach(
                     p -> FrostCore.getHelpers().getPacketManager().sendPacket(p, false)
             );

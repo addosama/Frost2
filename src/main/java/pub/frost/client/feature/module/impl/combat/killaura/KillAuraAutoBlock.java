@@ -18,7 +18,7 @@ import net.minecraft.util.Vec3;
 import pub.frost.base.event.impl.events.EventProactiveLag;
 import pub.frost.base.event.impl.types.PacketType;
 import pub.frost.client.core.FrostCore;
-import pub.frost.client.feature.helper.network.DelayedPacket;
+import pub.frost.client.feature.helper.network.lag.DelayedPacketDeque;
 import pub.frost.client.feature.module.annotations.SubModule;
 import pub.frost.client.feature.module.api.AbstractSubModule;
 import pub.frost.client.feature.module.impl.combat.KillAura;
@@ -128,7 +128,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
 
         final Vec3 eyePos = mc.thePlayer.getPositionEyes(1);
         final List<Entity> enemiesInRange = getParent().searching.getLastSearchResult().stream().filter(
-                e -> EntityUtils.getDistanceToPoint(e, eyePos) < range
+                e -> EntityUtils.getDistanceToPoint(e, eyePos) <= range
         ).sorted(
                 Comparator.comparingDouble(e -> EntityUtils.getDistanceToPoint(e, eyePos))
         ).collect(Collectors.toList());
@@ -160,7 +160,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
             }
             if (predict.enabled.get()) {
                 if (forceIfInDanger.get()) forceBlock = true;
-                shouldBlock |= runDangerPrediction(enemiesInRange);
+                shouldBlock &= runDangerPrediction(eyePos, enemiesInRange);
             }
         }
 
@@ -197,7 +197,18 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         if (block) makeBlocking();
     }
 
-    private boolean runDangerPrediction(List<Entity> enemyList) {
+    private boolean runDangerPrediction(Vec3 playerEyePos, List<Entity> entitiesInBlockRange) {
+        final List<Entity> enemyList;
+        if (predict.customSearchRange.get())
+            enemyList = entitiesInBlockRange;
+        else {
+            final float searchRange = predict.searchRange.get();
+            enemyList = getParent().searching.getLastSearchResult().stream().filter(
+                    e -> EntityUtils.getDistanceToPoint(e, playerEyePos) <= searchRange
+            ).sorted(
+                    Comparator.comparingDouble(e -> EntityUtils.getDistanceToPoint(e, playerEyePos))
+            ).collect(Collectors.toList());
+        }
         boolean inDanger = false;
         for (Entity entity : enemyList) {
             if (inDanger) break;
@@ -323,7 +334,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         switchedFromSlot = -1;
     }
 
-    private DelayedPacket delayed = null;
+    private DelayedPacketDeque delayed = null;
     private boolean forceBlockAgain = false;
     public void processLag(EventProactiveLag event) {
         Packet packet = event.getEventPacket();
