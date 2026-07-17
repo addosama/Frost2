@@ -122,7 +122,7 @@ public class Scaffold extends AbstractModule {
     }
 
     @EventHandler
-    private void onPreTickLoop(EventPreTickLoop event) {
+    private void onPreTickLoop(EventPlayerUpdateTick event) {
         final EntityPlayerSP player = mc.thePlayer;
         World world = mc.theWorld;
         if (player == null || world == null) {
@@ -379,6 +379,9 @@ public class Scaffold extends AbstractModule {
                     data.getFaceToUse()
             );
 
+            // todo place range property
+            if (mc.thePlayer.getPositionEyes(1).distanceTo(hitVec) > 4.5) continue;
+
             if (net.minecraft.client.Minecraft.getMinecraft().playerController.onPlayerRightClick(
                     net.minecraft.client.Minecraft.getMinecraft().thePlayer,
                     net.minecraft.client.Minecraft.getMinecraft().theWorld,
@@ -415,7 +418,16 @@ public class Scaffold extends AbstractModule {
                 }
             }
             if (telly.get()) {
-                if (Math.max(Math.abs(event.getMoveForward()), Math.abs(event.getMoveStrafe())) > 0.01) {
+                // todo sprint check property
+                if (
+                        Math.max(Math.abs(event.getMoveForward()), Math.abs(event.getMoveStrafe())) > 0.01
+//                        && Math.abs(
+//                                RotationUtils.getDirection(mc.thePlayer.rotationYaw, event.getMoveForward(), event.getMoveStrafe())
+//                                - FrostCore.getHelpers().getRotationManager().getPlayerYaw()
+//                        ) < 45
+
+                        && mc.thePlayer.isSprinting()
+                ) {
                     event.setJump(true);
                 }
             }
