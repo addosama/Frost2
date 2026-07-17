@@ -78,11 +78,8 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
 
     @InsertProperty("Predict")
     public final Prediction predict = new Prediction();
-    @Property("ForceIfInDanger")
-    public final BooleanProperty forceIfInDanger = new BooleanProperty(true)
-            .setVisibilitySupplier(predict.enabled::get);
     @Property("BlockRange")
-    public final FloatProperty blockRange = new FloatProperty(0, 6, 0.01f, 3f);
+    public final FloatProperty blockRange = new FloatProperty(0, 8, 0.01f, 3f);
 
     @Property("LimiterMode")
     public final ModeProperty<LimiterMode> limiterMode = new ModeProperty<>(LimiterMode.CHANCE);
@@ -159,8 +156,8 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                 }
             }
             if (predict.enabled.get()) {
-                if (forceIfInDanger.get()) forceBlock = true;
-                shouldBlock &= runDangerPrediction(eyePos, enemiesInRange);
+                shouldBlock &= runDangerPrediction(enemiesInRange);
+                if (shouldBlock && predict.forceIfInDanger.get()) forceBlock = true;
             }
         }
 
@@ -197,32 +194,22 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         if (block) makeBlocking();
     }
 
-    private boolean runDangerPrediction(Vec3 playerEyePos, List<Entity> entitiesInBlockRange) {
-        final List<Entity> enemyList;
-        if (predict.customSearchRange.get())
-            enemyList = entitiesInBlockRange;
-        else {
-            final float searchRange = predict.searchRange.get();
-            enemyList = getParent().searching.getLastSearchResult().stream().filter(
-                    e -> EntityUtils.getDistanceToPoint(e, playerEyePos) <= searchRange
-            ).sorted(
-                    Comparator.comparingDouble(e -> EntityUtils.getDistanceToPoint(e, playerEyePos))
-            ).collect(Collectors.toList());
-        }
+    private boolean runDangerPrediction(List<Entity> enemyList) {
         boolean inDanger = false;
         for (Entity entity : enemyList) {
             if (inDanger) break;
             if (!(entity instanceof EntityPlayer)) continue;
-
-            if (
-                    RayCastUtils.getSimpleHitResult(
-                            entity.getPositionEyes(1),
-                            entity.rotationYaw, entity.rotationPitch,
-                            mc.thePlayer.getEntityBoundingBox()
-                    ).getKey()
-            ) {
-                inDanger = true;
-                break;
+            Vec3 enemyEyePos = entity.getPositionEyes(1);
+            {
+                Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
+                        enemyEyePos,
+                        entity.rotationYaw, entity.rotationPitch,
+                        mc.thePlayer.getEntityBoundingBox()
+                );
+                if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.testRange.get()) {
+                    inDanger = true;
+                    break;
+                }
             }
 
             if (predict.predictPastPos.get()) {
@@ -233,14 +220,13 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                     AxisAlignedBB pastBB = EntityUtils.getBoundingBoxAtPosition(
                             mc.thePlayer, pastPos
                     );
+                    Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
+                            enemyEyePos,
+                            entity.rotationYaw, entity.rotationPitch,
+                            pastBB
+                    );
 
-                    if (
-                            RayCastUtils.getSimpleHitResult(
-                                    entity.getPositionEyes(1),
-                                    entity.rotationYaw, entity.rotationPitch,
-                                    pastBB
-                            ).getKey()
-                    ) {
+                    if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.pastPosTestRange.get()) {
                         inDanger = true;
                         break;
                     }
@@ -250,24 +236,19 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                 Deque<Map.Entry<Vec3, Vec3>> velocityDeque = FrostCore.getHelpers().getPlayerListener().getVelocityDeque().getValueCopy();
                 for (int ticks = 0; ticks <= predict.velocityInTicks.get(); ticks++) {
                     if (velocityDeque.isEmpty()) break;
-
-                    if (velocityDeque.peekFirst() == null) {
-                        velocityDeque.pollFirst();
-                        continue;
-                    }
-
-                    Vec3 pastPos = velocityDeque.pollFirst().getKey();
+                    Map.Entry<Vec3, Vec3> vEntry = velocityDeque.pollFirst();
+                    if (vEntry == null) continue;
+                    Vec3 veloPos = vEntry.getKey();
                     AxisAlignedBB pastBB = EntityUtils.getBoundingBoxAtPosition(
-                            mc.thePlayer, pastPos
+                            mc.thePlayer, veloPos
+                    );
+                    Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
+                            entity.getPositionEyes(1),
+                            entity.rotationYaw, entity.rotationPitch,
+                            pastBB
                     );
 
-                    if (
-                            RayCastUtils.getSimpleHitResult(
-                                    entity.getPositionEyes(1),
-                                    entity.rotationYaw, entity.rotationPitch,
-                                    pastBB
-                            ).getKey()
-                    ) {
+                    if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.velocityPosTestRange.get()) {
                         inDanger = true;
                         break;
                     }
@@ -382,26 +363,30 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
     }
 
     public static class Prediction {
-        @TranslationKey("strings.enabled")
         @PropertyGroupMain
         @Property("Enabled")
         public final BooleanProperty enabled = new BooleanProperty(false);
+        @Property("TestRange")
+        public final FloatProperty testRange = new FloatProperty(0, 6, 0.01f, 3.2f);
 
-        @Property("CustomSearchRange")
-        public final BooleanProperty customSearchRange = new BooleanProperty(false);
-        @Property("SearchRange")
-        public final FloatProperty searchRange = new FloatProperty(0, 8, 0.01f, 3f)
-                .setVisibilitySupplier(customSearchRange::get);
-
-        @Property("TestPastPosition")
+        @PropertyGroupMain
+        @Property(value = "Enabled", startGroup = "TestPastPosition")
         public final BooleanProperty predictPastPos = new BooleanProperty(true);
         @Property("PastTicks")
         public final IntegerProperty pastTicks = new IntegerProperty(1, 20, 1, 5);
+        @Property(value = "PastPositionTestRange", endGroup = true)
+        public final FloatProperty pastPosTestRange = new FloatProperty(0, 8, 0.01f, 6f);
 
-        @Property("TestVelocityPosition")
+        @PropertyGroupMain
+        @Property(value = "Enabled", startGroup = "TestVelocityPosition")
         public final BooleanProperty testVelocityPosition = new BooleanProperty(true);
         @Property("VelocityInTicks")
         public final IntegerProperty velocityInTicks = new IntegerProperty(1, 20, 1, 5);
+        @Property(value = "VelocityPositionTestRange", endGroup = true)
+        public final FloatProperty velocityPosTestRange = new FloatProperty(0, 8, 0.01f, 6f);
+
+        @Property("ForceIfInDanger")
+        public final BooleanProperty forceIfInDanger = new BooleanProperty(true);
     }
 
     @RequiredArgsConstructor
