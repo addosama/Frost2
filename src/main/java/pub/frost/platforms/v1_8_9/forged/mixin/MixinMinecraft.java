@@ -15,6 +15,7 @@ import pub.frost.base.event.impl.events.EventGameTick;
 import pub.frost.base.event.impl.events.EventPreProcessInteract;
 import pub.frost.base.event.impl.events.EventPreTickLoop;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.helper.game.state.EnumGameState;
 import pub.frost.utils.InputUtils;
 
 @Mixin(Minecraft.class)
@@ -27,6 +28,7 @@ public abstract class MixinMinecraft {
             at = @At("HEAD")
     )
     private void preGameTick(CallbackInfo ci) {
+        FrostCore.getHelpers().getGameStateListener().setCurrent(EnumGameState.PreGameTick);
         FrostCore.getEventBus().call(EventGameTick.PRE);
     }
 
@@ -35,6 +37,7 @@ public abstract class MixinMinecraft {
             at = @At("TAIL")
     )
     private void postGameTick(CallbackInfo ci) {
+        FrostCore.getHelpers().getGameStateListener().setCurrent(EnumGameState.PostGameTick);
         FrostCore.getEventBus().call(EventGameTick.POST);
     }
 
@@ -111,6 +114,7 @@ public abstract class MixinMinecraft {
             )
     )
     private void preTickLoop(CallbackInfo ci) {
+        FrostCore.getHelpers().getGameStateListener().setCurrent(EnumGameState.PreTickLoop);
         FrostCore.getEventBus().call(new EventPreTickLoop(
                 timer.elapsedTicks,
                 timer.renderPartialTicks

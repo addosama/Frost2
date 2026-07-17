@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pub.frost.base.event.impl.events.*;
 import pub.frost.base.rendering.ClientRenderContext;
 import pub.frost.client.core.FrostCore;
+import pub.frost.client.feature.helper.game.state.EnumGameState;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class MixinEntityRenderer {
             )
     )
     private void preRenderHand(int pass, float partialTicks, long finishTimeNano, CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventRender3D(partialTicks));
+        FrostCore.getEventBus().call(new EventRender3D(partialTicks));
     }
 
     @Inject(
@@ -45,8 +46,9 @@ public class MixinEntityRenderer {
             at = @At("TAIL")
     )
     private void postRender(float partialTicks, long nanoTime, CallbackInfo ci) {
+        FrostCore.getHelpers().getGameStateListener().setCurrent(EnumGameState.PostRender);
         ClientRenderContext.draw(
-                () -> FrostCore.getInstance().getEventBus().call(new EventPostRender(partialTicks))
+                () -> FrostCore.getEventBus().call(new EventPostRender(partialTicks))
         );
     }
 
@@ -55,7 +57,8 @@ public class MixinEntityRenderer {
             at = @At("HEAD")
     )
     private void preRender(float partialTicks, long nanoTime, CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventPreRender(partialTicks));
+        FrostCore.getHelpers().getGameStateListener().setCurrent(EnumGameState.PreRender);
+        FrostCore.getEventBus().call(new EventPreRender(partialTicks));
     }
 
     @Redirect(
@@ -68,7 +71,7 @@ public class MixinEntityRenderer {
     )
     public float onGetGamma(GameSettings instance) {
         EventUpdateLightMap event = new EventUpdateLightMap(instance.gammaSetting);
-        FrostCore.getInstance().getEventBus().call(event);
+        FrostCore.getEventBus().call(event);
         return event.getGamma();
     }
 
