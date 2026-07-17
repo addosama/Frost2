@@ -30,7 +30,7 @@ public class MixinEntityPlayerSP {
             at = @At("HEAD")
     )
     private void preUpdateTick(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventPlayerUpdateTick(TickType.PRE));
+        FrostCore.getEventBus().call(new EventPlayerUpdateTick(TickType.PRE));
     }
 
     @Inject(
@@ -38,7 +38,7 @@ public class MixinEntityPlayerSP {
             at = @At("TAIL")
     )
     private void postUpdateTick(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(new EventPlayerUpdateTick(TickType.POST));
+        FrostCore.getEventBus().call(new EventPlayerUpdateTick(TickType.POST));
     }
 
     @Inject(
@@ -49,7 +49,7 @@ public class MixinEntityPlayerSP {
             )
     )
     private void preMotionUpdate(CallbackInfo ci) {
-        FrostCore.getInstance().getEventBus().call(EventPrePlayerMotionUpdate.INSTANCE);
+        FrostCore.getEventBus().call(EventPrePlayerMotionUpdate.INSTANCE);
     }
 
     @Redirect(
@@ -61,7 +61,7 @@ public class MixinEntityPlayerSP {
     )
     private boolean onSprint(KeyBinding instance) {
         EventSprint event = new EventSprint(instance.isKeyDown());
-        FrostCore.getInstance().getEventBus().call(event);
+        FrostCore.getEventBus().call(event);
         return event.isKeyDown();
     }
 
@@ -75,7 +75,7 @@ public class MixinEntityPlayerSP {
     private boolean onUseItemSlowdown(EntityPlayerSP instance) {
         if (!instance.isRiding()) {
             EventPlayerUseItemSlowdown event = new EventPlayerUseItemSlowdown(0.2f, 0.2f);
-            FrostCore.getInstance().getEventBus().call(event);
+            FrostCore.getEventBus().call(event);
             movementInput.moveStrafe *= event.getStrafe();
             movementInput.moveForward *= event.getForward();
             sprintToggleTimer = 0;
@@ -92,7 +92,7 @@ public class MixinEntityPlayerSP {
             )
     )
     private float redirectRotYaw(EntityPlayerSP instance) {
-        return FrostCore.getInstance().getRotationManager().getPlayerYaw();
+        return FrostCore.getHelpers().getRotationManager().getPlayerYaw();
     }
 
     @Redirect(
@@ -104,6 +104,6 @@ public class MixinEntityPlayerSP {
             )
     )
     private float redirectRotPitch(EntityPlayerSP instance) {
-        return FrostCore.getInstance().getRotationManager().getPlayerPitch();
+        return FrostCore.getHelpers().getRotationManager().getPlayerPitch();
     }
 }

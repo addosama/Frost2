@@ -23,7 +23,7 @@ public class MixinPacketThreadUtil {
     )
     private static <T extends INetHandler> ListenableFuture<Object> onProcess(IThreadListener instance, Runnable runnable, final Packet<T> packet, final T iNetHandler, IThreadListener iThreadListener) {
         return instance.addScheduledTask(() -> {
-            if (!FrostCore.getInstance().getPacketManager().processIncoming(packet)) {
+            if (!FrostCore.getHelpers().getPacketManager().processIncoming(packet)) {
                 packet.processPacket(iNetHandler);
             }
         });

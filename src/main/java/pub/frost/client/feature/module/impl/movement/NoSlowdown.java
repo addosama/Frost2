@@ -28,7 +28,7 @@ public class NoSlowdown extends AbstractModule {
 
     @EventHandler
     private void onUseItemSlowdown(EventPlayerUseItemSlowdown event) {
-        if (requireC09.get() && FrostCore.getInstance().getPlayerListener().getTicksSinceHeldItemChange() > maxC09TickPass.get())
+        if (requireC09.get() && FrostCore.getHelpers().getPlayerListener().getTicksSinceHeldItemChange() > maxC09TickPass.get())
             return;
 
         event.setForward(forward.get());

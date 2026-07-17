@@ -17,8 +17,8 @@ public class MixinEntity {
     )
     private void onSetRotation(float yaw, float pitch, CallbackInfo ci) {
         if ((Object) this instanceof EntityPlayerSP) {
-            FrostCore.getInstance().getRotationManager().setPlayerYaw(yaw % 360.0F);
-            FrostCore.getInstance().getRotationManager().setPlayerPitch(pitch % 360.0F);
+            FrostCore.getHelpers().getRotationManager().setPlayerYaw(yaw % 360.0F);
+            FrostCore.getHelpers().getRotationManager().setPlayerPitch(pitch % 360.0F);
             ci.cancel();
         }
     }

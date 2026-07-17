@@ -67,7 +67,7 @@ public class BlinkNoslow extends AbstractModule {
                         EnumFacing.DOWN
                 ));
             } else {
-                FrostCore.getInstance().getPacketManager().sendPacket(
+                FrostCore.getHelpers().getPacketManager().sendPacket(
                         new C08PacketPlayerBlockPlacement(
                                 net.minecraft.client.Minecraft.getMinecraft().thePlayer.getCurrentEquippedItem()), false);
             }
@@ -104,7 +104,7 @@ public class BlinkNoslow extends AbstractModule {
         }
 
         for (Packet packet : packets) {
-            FrostCore.getInstance().getPacketManager().sendPacket(packet, false);
+            FrostCore.getHelpers().getPacketManager().sendPacket(packet, false);
         }
         packets.clear();
     }

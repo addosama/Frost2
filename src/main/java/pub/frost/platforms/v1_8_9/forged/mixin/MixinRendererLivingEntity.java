@@ -16,7 +16,7 @@ public class MixinRendererLivingEntity<T extends EntityLivingBase> {
             at = @At(value = "FIELD", target = "Lnet/minecraft/entity/EntityLivingBase;prevRotationPitch:F", opcode = Opcodes.GETFIELD)
     )
     public float getPrevRotationPitch(EntityLivingBase instance) {
-        if (instance instanceof EntityPlayerSP) return FrostCore.getInstance().getRotationManager().getPrevSilentPitch();
+        if (instance instanceof EntityPlayerSP) return FrostCore.getHelpers().getRotationManager().getPrevSilentPitch();
         return instance.prevRotationPitch;
     }
 
@@ -25,7 +25,7 @@ public class MixinRendererLivingEntity<T extends EntityLivingBase> {
             at = @At(value = "FIELD", target = "Lnet/minecraft/entity/EntityLivingBase;rotationPitch:F", opcode = Opcodes.GETFIELD)
     )
     public float getRotationPitch(EntityLivingBase instance) {
-        if (instance instanceof EntityPlayerSP) return FrostCore.getInstance().getRotationManager().getSilentPitch();
+        if (instance instanceof EntityPlayerSP) return FrostCore.getHelpers().getRotationManager().getSilentPitch();
         return instance.rotationPitch;
     }
 }

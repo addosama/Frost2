@@ -23,7 +23,7 @@ public enum EnumEntityTargetPriority implements Named {
                 ((Entity) player).posY + ((Entity) player).getEyeHeight(),
                 ((Entity) player).posZ
         );
-        float playerYaw = RotationUtils.wrapYawTo180(FrostCore.getInstance().getRotationManager().getPlayerYaw());
+        float playerYaw = RotationUtils.wrapYawTo180(FrostCore.getHelpers().getRotationManager().getPlayerYaw());
         return Comparator.comparingDouble(target -> Math.abs(
                 RotationUtils.wrapYawTo180(RotationUtils.getRotationAimingPoint(eyePos, ((Entity) target).getPositionVector()).getYaw())
                 - playerYaw

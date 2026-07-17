@@ -18,6 +18,6 @@ public class MixinNetworkManager {
             cancellable = true
     )
     public void preSendPacket(Packet packetIn, CallbackInfo ci) {
-        if (FrostCore.getInstance().getPacketManager().processOutgoing(packetIn)) ci.cancel();
+        if (FrostCore.getHelpers().getPacketManager().processOutgoing(packetIn)) ci.cancel();
     }
 }
