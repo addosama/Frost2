@@ -194,6 +194,11 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         if (block) makeBlocking();
     }
 
+    private AxisAlignedBB expandBB(AxisAlignedBB bb) {
+        final float expandSize = predict.expandBB.get();
+        if (expandSize > 0) return bb.expand(expandSize, expandSize, expandSize);
+        return bb;
+    }
     private boolean runDangerPrediction(List<Entity> enemyList) {
         boolean inDanger = false;
         for (Entity entity : enemyList) {
@@ -204,7 +209,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                 Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
                         enemyEyePos,
                         entity.rotationYaw, entity.rotationPitch,
-                        mc.thePlayer.getEntityBoundingBox()
+                        expandBB(mc.thePlayer.getEntityBoundingBox())
                 );
                 if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.testRange.get()) {
                     inDanger = true;
@@ -223,7 +228,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                     Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
                             enemyEyePos,
                             entity.rotationYaw, entity.rotationPitch,
-                            pastBB
+                            expandBB(pastBB)
                     );
 
                     if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.pastPosTestRange.get()) {
@@ -245,7 +250,7 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
                     Map.Entry<Boolean, Vec3> rayCast = RayCastUtils.getSimpleHitResult(
                             entity.getPositionEyes(1),
                             entity.rotationYaw, entity.rotationPitch,
-                            pastBB
+                            expandBB(pastBB)
                     );
 
                     if (rayCast.getKey() && enemyEyePos.distanceTo(rayCast.getValue()) <= predict.velocityPosTestRange.get()) {
@@ -366,6 +371,9 @@ public class KillAuraAutoBlock extends AbstractSubModule<KillAura> {
         @PropertyGroupMain
         @Property("Enabled")
         public final BooleanProperty enabled = new BooleanProperty(false);
+        @Property("ExpandBoundingBox")
+        public final FloatProperty expandBB = new FloatProperty(0, 1, 0.05f, 0);
+
         @Property("TestRange")
         public final FloatProperty testRange = new FloatProperty(0, 6, 0.01f, 3.2f);
 
