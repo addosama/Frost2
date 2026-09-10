@@ -38,6 +38,9 @@ public class CategoryPanel extends PanelComponent {
         ImGui.pushStyleVar(ImGuiStyleVar.ChildRounding, 12);
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 8, 8);
         ImGui.pushStyleVar(ImGuiStyleVar.ItemSpacing, 8, 8);
+        final ImDrawList draws = ImGui.getWindowDrawList();
+        draws.channelsSplit(2);
+        draws.channelsSetCurrent(1);
         ImGui.beginChild(
                 "CategoryPanel",
                 170f, 0,
@@ -57,6 +60,13 @@ public class CategoryPanel extends PanelComponent {
         renderUserInfo(dummy, tickDelta);
 
         ImGui.endChild();
+        draws.channelsSetCurrent(0);
+        draws.addRectFilled(
+                ImGui.getItemRectMin(), ImGui.getItemRectMax(),
+                gui.getTheme().getCategoryPanelBgColor(),
+                12f
+        );
+        draws.channelsMerge();
         ImGui.popStyleVar(3);
     }
 
