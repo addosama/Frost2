@@ -6,12 +6,15 @@ import imgui.ImVec2;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4f;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -305,50 +308,104 @@ public class RenderUtils {
             currentX -= singleWidth;
         }
     }
-    /*
-    public static void drawVerticalGradientRect(float x, float y, float width, float height, int... colors) {
-        if (colors.length < 2) {
-            if (colors.length == 1) drawRect(x, y, width, height, colors[0]);
-            return;
-        }
 
-        GlStateManager.disableTexture2D();
-        GlStateManager.enableBlend();
-        GlStateManager.disableAlpha();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.shadeModel(7425);
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        int colorSize = colors.length;
-        float singleHeight = height / (colorSize - 1);
-        float currentY = y;
-        Function<Integer, float[]> rgbaFun = color -> new float[] {
-                (float)(color >> 16 & 255) / 255.0F,
-                (float)(color >> 8 & 255) / 255.0F,
-                (float)(color & 255) / 255.0F,
-                (float)(color >> 24 & 255) / 255.0F
-        };
-
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        for (int index = 0; index < colorSize - 1; index++) {
-            float[] rgba = rgbaFun.apply(colors[index]);
-            float[] next = rgbaFun.apply(colors[index + 1]);
-
-            worldrenderer.pos(x + width, currentY, 0).color(rgba[0], rgba[1], rgba[2], rgba[3]).endVertex();
-            worldrenderer.pos(x, currentY, 0).color(rgba[0], rgba[1], rgba[2], rgba[3]).endVertex();
-            worldrenderer.pos(x, currentY + singleHeight, 0).color(next[0], next[1], next[2], next[3]).endVertex();
-            worldrenderer.pos(x + width, currentY + singleHeight, 0).color(next[0], next[1], next[2], next[3]).endVertex();
-            currentY += singleHeight;
-        }
-//        worldrenderer.pos((double)right, (double)top, 0).color(f1, f2, f3, f).endVertex();
-//        worldrenderer.pos((double)left, (double)top, 0).color(f1, f2, f3, f).endVertex();
-//        worldrenderer.pos((double)left, (double)bottom, 0).color(f5, f6, f7, f4).endVertex();
-//        worldrenderer.pos((double)right, (double)bottom, 0).color(f5, f6, f7, f4).endVertex();
-        tessellator.draw();
-        GlStateManager.shadeModel(7424);
-        GlStateManager.disableBlend();
-        GlStateManager.enableAlpha();
-        GlStateManager.enableTexture2D();
+    private static final ByteBuffer pixelBuffer1 = BufferUtils.createByteBuffer(4);
+    public static int readPixel(int x, int y) {
+        GL11.glReadPixels(x, Display.getHeight() - y, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixelBuffer1);
+        return pixelBuffer1.getInt(0);
     }
-     */
+
+    public static void drawBlur(
+            ImDrawList draws,
+            float x, float y,
+            float width, float height,
+            int triangleSizeX, int triangleSizeY
+    ) {
+        if (triangleSizeX <= 0 || triangleSizeY <= 0)
+            return;
+
+        int vertexCountX = triangleSizeX + 1;
+        int vertexCountY = triangleSizeY + 1;
+
+        float stepX = width / triangleSizeX;
+        float stepY = height / triangleSizeY;
+
+        int vertexCount = vertexCountX * vertexCountY;
+        int indexCount = triangleSizeX * triangleSizeY * 6;
+
+        /*
+         * 读取整个区域
+         */
+        int[] colors = new int[vertexCount];
+
+        for (int iy = 0; iy < vertexCountY; iy++) {
+            for (int ix = 0; ix < vertexCountX; ix++) {
+                int px = Math.round(x + ix * stepX);
+                int py = Math.round(y + iy * stepY);
+
+                colors[iy * vertexCountX + ix] = readPixel(px, py);
+            }
+        }
+
+        /*
+         * 记录这次 geometry 在当前 DrawList 中的起始 vertex index。
+         *
+         * 这一点非常重要。
+         */
+        draws.primReserve(indexCount, vertexCount);
+
+        int vertexOffset = draws.getVtxCurrentIdx();
+
+        /*
+         * ImGui 的纯色顶点应该使用 FontAtlas 的 WhitePixel UV，
+         * 而不是 0,0。
+         *
+         * 根据你的 imgui-java 绑定，通常可以从 ImGui 得到：
+         */
+        ImVec2 whiteUv = ImGui.getFontTexUvWhitePixel();
+
+        /*
+         * 写 vertices
+         */
+        for (int iy = 0; iy < vertexCountY; iy++) {
+            float py = y + iy * stepY;
+
+            for (int ix = 0; ix < vertexCountX; ix++) {
+                float px = x + ix * stepX;
+
+                int color = colors[iy * vertexCountX + ix];
+
+                draws.primWriteVtx(
+                        px,
+                        py,
+                        whiteUv.x,
+                        whiteUv.y,
+                        color
+                );
+            }
+        }
+
+        /*
+         * 写 indices
+         */
+        for (int iy = 0; iy < triangleSizeY; iy++) {
+            for (int ix = 0; ix < triangleSizeX; ix++) {
+
+                int v00 = vertexOffset + iy * vertexCountX + ix;
+                int v10 = v00 + 1;
+                int v01 = v00 + vertexCountX;
+                int v11 = v01 + 1;
+
+                // triangle 1
+                draws.primWriteIdx(v00);
+                draws.primWriteIdx(v10);
+                draws.primWriteIdx(v11);
+
+                // triangle 2
+                draws.primWriteIdx(v00);
+                draws.primWriteIdx(v11);
+                draws.primWriteIdx(v01);
+            }
+        }
+    }
 }

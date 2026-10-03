@@ -16,6 +16,7 @@ import pub.frost.client.property.impl.bool.BooleanProperty;
 import pub.frost.client.property.impl.number.IntegerProperty;
 import pub.frost.client.property.preset.impl.ColorSetting;
 import pub.frost.utils.ImTextRenderer;
+import pub.frost.utils.RenderUtils;
 
 @TranslationKey("modules.hud.props.toggledmodules.name")
 public class ToggledModulesOverlay extends ClientOverlay implements Named {
@@ -31,7 +32,7 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
     @Property("HorizontalPadding")
     public final IntegerProperty horizontalPadding = new IntegerProperty(0, 20, 1, 10);
     @Property("VerticalPadding")
-    public final IntegerProperty verticalPadding = new IntegerProperty(0, 10, 1, 4);
+    public final IntegerProperty verticalPadding = new IntegerProperty(2, 16, 1, 6);
 
     @InsertProperty("TextColor")
     public final ColorSetting textColor = new ColorSetting(0xFFFFEAE5, false);
@@ -42,6 +43,11 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
     public final BooleanProperty background = new BooleanProperty(true);
     @InsertProperty("BackgroundColor")
     public final ColorSetting backgroundColor = new ColorSetting(0xCC331914, true, background::get);
+    @Property("BackgroundBlur")
+    public final BooleanProperty backgroundBlur = new BooleanProperty(true);
+    @Property("BlurQuality")
+    public final IntegerProperty blurQuality = new IntegerProperty(4, 16, 1, 8)
+            .setVisibilitySupplier(backgroundBlur::get);
 
     @Property("Sidebar")
     public final BooleanProperty sidebar = new BooleanProperty(true);
@@ -102,9 +108,24 @@ public class ToggledModulesOverlay extends ClientOverlay implements Named {
                 textColor = this.textColor.getColorABGR(index),
                 sidebarColor = this.sidebarFollowTextColor.get()? textColor : this.sidebarColor.getColorABGR(index);
 
+        final ImVec2 offseted = pos.plus(predicatedW * normalizedOffset.x, predicatedH * normalizedOffset.y);
+
+        if (backgroundBlur.get()) {
+            int quality = blurQuality.getMaxValue().intValue() + 4 - blurQuality.get();
+            float pixelsPerTriangle = quality * 2;
+            int triangleSizeX = Math.round(predicatedW / pixelsPerTriangle);
+            int triangleSizeY = Math.round(predicatedH / pixelsPerTriangle);
+
+            RenderUtils.drawBlur(
+                    draws,
+                    pos.x, pos.y, predicatedW, predicatedH,
+                    triangleSizeX, triangleSizeY
+            );
+        }
+
         if (background.get()) {
             draws.addRectFilled(
-                    pos, pos.plus(predicatedW * normalizedOffset.x, predicatedH * normalizedOffset.y),
+                    pos, offseted,
                     bgColor
             );
         }
