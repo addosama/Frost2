@@ -408,4 +408,60 @@ public class RenderUtils {
             }
         }
     }
+
+    public static void drawShadow(
+            ImDrawList draws,
+            float minX, float minY,
+            float maxX, float maxY,
+            float size, int innerColor, int outerColor
+    ) {
+        // Left Top
+        draws.addRectFilledMultiColor(
+                minX - size, minY - size,
+                minX, minY,
+                outerColor, outerColor, innerColor, outerColor
+        );
+        // Middle Top
+        draws.addRectFilledMultiColor(
+                minX, minY - size,
+                maxX, minY,
+                outerColor, outerColor, innerColor, innerColor
+        );
+        // Right Top
+        draws.addRectFilledMultiColor(
+                maxX, minY - size,
+                maxX + size, minY,
+                outerColor, outerColor, outerColor, innerColor
+        );
+        // Right Middle
+        draws.addRectFilledMultiColor(
+                maxX, minY,
+                maxX + size, maxY,
+                innerColor, outerColor, outerColor, innerColor
+        );
+        // Right Bottom
+        draws.addRectFilledMultiColor(
+                maxX, maxY,
+                maxX + size, maxY + size,
+                innerColor, outerColor, outerColor, outerColor
+        );
+        // Middle Bottom
+        draws.addRectFilledMultiColor(
+                minX, maxY,
+                maxX, maxY + size,
+                innerColor, innerColor, outerColor, outerColor
+        );
+        // Left Bottom
+        draws.addRectFilledMultiColor(
+                minX - size, maxY,
+                minX, maxY + size,
+                outerColor, innerColor, outerColor, outerColor
+        );
+        // Left Middle
+        draws.addRectFilledMultiColor(
+                minX - size, minY,
+                minX, maxY,
+                outerColor, innerColor, innerColor, outerColor
+        );
+    }
 }

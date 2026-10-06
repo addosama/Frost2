@@ -1,7 +1,9 @@
 package pub.frost.client.feature.screen.impl.clickgui.styles.panel;
 
 import imgui.ImColor;
+import imgui.ImDrawList;
 import imgui.ImGui;
+import imgui.ImVec2;
 import imgui.flag.*;
 import imgui.type.ImString;
 import lombok.Getter;
@@ -19,6 +21,7 @@ import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.wid
 import pub.frost.client.feature.screen.impl.clickgui.styles.panel.components.widgets.category.CategoryButtonGroup;
 import pub.frost.client.i18n.annotations.TranslationKey;
 import pub.frost.client.i18n.interfaces.Named;
+import pub.frost.utils.RenderUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,9 +84,21 @@ public class PanelClickGui implements RenderableComponent {
         ImGui.popStyleVar(4);
 
         ImGui.begin("Debug123");
+        ImVec2 wSize = ImGui.getWindowSize(), wPos = ImGui.getWindowPos();
+        ImDrawList wDraws = ImGui.getWindowDrawList();
         ImGui.text("Ctrl Down: " + ImGui.getIO().getKeyCtrl());
         ImGui.inputText("TestInput", str);
         ImGui.end();
+
+        wDraws.pushClipRectFullScreen();
+        RenderUtils.drawShadow(
+                wDraws,
+                wPos.x, wPos.y,
+                wPos.x + wSize.x, wPos.y + wSize.y,
+                16,
+                0x33000000, 0x00000000
+        );
+        wDraws.popClipRect();
     }
 
     private CategoryButton createCategoryButton(CategoryPanel panel, MainPanel boundPanel, String icon, Supplier<String> nameSupplier) {
